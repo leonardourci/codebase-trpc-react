@@ -1,7 +1,7 @@
 {
-  "name": "be-nota-verde",
+  "name": "codebase-back-end",
   "version": "1.0.0",
-  "description": "Back-end for Nota Verde SaaS",
+  "description": "Codebase back-end",
   "main": "dist/src/server.js",
   "scripts": {
     "start": "npm run build && node .",
@@ -9,7 +9,7 @@
     "dev": "npx nodemon --watch 'src/**/*.ts' --exec 'npx ts-node' src/server.ts"
   },
   "keywords": [],
-  "author": "",
+  "author": "Leonardo Guimarães Urci <https://github.com/leonardourci>",
   "license": "ISC",
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

@@ -1,5 +1,6 @@
 import Joi from 'joi'
 import type { ValidationResult } from 'joi'
+import { JoiValidationError } from '../errors'
 
 export enum ENodeEnvs {
   DEVELOPMENT = 'development',
@@ -17,7 +18,10 @@ export interface IEnvs {
 
 export class Envs {
   constructor() {
-    this.validate(process.env)
+    const { error } = this.validate(process.env)
+    if (error) {
+      throw new JoiValidationError(error)
+    }
   }
 
   get nodeEnv(): ENodeEnvs {
@@ -38,10 +42,10 @@ export class Envs {
 
   private validate = (payload: unknown): ValidationResult<IEnvs> =>
     Joi.object({
-      NODE_ENV: Joi.string().valid(Object.values(ENodeEnvs)).required(),
+      NODE_ENV: Joi.string().valid(...Object.values(ENodeEnvs)).required(),
       REST_PORT: Joi.number().integer().positive().required(),
       PG_CONNECTION_STRING: Joi.string().required(),
       HASH_SALT: Joi.number().integer().positive().required(),
       JWT_SECRET: Joi.string().required()
-    }).validate(payload, { abortEarly: false })
+    }).validate(payload, { allowUnknown: true, abortEarly: false })
 }

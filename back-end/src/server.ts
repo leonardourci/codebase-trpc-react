@@ -1,10 +1,9 @@
 import app from './app'
+import { Envs } from './utils/validations/Envs.validator'
 
-const { REST_PORT, ENVIRONMENT } = process.env
+const envs = new Envs()
 
-const PORT = Number(REST_PORT)
-
-app.listen(PORT, () => {
-  if (ENVIRONMENT === 'development') console.log(`Local server is running at http://localhost:${PORT}`)
-  if (ENVIRONMENT === 'production') console.log(`Server is running at port ${PORT}`)
+app.listen(envs.restPort, () => {
+  if (envs.nodeEnv === 'development') console.log(`Local server is running at http://localhost:${envs.restPort}`)
+  if (envs.nodeEnv === 'production') console.log(`Server is running at port ${envs.restPort}`)
 })

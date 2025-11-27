@@ -2,5 +2,8 @@
   "semi": false,
   "singleQuote": true,
   "trailingComma": "none",
-  "printWidth": 160
+  "printWidth": 160,
+  "bracketSpacing": true,
+  "useTabs": true,
+  "tabWidth": 2
 }

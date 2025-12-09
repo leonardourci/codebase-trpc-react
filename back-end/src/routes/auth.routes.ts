@@ -1,14 +1,11 @@
 import express from 'express'
 
-import { ExpressAdapter } from '../adapters'
-import AuthController from '../controllers/AuthController'
-import repositories from '../repositories'
+import { loginHandler, signupHandler } from '../controllers/AuthController'
+import { performJson } from '../adapters/ExpressAdapter'
 
 const router = express.Router()
 
-const authController = new AuthController(repositories)
-
-router.post('/login', ExpressAdapter.performJson(authController.login))
-router.post('/signup', ExpressAdapter.performJson(authController.signup))
+router.post('/login', performJson(loginHandler))
+router.post('/signup', performJson(signupHandler))
 
 export default router

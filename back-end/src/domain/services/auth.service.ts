@@ -4,7 +4,7 @@ import { generateJwtToken } from '../../utils/jwt'
 import { CustomError } from '../../utils/errors'
 import { EStatusCodes } from '../statusCodes'
 import { ILoginPayload, ILoginResponse, ISignupPayload, ISignupResponse } from '../../interfaces/auth'
-import { createUser, selectUserByEmail } from '../../repositories/User.repository'
+import { createUser, selectUserByEmail } from '../../repositories/user.repository'
 
 const { HASH_SALT } = process.env
 

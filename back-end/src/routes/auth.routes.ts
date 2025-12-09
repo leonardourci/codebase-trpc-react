@@ -1,7 +1,7 @@
 import express from 'express'
 
-import { loginHandler, signupHandler } from '../controllers/AuthController'
-import { performJson } from '../adapters/ExpressAdapter'
+import { loginHandler, signupHandler } from '../controllers/auth.controller'
+import { performJson } from '../adapters/expressAdapter'
 
 const router = express.Router()
 

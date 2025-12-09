@@ -3,7 +3,7 @@ import cors from 'cors'
 
 import authRoutes from './routes/auth.routes'
 import { verifyJwtTokenHandler } from './utils/jwt'
-import { performJson } from './adapters/ExpressAdapter'
+import { performJson } from './adapters/expressAdapter'
 
 const app = express()
 

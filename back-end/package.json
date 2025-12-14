@@ -2,9 +2,8 @@
   "name": "codebase-back-end",
   "version": "1.0.0",
   "description": "Codebase back-end",
-  "main": "dist/src/server.js",
   "scripts": {
-    "start": "npm run build && node .",
+    "start": "npm run build && node dist/server.js",
     "build": "tsc",
     "dev": "npx nodemon --watch 'src/**/*.ts' --exec 'npx ts-node' src/server.ts"
   },

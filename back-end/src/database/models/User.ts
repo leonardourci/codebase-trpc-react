@@ -4,6 +4,7 @@ export interface IUser {
 	id: number
 	email: string
 	fullName: string
+	phone: string
 	age: number
 	passwordHash?: string
 	createdAt?: Date
@@ -19,6 +20,7 @@ export class User implements IUser {
 	id: number
 	email: string
 	fullName: string
+	phone: string
 	age: number
 	passwordHash?: string
 	createdAt?: Date
@@ -28,6 +30,7 @@ export class User implements IUser {
 		this.id = props.id
 		this.email = props.email
 		this.fullName = props.fullName
+		this.phone = props.phone
 		this.age = props.age
 		this.passwordHash = props.passwordHash
 		this.createdAt = props.createdAt
@@ -41,6 +44,7 @@ export class User implements IUser {
 			id: row.id,
 			email: row.email,
 			fullName: row.full_name,
+			phone: row.phone,
 			age: row.age,
 			passwordHash: row.password_hash,
 			createdAt: row.created_at ? new Date(row.created_at) : undefined,
@@ -53,6 +57,7 @@ export class User implements IUser {
 			id: this.id,
 			email: this.email,
 			fullName: this.fullName,
+			phone: this.phone,
 			age: this.age,
 			createdAt: this.createdAt,
 			updatedAt: this.updatedAt
@@ -64,7 +69,8 @@ export class User implements IUser {
 			id: this.id,
 			email: this.email,
 			fullName: this.fullName,
-			age: this.age
+			age: this.age,
+			phone: this.phone
 		}
 	}
 

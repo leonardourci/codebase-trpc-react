@@ -1,5 +1,5 @@
 import { JoiValidationError } from './errors'
-import { validateGlobalEnvs } from './validations/Envs.validator'
+import { validateGlobalEnvs } from './validations/envs.validator'
 
 const { value, error } = validateGlobalEnvs(process.env)
 

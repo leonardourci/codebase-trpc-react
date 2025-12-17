@@ -13,6 +13,7 @@ export const validateSignupPayload = (payload: ISignupPayload): ValidationResult
 		firstName: Joi.string().required(),
 		lastName: Joi.string().required(),
 		email: Joi.string().email().required(),
+		phone
 		password: Joi.string().required(),
 		age: Joi.number().integer().positive().required()
 	}).validate(payload, { abortEarly: false })

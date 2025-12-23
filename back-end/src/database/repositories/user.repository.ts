@@ -1,14 +1,8 @@
 import knex from '../knex'
-import { ISignupPayload, ISignupResponse } from '../../types/auth'
-import { IUser, IUserInfoByEmailResponse, User } from '../models/User'
+import { ISignupResponse } from '../../types/auth'
+import { ICreateUserPayload, IUserInfoByEmailResponse, User } from '../models/User.model'
 
-export async function selectUserByEmail(email: string): Promise<IUserInfoByEmailResponse | undefined> {
-	const row = await knex(User.tableName).where({ email }).first()
-	if (!row) return undefined
-	return User.fromDb(row).toUserInfoByEmailResponse()
-}
-
-export async function createUser(payload: ISignupPayload): Promise<ISignupResponse> {
+export async function createUser(payload: ICreateUserPayload): Promise<ISignupResponse> {
 	const [row] = await knex(User.tableName)
 		.insert({
 			email: payload.email,
@@ -35,7 +29,7 @@ export async function getUserByEmail(payload: Pick<User, 'email'>): Promise<IUse
 
 	if (!row) return null
 
-	const user = User.fromDb(row).toUserInfoByEmailResponse()
+	const user = new User(row).toUserInfoByEmailResponse()
 
 	return user
 }

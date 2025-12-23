@@ -12,5 +12,6 @@ export default {
 	restPort: value.REST_PORT,
 	databaseConnectionString: value.DATABASE_CONNECTION_STRING,
 	hashSalt: value.HASH_SALT,
-	jwtSecret: value.JWT_SECRET
+	jwtSecret: value.JWT_SECRET,
+	stripeSecretKey: value.STRIPE_SECRET_KEY
 } as const

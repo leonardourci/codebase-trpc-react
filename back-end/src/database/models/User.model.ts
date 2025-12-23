@@ -1,56 +1,51 @@
 import { ISignupResponse } from '../../types/auth'
+import { IUser, IUserInfoByEmailResponse } from '../../types/user'
+import BaseModel from './Base.model'
 
-export interface IUser {
-	// uuid
-	id: string
+
+
+export class User extends BaseModel<IUser> implements IUser {
+	static tableName = 'users'
+
 	email: string
 	fullName: string
 	phone: string
 	age: number
 	passwordHash?: string
-	createdAt?: Date
-	updatedAt?: Date
-}
-
-export interface IUserInfoByEmailResponse {
-	id: number
-	passwordHash: string
-}
-
-export class User implements IUser {
-	id: string
-	email: string
-	fullName: string
-	phone: string
-	age: number
-	passwordHash?: string
-	createdAt?: Date
-	updatedAt?: Date
 
 	constructor(props: IUser) {
-		this.id = crypto.randomUUID()
+		super()
 		this.email = props.email
 		this.fullName = props.fullName
 		this.phone = props.phone
 		this.age = props.age
 		this.passwordHash = props.passwordHash
-		this.createdAt = props.createdAt
-		this.updatedAt = props.updatedAt
 	}
 
-	static tableName = 'users'
-
-	static fromDb(row: any): User {
+	toJSON() {
 		return new User({
-			id: row.id,
-			email: row.email,
-			fullName: row.full_name,
-			phone: row.phone,
-			age: row.age,
-			passwordHash: row.password_hash,
-			createdAt: row.created_at ? new Date(row.created_at) : undefined,
-			updatedAt: row.updated_at ? new Date(row.updated_at) : undefined
+			id: this.id,
+			email: this.email,
+			fullName: this.fullName,
+			phone: this.phone,
+			age: this.age,
+			passwordHash: this.passwordHash,
+			createdAt: this.createdAt,
+			updatedAt: this.updatedAt
 		})
+	}
+
+	toDatabaseFormat() {
+		return {
+			id: this.id,
+			email: this.email,
+			full_name: this.fullName,
+			phone: this.phone,
+			age: this.age,
+			password_hash: this.passwordHash,
+			created_at: this.createdAt,
+			updated_at: this.updatedAt
+		}
 	}
 
 	toUserWithoutPassword(): Omit<IUser, 'passwordHash'> {

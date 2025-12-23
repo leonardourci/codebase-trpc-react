@@ -7,7 +7,7 @@ import { IPerformJsonCallback } from '../adapters/expressAdapter'
 
 const { JWT_SECRET } = process.env
 
-export const generateJwtToken = (payload: { userId: number }) => jwt.sign(payload, JWT_SECRET ?? '', { expiresIn: '1d' })
+export const generateJwtToken = (payload: { userId: string }) => jwt.sign(payload, JWT_SECRET ?? '', { expiresIn: '1d' })
 
 // @TODO remove the any from the response of this method
 export const verifyJwtTokenHandler = (payload: { authorization: string }): IPerformJsonCallback<any> => {

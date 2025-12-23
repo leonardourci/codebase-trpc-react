@@ -9,5 +9,6 @@ export const validateGlobalEnvs = (payload: unknown): ValidationResult<IEnvs> =>
 		REST_PORT: Joi.number().integer().positive().required(),
 		DATABASE_CONNECTION_STRING: Joi.string().required(),
 		HASH_SALT: Joi.number().integer().positive().required(),
-		JWT_SECRET: Joi.string().required()
+		JWT_SECRET: Joi.string().required(),
+		STRIPE_SECRET_KEY: Joi.string().required()
 	}).validate(payload, { allowUnknown: true, abortEarly: false })

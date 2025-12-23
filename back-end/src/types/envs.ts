@@ -10,4 +10,5 @@ export interface IEnvs {
 	DATABASE_CONNECTION_STRING: string
 	HASH_SALT: number
 	JWT_SECRET: string
+	STRIPE_SECRET_KEY: string
 }

@@ -25,7 +25,7 @@ export async function createUser(payload: ICreateUserPayload): Promise<ISignupRe
 	}).toSignupResponse()
 }
 
-export async function getUserByEmail(payload: Pick<User, 'email'>): Promise<IUserInfoByEmailResponse | null> {
+export const getUserByEmail = async (payload: Pick<User, 'email'>): Promise<IUserInfoByEmailResponse | null> => {
 	const [row] = await knex(User.tableName).where({ email: payload.email }).select()
 
 	if (!row) return null
@@ -33,4 +33,12 @@ export async function getUserByEmail(payload: Pick<User, 'email'>): Promise<IUse
 	const user = new User(row).toUserInfoByEmailResponse()
 
 	return user
+}
+
+export const getUserById = async (payload: { id: string }): Promise<User | null> => {
+	const [row] = await knex(User.tableName).where({ id: payload.id }).select()
+
+	if (!row) return null
+
+	return new User(row).toJSON()
 }

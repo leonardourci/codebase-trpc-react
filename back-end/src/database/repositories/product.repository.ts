@@ -1,10 +1,14 @@
 import knex from '../knex'
 import Product, { IProduct } from '../models/Product.model'
 
-export const getProductByExternalProductId = async ({ id }: { id: string }): Promise<IProduct> => {
+export const getProductByExternalProductId = async ({ id }: { id: string }): Promise<IProduct | null> => {
     const [row] = await knex(Product.tableName)
         .where({ external_product_id: id })
         .select()
+
+    if (!row) {
+        return null
+    }
 
     return new Product({
         id: row.id,

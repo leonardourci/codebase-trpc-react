@@ -1,8 +1,8 @@
-import { IPayment } from '../../types/payment'
+import { IBilling } from '../../types/billing'
 import BaseModel from './Base.model'
 
-export default class Payment extends BaseModel<IPayment> implements IPayment {
-	static tableName = 'payments'
+export default class Billing extends BaseModel<IBilling> implements IBilling {
+	static tableName = 'billings'
 
 	userId: string
 	productId: string
@@ -12,7 +12,7 @@ export default class Payment extends BaseModel<IPayment> implements IPayment {
 	status: string
 	expiresAt: Date
 
-	constructor(data: IPayment) {
+	constructor(data: IBilling) {
 		super()
 		this.userId = data.userId
 		this.productId = data.productId
@@ -23,8 +23,8 @@ export default class Payment extends BaseModel<IPayment> implements IPayment {
 		this.expiresAt = data.expiresAt
 	}
 
-	toJSON(): IPayment {
-		return new Payment({
+	toJSON(): IBilling {
+		return new Billing({
 			id: this.id,
 			userId: this.userId,
 			productId: this.productId,

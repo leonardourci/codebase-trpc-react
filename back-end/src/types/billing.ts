@@ -1,6 +1,6 @@
 import { IBaseModel } from "../database/models/Base.model"
 
-export interface IPayment extends IBaseModel {
+export interface IBilling extends IBaseModel {
   userId: string
   productId: string
   stripePaymentIntentId: string
@@ -10,7 +10,7 @@ export interface IPayment extends IBaseModel {
   expiresAt: Date
 }
 
-export interface ICreatePayment {
+export interface ICreateBilling {
   user_id: string
   product_id: string
   stripe_payment_intent_id: string

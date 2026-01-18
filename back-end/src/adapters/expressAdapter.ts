@@ -12,7 +12,7 @@ type TPerformJsonCallback = (payload: any) => Promise<IPerformJsonCallback<any>>
 export function performJson(fn: TPerformJsonCallback) {
 	return async (req: Request, res: Response): Promise<Response<any> | void> => {
 		try {
-			const callbackResponse = await fn({ ...req.query, ...req.body, ...req.params })
+			const callbackResponse = await fn({ ...req.query, ...req.body, ...req.params, token: req.headers['authorization'] })
 
 			res.status(callbackResponse.status).json(callbackResponse.response)
 		} catch (err: any) {

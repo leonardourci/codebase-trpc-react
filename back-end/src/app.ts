@@ -2,17 +2,17 @@ import express from 'express'
 import cors from 'cors'
 
 import authRoutes from './routes/auth.routes'
-import { verifyJwtTokenHandler } from './utils/jwt'
-import { performJson } from './adapters/expressAdapter'
-import { processPaymentWebhook } from './controllers/payment.controller'
-import { verifyStripeWebhookSignature } from './middlewares/payment.middleware'
+import billingRoutes from './routes/billing.routes'
+import { processBillingWebhookHandler } from './controllers/billing.controller'
+import { verifyIfUserBillingHasExpiredMiddleware, verifyStripeWebhookSignatureMiddleware } from './middlewares/billing.middleware'
+import { verifyUserTokenMiddleware } from './middlewares/jwt.middleware'
 
 const app = express()
 
 app.post('/webhooks/stripe',
   express.raw({ type: 'application/json' }),
-  verifyStripeWebhookSignature,
-  processPaymentWebhook
+  verifyStripeWebhookSignatureMiddleware,
+  processBillingWebhookHandler
 )
 
 app.options('*', cors())
@@ -26,6 +26,11 @@ app.use('/auth', authRoutes)
 
 // all the requests below needs a JWT 'authorization' headers key
 // example: { headers: { authorization: Bearer token123 } }
-app.use(performJson(verifyJwtTokenHandler))
+app.use(
+  verifyUserTokenMiddleware,
+  verifyIfUserBillingHasExpiredMiddleware
+)
+
+app.use('/billing', billingRoutes)
 
 export default app

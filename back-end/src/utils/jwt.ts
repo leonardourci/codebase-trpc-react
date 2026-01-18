@@ -3,17 +3,23 @@ import Joi from 'joi'
 
 import { CustomError } from './errors'
 import { EStatusCodes } from './statusCodes'
-import { IPerformJsonCallback } from '../adapters/expressAdapter'
+import globalConfig from './globalConfig'
+import { IUser } from '../types/user'
 
-const { JWT_SECRET } = process.env
+export interface IValidateTokenPayload {
+	token: string
+}
 
-export const generateJwtToken = (payload: { userId: string }) => jwt.sign(payload, JWT_SECRET ?? '', { expiresIn: '1d' })
+export interface IToken {
+	userId: IUser['id']
+}
 
-// @TODO remove the any from the response of this method
-export const verifyJwtTokenHandler = (payload: { authorization: string }): IPerformJsonCallback<any> => {
-	const { value, error } = Joi.object<{ authorization: string }>({
-		authorization: Joi.string()
+const validateToken = (payload: IValidateTokenPayload) => {
+	return Joi.object<IValidateTokenPayload>({
+		token: Joi.string()
 			.required()
+			.not()
+			.empty()
 			.custom((value, helpers) => {
 				if (!value.startsWith('Bearer ')) {
 					return helpers.error('any.invalid')
@@ -21,19 +27,25 @@ export const verifyJwtTokenHandler = (payload: { authorization: string }): IPerf
 				return value
 			}, 'authorizationBearer')
 	}).validate(payload, { abortEarly: false })
+}
+
+export const generateJwtToken = (payload: { userId: IUser['id'] }) => jwt.sign(payload, globalConfig.jwtSecret, { expiresIn: '1d' })
+
+export const verifyJwtToken = (payload: IValidateTokenPayload): void => {
+	const { value, error } = validateToken(payload)
 
 	if (error) throw new CustomError('TOKEN_NOT_FOUND', EStatusCodes.UNAUTHORIZED)
 
 	try {
-		const token = value.authorization.split('Bearer ')[1]
+		const token = value.token.split('Bearer ')[1]
 
-		jwt.verify(token!, JWT_SECRET ?? '')
-
-		return {
-			response: {},
-			status: EStatusCodes.OK
-		}
-	} catch (tokenErr) {
-		throw new CustomError('TOKEN_ERROR', EStatusCodes.UNAUTHORIZED)
+		jwt.verify(token!, globalConfig.jwtSecret)
+	} catch (err) {
+		throw new CustomError(`TOKEN_ERROR: ${err}`, EStatusCodes.UNAUTHORIZED)
 	}
+}
+
+export const decodeJwtToken = ({ token }: IValidateTokenPayload): IToken => {
+	validateToken({ token })
+	return jwt.decode(token) as IToken
 }

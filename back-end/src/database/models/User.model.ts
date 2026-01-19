@@ -1,5 +1,5 @@
 import { ISignupResponse } from '../../types/auth'
-import { IUser, IUserInfoByEmailResponse } from '../../types/user'
+import { ICreateUserPayload, IUser, IUserInfoByEmailResponse } from '../../types/user'
 import BaseModel from './Base.model'
 
 export class User extends BaseModel<IUser> implements IUser {
@@ -9,9 +9,9 @@ export class User extends BaseModel<IUser> implements IUser {
 	fullName: string
 	phone: string
 	age: number
-	passwordHash?: string
+	passwordHash: string
 
-	constructor(props: IUser) {
+	constructor(props: ICreateUserPayload) {
 		super()
 		this.email = props.email
 		this.fullName = props.fullName
@@ -22,14 +22,11 @@ export class User extends BaseModel<IUser> implements IUser {
 
 	toJSON() {
 		return new User({
-			id: this.id,
 			email: this.email,
 			fullName: this.fullName,
 			phone: this.phone,
 			age: this.age,
 			passwordHash: this.passwordHash,
-			createdAt: this.createdAt,
-			updatedAt: this.updatedAt
 		})
 	}
 
@@ -46,7 +43,7 @@ export class User extends BaseModel<IUser> implements IUser {
 		}
 	}
 
-	toUserWithoutPassword(): Omit<IUser, 'passwordHash'> {
+	toUserWithoutPassword(): Omit<IUser, 'password'> {
 		return {
 			id: this.id,
 			email: this.email,
@@ -71,7 +68,7 @@ export class User extends BaseModel<IUser> implements IUser {
 	toUserInfoByEmailResponse(): IUserInfoByEmailResponse {
 		return {
 			id: this.id,
-			passwordHash: this.passwordHash || ''
+			passwordHash: this.passwordHash
 		}
 	}
 }

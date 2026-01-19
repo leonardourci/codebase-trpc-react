@@ -5,15 +5,15 @@ import { IUser } from '../../types/user'
 
 export const createBilling = async (payload: ICreateBilling): Promise<IBilling> => {
 	const [row] = await knex
-		.insert(payload)
+		.insert(new Billing(payload).toDatabaseFormat())
 		.into(Billing.tableName)
 		.returning([
 			'id',
 			'user_id',
 			'product_id',
-			'stripe_payment_intent_id',
-			'stripe_subscription_id',
-			'stripe_customer_id',
+			'external_payment_intent_id',
+			'external_subscription_id',
+			'external_customer_id',
 			'status',
 			'expires_at',
 			'created_at',
@@ -43,9 +43,9 @@ export const updateBillingByUserId = async (payload: { id: string; expiresAt: Da
 			'id',
 			'user_id',
 			'product_id',
-			'stripe_payment_intent_id',
-			'stripe_subscription_id',
-			'stripe_customer_id',
+			'external_payment_intent_id',
+			'external_subscription_id',
+			'external_customer_id',
 			'status',
 			'expires_at',
 			'created_at',

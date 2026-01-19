@@ -7,6 +7,7 @@ export interface IProduct extends IBaseModel {
 	currency: string
 	type: string
 	externalProductId: string
+	externalPriceId: string
 }
 
 export default class Product extends BaseModel<IProduct> implements IProduct {
@@ -18,6 +19,7 @@ export default class Product extends BaseModel<IProduct> implements IProduct {
 	currency: string
 	type: string
 	externalProductId: string
+	externalPriceId: string
 
 	constructor(data: IProduct) {
 		super()
@@ -27,6 +29,7 @@ export default class Product extends BaseModel<IProduct> implements IProduct {
 		this.currency = data.currency
 		this.type = data.type
 		this.externalProductId = data.externalProductId
+		this.externalPriceId = data.externalPriceId
 	}
 
 	toJSON(): IProduct {
@@ -38,6 +41,7 @@ export default class Product extends BaseModel<IProduct> implements IProduct {
 			currency: this.currency,
 			type: this.type,
 			externalProductId: this.externalProductId,
+			externalPriceId: this.externalPriceId,
 			createdAt: this.createdAt,
 			updatedAt: this.updatedAt
 		})
@@ -52,6 +56,7 @@ export default class Product extends BaseModel<IProduct> implements IProduct {
 			currency: this.currency,
 			type: this.type,
 			external_product_id: this.externalProductId,
+			external_price_id: this.externalPriceId,
 			created_at: this.createdAt,
 			updated_at: this.updatedAt
 		}

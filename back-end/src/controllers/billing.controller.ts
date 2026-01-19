@@ -1,6 +1,14 @@
 import { Response } from 'express'
 
-import { BillingRequest } from '../middlewares/billing.middleware'
+import { IPerformJsonCallback } from '../adapters/expressAdapter'
+import stripe from '../utils/stripe'
+import { JoiValidationError, CustomError } from '../utils/errors'
+import { decodeJwtToken } from '../utils/jwt'
+import { getBillingByUserId } from '../database/repositories/billing.repository'
+import { getProductById } from '../database/repositories/product.repository'
+import { validateCreateCheckoutSessionPayload, validateCreatePortalSessionPayload } from '../utils/validations/billing.validator'
+import { ICreateCheckoutSessionPayload, ICreateCheckoutSessionResponse, ICreatePortalSessionPayload, ICreatePortalSessionResponse } from '../types/billing'
+import { IBillingRequest } from '../middlewares/billing.middleware'
 import { getProductByExternalProductId } from '../database/repositories/product.repository'
 import { registerUserBilling } from '../services/billing.service'
 import { EStatusCodes } from '../utils/statusCodes'
@@ -11,12 +19,13 @@ import { EStatusCodes } from '../utils/statusCodes'
  * https://chat.deepseek.com/a/chat/s/86a7ffd7-7371-484f-a96f-85cc116f71e9
  */
 
-export const processBillingWebhookHandler = async (req: BillingRequest, res: Response): Promise<void> => {
+export const processBillingWebhookHandler = async (req: IBillingRequest, res: Response): Promise<void> => {
 	if (!req.billingEvent) {
 		throw new Error('req.billingEvent is missing in processBillingWebhookHandler')
 	}
 
 	const { billingEvent } = req
+
 	switch (billingEvent.type) {
 		// ============================================================================
 		// WEBHOOK DE ASSINATURAS STRIPE - PRINCIPAIS EVENTOS
@@ -65,12 +74,12 @@ export const processBillingWebhookHandler = async (req: BillingRequest, res: Res
 				await registerUserBilling({
 					userEmail: paidInvoice.customer_email || '',
 					productId: product.id,
-					stripeCustomerId: paidInvoice.customer as string,
-					stripeSubscriptionId: lineItems[0].subscription as string,
+					externalCustomerId: paidInvoice.customer as string,
+					externalSubscriptionId: lineItems[0].subscription as string,
 					expiresAt: lineItems[0].period.end,
 
 					// still need to figure out how to get the payment intent id from the invoice object
-					stripePaymentIntent: 'something'
+					externalPaymentIntentId: 'something'
 				})
 				// await sendBillingConfirmationMessage({})
 			}
@@ -99,9 +108,12 @@ export const processBillingWebhookHandler = async (req: BillingRequest, res: Res
 		 *   (ex: boleto pago em bancos) e você NÃO deve restringir o acesso.
 		 */
 		case 'invoice.payment_failed': {
-			const failedInvoice = event.data.object
-			// Exemplo: notificar o usuário sobre a falha
-			await notifyUserOfBillingFailure(failedInvoice.customer, failedInvoice.id)
+			const failedInvoice = billingEvent.data.object
+			console.log('invoice.payment_failed', {
+				customer: failedInvoice.customer,
+				invoiceId: failedInvoice.id,
+				status: failedInvoice.status
+			})
 			break
 		}
 
@@ -124,16 +136,21 @@ export const processBillingWebhookHandler = async (req: BillingRequest, res: Res
 		 * - Este evento é disparado MUITAS VEZES. Sua lógica deve ser idempotente (tolerante a processamentos duplicados).
 		 * - Para cancelamentos, NÃO revogue o acesso imediatamente. O cliente tem direito ao serviço até o fim do período já pago.
 		 */
-		case 'customer.subscription.updated':
-			const updatedSubscription = event.data.object
-			// Exemplo: tratar cancelamento agendado
+		case 'customer.subscription.updated': {
+			const updatedSubscription = billingEvent.data.object
 			if (updatedSubscription.cancel_at_period_end) {
-				await scheduleCancellation(updatedSubscription.id, updatedSubscription.current_period_end)
+				console.log('customer.subscription.updated cancel_at_period_end', {
+					subscriptionId: updatedSubscription.id,
+					cancelAtPeriodEnd: updatedSubscription.cancel_at_period_end
+				})
 			} else {
-				// Tratar outras mudanças (plano, status)
-				await syncSubscriptionDetails(updatedSubscription)
+				console.log('customer.subscription.updated', {
+					subscriptionId: updatedSubscription.id,
+					status: updatedSubscription.status
+				})
 			}
 			break
+		}
 
 		/**
 		 * EVENTO: `customer.subscription.deleted`
@@ -152,10 +169,67 @@ export const processBillingWebhookHandler = async (req: BillingRequest, res: Res
 		 * - Diferente do cancelamento agendado (`cancel_at_period_end`), aqui o acesso deve ser CORTADO IMEDIATAMENTE.
 		 * - Verifique a propriedade `deleted` do objeto. Ela será `true`.
 		 */
-		case 'customer.subscription.deleted':
-			const deletedSubscription = event.data.object
-			// Exemplo: revogar acesso imediato
-			await immediatelyRevokeAccess(deletedSubscription.customer)
+		case 'customer.subscription.deleted': {
+			const deletedSubscription = billingEvent.data.object
+			console.log('customer.subscription.deleted', {
+				subscriptionId: deletedSubscription.id,
+				customer: deletedSubscription.customer
+			})
 			break
+		}
+	}
+}
+
+export async function createCheckoutSessionHandler(payload: ICreateCheckoutSessionPayload): Promise<IPerformJsonCallback<ICreateCheckoutSessionResponse>> {
+	const { value, error } = validateCreateCheckoutSessionPayload(payload)
+	if (error) throw new JoiValidationError(error)
+
+	try {
+		const product = await getProductById({ id: value.productId })
+		if (!product) throw new CustomError('Product not found', EStatusCodes.NOT_FOUND)
+
+		const session = await stripe.checkout.sessions.create({
+			mode: 'subscription',
+			line_items: [{ price: product.externalPriceId, quantity: 1 }],
+			success_url: value.successUrl,
+			cancel_url: value.cancelUrl,
+			allow_promotion_codes: true
+		})
+
+		if (!session.url) {
+			throw new CustomError('Checkout URL not available', EStatusCodes.INTERNAL)
+		}
+
+		return {
+			response: { id: session.id, url: session.url },
+			status: EStatusCodes.OK
+		}
+
+	} catch (err: any) {
+		throw new CustomError(err.message, EStatusCodes.INTERNAL)
+	}
+}
+
+export async function createCustomerPortalSessionHandler(payload: ICreatePortalSessionPayload): Promise<IPerformJsonCallback<ICreatePortalSessionResponse>> {
+	const { value, error } = validateCreatePortalSessionPayload(payload)
+	if (error) throw new JoiValidationError(error)
+
+	const { userId } = decodeJwtToken({ token: value.token })
+	const billing = await getBillingByUserId({ userId })
+	if (!billing) throw new CustomError('User billing not found', EStatusCodes.NOT_FOUND)
+	if (!billing.externalCustomerId) throw new CustomError('Stripe customer not found', EStatusCodes.NOT_FOUND)
+
+	try {
+		const portal = await stripe.billingPortal.sessions.create({
+			customer: billing.externalCustomerId,
+			return_url: value.returnUrl
+		})
+
+		return {
+			response: { url: portal.url },
+			status: EStatusCodes.OK
+		}
+	} catch (err: any) {
+		throw new CustomError(err.message, EStatusCodes.INTERNAL)
 	}
 }

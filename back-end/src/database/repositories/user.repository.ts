@@ -10,17 +10,17 @@ export async function createUser(payload: ICreateUserPayload): Promise<ISignupRe
 			full_name: payload.fullName,
 			age: payload.age,
 			phone: payload.phone,
-			password_hash: payload.password,
+			password_hash: payload.passwordHash,
 			created_at: new Date(),
 			updated_at: new Date()
 		})
-		.returning(['id', 'email', 'full_name', 'age'])
+		.returning(['id', 'email', 'full_name', 'age', 'password_hash'])
 
 	return new User({
-		id: row.id,
 		email: row.email,
 		fullName: row.full_name,
 		phone: row.phone,
+		passwordHash: row.password_hash,
 		age: row.age
 	}).toSignupResponse()
 }

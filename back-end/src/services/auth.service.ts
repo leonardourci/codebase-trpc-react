@@ -23,5 +23,5 @@ export async function authenticateUser(payload: ILoginPayload): Promise<ILoginRe
 export async function registerUser(payload: ISignupPayload): Promise<ISignupResponse> {
 	const passwordHash = bcrypt.hashSync(payload.password, Number(HASH_SALT) ?? '')
 
-	return await createUser({ ...payload, password: passwordHash })
+	return await createUser({ ...payload, passwordHash })
 }

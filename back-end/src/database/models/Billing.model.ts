@@ -1,4 +1,4 @@
-import { IBilling } from '../../types/billing'
+import { IBilling, ICreateBilling } from '../../types/billing'
 import BaseModel from './Base.model'
 
 export default class Billing extends BaseModel<IBilling> implements IBilling {
@@ -6,35 +6,32 @@ export default class Billing extends BaseModel<IBilling> implements IBilling {
 
 	userId: string
 	productId: string
-	stripePaymentIntentId: string
-	stripeSubscriptionId: string
-	stripeCustomerId: string
+	externalPaymentIntentId: string
+	externalSubscriptionId: string
+	externalCustomerId: string
 	status: string
 	expiresAt: Date
 
-	constructor(data: IBilling) {
+	constructor(data: ICreateBilling) {
 		super()
 		this.userId = data.userId
 		this.productId = data.productId
-		this.stripePaymentIntentId = data.stripePaymentIntentId
-		this.stripeSubscriptionId = data.stripeSubscriptionId
-		this.stripeCustomerId = data.stripeCustomerId
+		this.externalPaymentIntentId = data.externalPaymentIntentId
+		this.externalSubscriptionId = data.externalSubscriptionId
+		this.externalCustomerId = data.externalCustomerId
 		this.status = data.status
 		this.expiresAt = data.expiresAt
 	}
 
 	toJSON(): IBilling {
 		return new Billing({
-			id: this.id,
 			userId: this.userId,
 			productId: this.productId,
-			stripePaymentIntentId: this.stripePaymentIntentId,
-			stripeSubscriptionId: this.stripeSubscriptionId,
-			stripeCustomerId: this.stripeCustomerId,
+			externalPaymentIntentId: this.externalPaymentIntentId,
+			externalSubscriptionId: this.externalSubscriptionId,
+			externalCustomerId: this.externalCustomerId,
 			status: this.status,
 			expiresAt: this.expiresAt,
-			createdAt: this.createdAt,
-			updatedAt: this.updatedAt
 		})
 	}
 
@@ -43,9 +40,9 @@ export default class Billing extends BaseModel<IBilling> implements IBilling {
 			id: this.id,
 			user_id: this.userId,
 			product_id: this.productId,
-			stripe_payment_intent_id: this.stripePaymentIntentId,
-			stripe_subscription_id: this.stripeSubscriptionId,
-			stripe_customer_id: this.stripeCustomerId,
+			external_payment_intent_id: this.externalPaymentIntentId,
+			external_subscription_id: this.externalSubscriptionId,
+			external_customer_id: this.externalCustomerId,
 			status: this.status,
 			expires_at: this.expiresAt,
 			created_at: this.createdAt,

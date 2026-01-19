@@ -11,7 +11,7 @@ export interface IUser extends IBaseModel {
 export interface ICreateUserPayload {
   fullName: string
   email: string
-  password: string
+  passwordHash: string
   age: number
   phone: string
 }

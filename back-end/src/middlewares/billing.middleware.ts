@@ -7,7 +7,7 @@ import { getBillingByUserId } from '../database/repositories/billing.repository'
 import { EStatusCodes } from '../utils/statusCodes'
 import { getUserById } from '../database/repositories/user.repository'
 
-export interface BillingRequest extends Request {
+export interface IBillingRequest extends Request {
 	billingEvent?: Stripe.Event
 }
 
@@ -19,7 +19,7 @@ export const verifyStripeWebhookSignatureMiddleware = (req: Request, res: Respon
 	}
 
 	try {
-		; (req as BillingRequest).billingEvent = stripe.webhooks.constructEvent(req.body, signature, globalConfig.stripeSecretKey)
+		; (req as IBillingRequest).billingEvent = stripe.webhooks.constructEvent(req.body, signature, globalConfig.stripeSecretKey)
 		return next()
 	} catch (err: any) {
 		console.log(`⚠️  Webhook signature verification failed.`, err.message)
@@ -31,13 +31,21 @@ export const verifyIfUserBillingHasExpiredMiddleware = async (req: Request, res:
 	try {
 		const { userId } = decodeJwtToken({ token: req.headers['authorization'] as string })
 		const user = await getUserById({ id: userId })
+
 		if (!user) {
 			return res.status(EStatusCodes.NOT_FOUND).json({ error: 'User not found' })
 		}
+
 		const userBilling = await getBillingByUserId({ userId })
-		if (!userBilling || userBilling.expiresAt < new Date()) {
+
+		if (!userBilling) {
+			return res.status(EStatusCodes.NOT_FOUND).json({ error: 'User billing not found' })
+		}
+
+		if (userBilling.expiresAt < new Date()) {
 			return res.status(EStatusCodes.UNAUTHORIZED).json({ error: 'User billing has expired' })
 		}
+
 		next()
 	} catch (err: any) {
 		return res.status(EStatusCodes.UNAUTHORIZED).json({ error: err.message })

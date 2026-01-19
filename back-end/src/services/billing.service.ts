@@ -1,17 +1,17 @@
+import { getUserByEmail } from '../database/repositories/user.repository'
 import {
 	createBilling,
 	getBillingByUserId as getBillingByUserId,
 	updateBillingByUserId
 } from '../database/repositories/billing.repository'
-import { getUserByEmail } from '../database/repositories/user.repository'
 
 export interface IUpdateUserBillingPayload {
 	userEmail: string
 	productId: string
-	stripeCustomerId: string
-	stripeSubscriptionId: string
+	externalCustomerId: string
+	externalSubscriptionId: string
 	expiresAt: number
-	stripePaymentIntent: string
+	externalPaymentIntentId: string
 }
 
 export const registerUserBilling = async (payload: IUpdateUserBillingPayload) => {
@@ -19,20 +19,21 @@ export const registerUserBilling = async (payload: IUpdateUserBillingPayload) =>
 	if (!user) {
 		throw new Error(`User with email "${payload.userEmail}" not found`)
 	}
+
 	const billing = await getBillingByUserId({ userId: user.id })
 	if (!billing) {
 		await createBilling({
-			user_id: user.id,
-			product_id: payload.productId,
-			stripe_payment_intent_id: payload.stripePaymentIntent,
-			stripe_subscription_id: payload.stripeSubscriptionId,
-			stripe_customer_id: payload.stripeCustomerId,
+			userId: user.id,
+			productId: payload.productId,
+			externalPaymentIntentId: payload.externalPaymentIntentId,
+			externalSubscriptionId: payload.externalSubscriptionId,
+			externalCustomerId: payload.externalCustomerId,
 			status: 'active',
-			expires_at: new Date(payload.expiresAt * 1000)
+			expiresAt: new Date(payload.expiresAt * 1000)
 		})
 	} else {
 		await updateBillingByUserId({
-			id: billing.id,
+			id: billing.id as string,
 			expiresAt: new Date(payload.expiresAt * 1000)
 		})
 	}

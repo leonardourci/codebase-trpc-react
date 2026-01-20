@@ -1,8 +1,8 @@
 import { router } from './trpc'
+import { authRouter } from './routers/auth.router'
 
-// Main tRPC router - will be populated with procedures in subsequent tasks
 export const appRouter = router({
-  // Placeholder - procedures will be added in later tasks
+  auth: authRouter
 })
 
 // Export the router type for client-side usage

@@ -22,18 +22,14 @@ export interface ICreateBilling {
   expiresAt: Date
 }
 
-export interface ICreateCheckoutSessionPayload {
-  productId: string
-  successUrl: string
-  cancelUrl: string
-  token: string
-}
-
 export interface ICreateCheckoutSessionResponse {
   id: string
   url: string
 }
 
+export interface ICreatePortalSessionResponse {
+  url: string
+}
 
 export type TCreateCheckoutSessionPayload = z.infer<typeof createCheckoutSessionSchema>
 

@@ -7,7 +7,7 @@ import { decodeJwtToken } from '../utils/jwt'
 import { getBillingByUserId } from '../database/repositories/billing.repository'
 import { getProductById } from '../database/repositories/product.repository'
 import { createCheckoutSessionSchema, createPortalSessionSchema } from '../utils/validations/billing.schemas'
-import { ICreateCheckoutSessionPayload, ICreateCheckoutSessionResponse, TCreatePortalSessionPayload, TCreatePortalSessionResponse } from '../types/billing'
+import { TCreateCheckoutSessionPayload, ICreateCheckoutSessionResponse, TCreatePortalSessionPayload, ICreatePortalSessionResponse } from '../types/billing'
 import { IBillingRequest } from '../middlewares/billing.middleware'
 import { getProductByExternalProductId } from '../database/repositories/product.repository'
 import { registerUserBilling, updateBillingOnPaymentFailed, updateBillingOnSubscriptionUpdated, updateBillingOnSubscriptionDeleted } from '../services/billing.service'
@@ -187,7 +187,7 @@ export const processBillingWebhookHandler = async (req: IBillingRequest, res: Re
 	res.status(EStatusCodes.OK).send('Webhook processed successfully')
 }
 
-export async function createCheckoutSessionHandler(payload: ICreateCheckoutSessionPayload): Promise<IPerformJsonCallback<ICreateCheckoutSessionResponse>> {
+export async function createCheckoutSessionHandler(payload: TCreateCheckoutSessionPayload): Promise<IPerformJsonCallback<ICreateCheckoutSessionResponse>> {
 	const { data, error } = createCheckoutSessionSchema.safeParse(payload)
 
 	if (error) throw new ZodValidationError(error)
@@ -219,7 +219,7 @@ export async function createCheckoutSessionHandler(payload: ICreateCheckoutSessi
 	}
 }
 
-export async function createCustomerPortalSessionHandler(payload: TCreatePortalSessionPayload): Promise<IPerformJsonCallback<TCreatePortalSessionResponse>> {
+export async function createCustomerPortalSessionHandler(payload: TCreatePortalSessionPayload): Promise<IPerformJsonCallback<ICreatePortalSessionResponse>> {
 	const { data, error } = createPortalSessionSchema.safeParse(payload)
 
 	if (error) throw new ZodValidationError(error)

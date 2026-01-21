@@ -4,7 +4,7 @@ export default async function globalSetup() {
     console.log('🚀 Setting up test database...')
 
     const connectionString = process.env.TEST_DATABASE_URL || 'postgresql://test_user:test_password@localhost:5433/postgres'
-    const testDbName = 'test_integration_db'
+    const testDbName = 'test_db'
 
     const adminDb = knex({
         client: 'pg',

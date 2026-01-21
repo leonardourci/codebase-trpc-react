@@ -24,7 +24,7 @@ npm run test:integration
 
 ## How it works
 
-- **Global Setup**: Creates a single `test_integration_db` database before all tests
+- **Global Setup**: Creates a single `test_db` database before all tests
 - **Global Teardown**: Drops the database after all tests complete
 - **Between Tests**: Data is cleaned (TRUNCATE) but schema remains
 - **No unique database names**: Single database, sequential test execution

@@ -6,7 +6,7 @@ export function getTestDb(): Knex {
     if (!_testDb) {
         _testDb = knex({
             client: 'pg',
-            connection: process.env.TEST_DATABASE_URL || 'postgresql://test_user:test_password@localhost:5433/test_integration_db',
+            connection: process.env.TEST_DATABASE_URL || 'postgresql://test_user:test_password@localhost:5433/test_db',
             migrations: {
                 tableName: 'knex_migrations',
                 directory: './src/db/migrations',

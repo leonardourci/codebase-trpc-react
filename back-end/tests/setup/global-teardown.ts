@@ -11,7 +11,7 @@ export default async function globalTeardown() {
     await new Promise(resolve => setTimeout(resolve, 100))
 
     const connectionString = process.env.TEST_DATABASE_URL || 'postgresql://test_user:test_password@localhost:5433/postgres'
-    const testDbName = 'test_integration_db'
+    const testDbName = 'test_db'
 
     const adminDb = knex({
         client: 'pg',

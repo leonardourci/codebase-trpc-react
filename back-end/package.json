@@ -4,10 +4,8 @@
   "description": "Codebase back-end",
   "scripts": {
     "start": "npm run build && node dist/server.js",
-    "build": "tsc",
+    "build": "rm -rf dist && tsc --project tsconfig.build.json",
     "dev": "npx nodemon --watch 'src/**/*.ts' --exec 'npx ts-node' src/server.ts",
-    "type-check": "tsc --project tsconfig.dev.json",
-    "type-check:watch": "tsc --project tsconfig.dev.json --watch",
     "test": "jest",
     "test:coverage": "jest --coverage"
   },

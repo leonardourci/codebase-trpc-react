@@ -5,7 +5,7 @@ export interface IUser extends IBaseModel {
   fullName: string
   phone: string
   age: number
-  passwordHash?: string
+  passwordHash: string
   refreshToken?: string
 }
 

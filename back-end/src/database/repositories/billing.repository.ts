@@ -4,9 +4,16 @@ import { ICreateBilling, IBilling } from '../../types/billing'
 import { IUser } from '../../types/user'
 
 export const createBilling = async (input: ICreateBilling): Promise<IBilling> => {
-	const [row] = await knex
-		.insert(new Billing(input).toDatabaseFormat())
-		.into(Billing.tableName)
+	const [row] = await knex(Billing.tableName)
+		.insert({
+			user_id: input.userId,
+			product_id: input.productId,
+			external_payment_intent_id: input.externalPaymentIntentId,
+			external_subscription_id: input.externalSubscriptionId,
+			external_customer_id: input.externalCustomerId,
+			status: input.status,
+			expires_at: input.expiresAt
+		})
 		.returning([
 			'id',
 			'user_id',
@@ -20,7 +27,18 @@ export const createBilling = async (input: ICreateBilling): Promise<IBilling> =>
 			'updated_at'
 		])
 
-	return new Billing(row).toJSON()
+	return new Billing({
+		id: row.id,
+		userId: row.user_id,
+		productId: row.product_id,
+		externalPaymentIntentId: row.external_payment_intent_id,
+		externalSubscriptionId: row.external_subscription_id,
+		externalCustomerId: row.external_customer_id,
+		status: row.status,
+		expiresAt: row.expires_at,
+		createdAt: row.created_at,
+		updatedAt: row.updated_at
+	}).toJSON()
 }
 
 export const getBillingByUserId = async ({ userId }: { userId: IUser['id'] }): Promise<IBilling | null> => {
@@ -28,14 +46,24 @@ export const getBillingByUserId = async ({ userId }: { userId: IUser['id'] }): P
 
 	if (!row) return null
 
-	return new Billing(row).toJSON()
+	return new Billing({
+		id: row.id,
+		userId: row.user_id,
+		productId: row.product_id,
+		externalPaymentIntentId: row.external_payment_intent_id,
+		externalSubscriptionId: row.external_subscription_id,
+		externalCustomerId: row.external_customer_id,
+		status: row.status,
+		expiresAt: row.expires_at,
+		createdAt: row.created_at,
+		updatedAt: row.updated_at
+	}).toJSON()
 }
 
 export const updateBillingByUserId = async (input: { id: string; expiresAt: Date }): Promise<IBilling> => {
 	const [row] = await knex(Billing.tableName)
 		.update({
 			expires_at: input.expiresAt,
-			status: 'active',
 			updated_at: new Date()
 		})
 		.where({ id: input.id })
@@ -52,7 +80,18 @@ export const updateBillingByUserId = async (input: { id: string; expiresAt: Date
 			'updated_at'
 		])
 
-	return new Billing(row).toJSON()
+	return new Billing({
+		id: row.id,
+		userId: row.user_id,
+		productId: row.product_id,
+		externalPaymentIntentId: row.external_payment_intent_id,
+		externalSubscriptionId: row.external_subscription_id,
+		externalCustomerId: row.external_customer_id,
+		status: row.status,
+		expiresAt: row.expires_at,
+		createdAt: row.created_at,
+		updatedAt: row.updated_at
+	}).toJSON()
 }
 
 export const getBillingByExternalSubscriptionId = async ({ externalSubscriptionId }: { externalSubscriptionId: string }): Promise<IBilling | null> => {
@@ -60,7 +99,18 @@ export const getBillingByExternalSubscriptionId = async ({ externalSubscriptionI
 
 	if (!row) return null
 
-	return new Billing(row).toJSON()
+	return new Billing({
+		id: row.id,
+		userId: row.user_id,
+		productId: row.product_id,
+		externalPaymentIntentId: row.external_payment_intent_id,
+		externalSubscriptionId: row.external_subscription_id,
+		externalCustomerId: row.external_customer_id,
+		status: row.status,
+		expiresAt: row.expires_at,
+		createdAt: row.created_at,
+		updatedAt: row.updated_at
+	}).toJSON()
 }
 
 export const updateBillingById = async (input: { id: string; status?: string; expiresAt?: Date }): Promise<IBilling> => {
@@ -84,5 +134,16 @@ export const updateBillingById = async (input: { id: string; status?: string; ex
 			'updated_at'
 		])
 
-	return new Billing(row).toJSON()
+	return new Billing({
+		id: row.id,
+		userId: row.user_id,
+		productId: row.product_id,
+		externalPaymentIntentId: row.external_payment_intent_id,
+		externalSubscriptionId: row.external_subscription_id,
+		externalCustomerId: row.external_customer_id,
+		status: row.status,
+		expiresAt: row.expires_at,
+		createdAt: row.created_at,
+		updatedAt: row.updated_at
+	}).toJSON()
 }

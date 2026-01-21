@@ -12,8 +12,8 @@ export class User extends BaseModel<IUser> implements IUser {
 	passwordHash: string
 	refreshToken?: string
 
-	constructor(props: ICreateUserInput & { refreshToken?: string }) {
-		super()
+	constructor(props: IUser) {
+		super({ id: props.id, createdAt: props.createdAt, updatedAt: props.updatedAt })
 		this.email = props.email
 		this.fullName = props.fullName
 		this.phone = props.phone

@@ -12,8 +12,8 @@ export default class Billing extends BaseModel<IBilling> implements IBilling {
 	status: string
 	expiresAt: Date
 
-	constructor(data: ICreateBilling) {
-		super()
+	constructor(data: IBilling) {
+		super({ id: data.id, createdAt: data.createdAt, updatedAt: data.updatedAt })
 		this.userId = data.userId
 		this.productId = data.productId
 		this.externalPaymentIntentId = data.externalPaymentIntentId
@@ -24,7 +24,8 @@ export default class Billing extends BaseModel<IBilling> implements IBilling {
 	}
 
 	toJSON(): IBilling {
-		return new Billing({
+		return {
+			id: this.id,
 			userId: this.userId,
 			productId: this.productId,
 			externalPaymentIntentId: this.externalPaymentIntentId,
@@ -32,7 +33,9 @@ export default class Billing extends BaseModel<IBilling> implements IBilling {
 			externalCustomerId: this.externalCustomerId,
 			status: this.status,
 			expiresAt: this.expiresAt,
-		})
+			createdAt: this.createdAt,
+			updatedAt: this.updatedAt
+		}
 	}
 
 	toDatabaseFormat() {

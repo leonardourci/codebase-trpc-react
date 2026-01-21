@@ -2,20 +2,18 @@ export interface IBaseModel {
 	// uuid
 	id: string
 	createdAt: Date
-	updatedAt: Date
+	updatedAt: Date | null
 }
 
 export default abstract class BaseModel<T> implements IBaseModel {
 	id: string
 	createdAt: Date
-	updatedAt: Date
+	updatedAt: Date | null
 
-	constructor() {
-		const now = new Date()
-
-		this.id = crypto.randomUUID()
-		this.createdAt = now
-		this.updatedAt = now
+	constructor(data: IBaseModel) {
+		this.id = data.id
+		this.createdAt = data.createdAt
+		this.updatedAt = data.updatedAt
 	}
 
 	abstract toDatabaseFormat(): unknown

@@ -10,18 +10,19 @@ export async function createUser(input: ICreateUserInput): Promise<ISignupRespon
 			full_name: input.fullName,
 			age: input.age,
 			phone: input.phone,
-			password_hash: input.passwordHash,
-			created_at: new Date(),
-			updated_at: new Date()
+			password_hash: input.passwordHash
 		})
-		.returning(['id', 'email', 'full_name', 'age', 'password_hash'])
+		.returning(['id', 'email', 'full_name', 'age', 'phone', 'password_hash', 'created_at', 'updated_at'])
 
 	return new User({
+		id: row.id,
 		email: row.email,
 		fullName: row.full_name,
 		phone: row.phone,
 		passwordHash: row.password_hash,
-		age: row.age
+		age: row.age,
+		createdAt: row.created_at,
+		updatedAt: row.updated_at
 	}).toSignupResponse()
 }
 
@@ -30,7 +31,17 @@ export const getUserByEmail = async (input: Pick<User, 'email'>): Promise<IUserI
 
 	if (!row) return null
 
-	const user = new User(row).toUserInfoByEmailResponse()
+	const user = new User({
+		id: row.id,
+		email: row.email,
+		fullName: row.full_name,
+		phone: row.phone,
+		passwordHash: row.password_hash,
+		age: row.age,
+		refreshToken: row.refresh_token,
+		createdAt: row.created_at,
+		updatedAt: row.updated_at
+	}).toUserInfoByEmailResponse()
 
 	return user
 }
@@ -41,12 +52,15 @@ export const getUserById = async (input: { id: string }): Promise<IUser | null> 
 	if (!row) return null
 
 	return new User({
+		id: row.id,
 		email: row.email,
 		fullName: row.full_name,
 		phone: row.phone,
 		passwordHash: row.password_hash,
 		age: row.age,
 		refreshToken: row.refresh_token,
+		createdAt: row.created_at,
+		updatedAt: row.updated_at
 	}).toJSON()
 }
 
@@ -58,12 +72,15 @@ export const getUserByRefreshToken = async ({ refreshToken }: { refreshToken: st
 	if (!row) return null
 
 	return new User({
+		id: row.id,
 		email: row.email,
 		fullName: row.full_name,
 		phone: row.phone,
 		passwordHash: row.password_hash,
 		age: row.age,
 		refreshToken: row.refresh_token,
+		createdAt: row.created_at,
+		updatedAt: row.updated_at
 	}).toJSON()
 }
 

@@ -11,7 +11,7 @@ import {
 	getUserByRefreshToken,
 	updateUserById
 } from '../database/repositories/user.repository'
-import { removeUserSenstive } from './user.service'
+import { removeUserSensitive } from './user.service'
 import { IUserProfile } from '../types/user'
 
 const { HASH_SALT } = process.env
@@ -41,7 +41,7 @@ export async function registerUser({ password, ...input }: TSignupInput): Promis
 
 	const user = await createUser({ ...input, passwordHash })
 
-	return removeUserSenstive({ user })
+	return removeUserSensitive({ user })
 }
 
 export async function refreshAccessToken(input: TRefreshTokenInput): Promise<IRefreshTokenResponse> {

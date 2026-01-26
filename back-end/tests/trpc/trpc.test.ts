@@ -21,7 +21,7 @@ describe('tRPC Utilities', () => {
             expect(result).toBeInstanceOf(TRPCError)
             expect(result.code).toBe('UNPROCESSABLE_CONTENT')
             expect(result.message).toBe('Validation failed')
-            expect(result.cause).toHaveProperty('messages', ['Field is required'])
+            expect(result.cause).toHaveProperty('messages', ['field: Field is required'])
             expect(result.cause).toHaveProperty('statusCode', EStatusCodes.UNPROCESSABLE)
         })
 
@@ -40,7 +40,7 @@ describe('tRPC Utilities', () => {
             expect(result).toBeInstanceOf(TRPCError)
             expect(result.code).toBe('UNPROCESSABLE_CONTENT')
             expect(result.message).toBe('Validation failed')
-            expect(result.cause).toHaveProperty('messages', ['Field is required', 'Must be a string'])
+            expect(result.cause).toHaveProperty('messages', ['field1: Field is required', 'field2: Must be a string'])
             expect(result.cause).toHaveProperty('statusCode', EStatusCodes.UNPROCESSABLE)
         })
 
@@ -98,14 +98,14 @@ describe('tRPC Utilities', () => {
         })
 
         it('should transform CustomError with INTERNAL status to TRPCError', () => {
-            const customError = new CustomError('Internal server error', EStatusCodes.INTERNAL)
+            const customError = new CustomError('Internal server error', EStatusCodes.INTERNAL_SERVER_ERROR)
 
             const result = transformErrorToTRPC(customError)
 
             expect(result).toBeInstanceOf(TRPCError)
             expect(result.code).toBe('INTERNAL_SERVER_ERROR')
             expect(result.message).toBe('Internal server error')
-            expect(result.cause).toHaveProperty('statusCode', EStatusCodes.INTERNAL)
+            expect(result.cause).toHaveProperty('statusCode', EStatusCodes.INTERNAL_SERVER_ERROR)
         })
 
         it('should transform CustomError with unknown status code to INTERNAL_SERVER_ERROR', () => {

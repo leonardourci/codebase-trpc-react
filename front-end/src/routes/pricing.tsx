@@ -1,8 +1,7 @@
 import { PricingCard } from '@/components/pricing/PricingCard'
 import { Header } from '@/components/layout/Header'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { trpc } from '@/lib/trpc'
 import type { IProduct } from '@/types/product'
+import { PRICING_PLANS } from '@/data/pricing'
 
 export interface PricingPlan {
     id: string
@@ -18,27 +17,27 @@ export function transformProduct(p: IProduct): PricingPlan {
         id: p.id,
         name: p.name,
         description: p.description,
-        price: p.priceInCents / 100, // Convert cents to dollars
+        price: p.priceInCents / 100,
         currency: p.currency || 'USD',
-        features: [], // Products don't have features in backend, could be added later
+        features: [],
     }
 }
 
 export function PricingView({ products }: { products: PricingPlan[] }) {
     return (
-        <div className="min-h-screen bg-background flex flex-col">
+        <div className="min-h-screen bg-gradient-to-b from-background via-muted/20 to-background flex flex-col">
             <Header />
-            <main className="flex-1 flex flex-col items-center py-20 px-4">
-                <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-                    <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            <main className="flex-1 flex flex-col items-center py-12 md:py-20 px-4">
+                <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16 space-y-4">
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight">
                         Simple, Transparent Pricing
                     </h1>
-                    <p className="text-xl text-muted-foreground">
+                    <p className="text-lg md:text-xl text-muted-foreground">
                         Choose the plan that's right for you. No hidden fees.
                     </p>
                 </div>
-                <div className="grid grid-cols-1 gap-8 w-full max-w-sm">
-                    {products.map((p) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 w-full max-w-6xl">
+                    {products.map((p, index) => (
                         <PricingCard
                             key={p.id}
                             name={p.name}
@@ -46,7 +45,7 @@ export function PricingView({ products }: { products: PricingPlan[] }) {
                             price={p.price}
                             currency={p.currency}
                             features={p.features}
-                            popular
+                            popular={index === 1}
                         />
                     ))}
                 </div>
@@ -56,34 +55,7 @@ export function PricingView({ products }: { products: PricingPlan[] }) {
 }
 
 export function PricingRoute() {
-    const { data: products, isLoading, error } = trpc.product.getAll.useQuery()
-
-    if (isLoading) {
-        return (
-            <div className="min-h-screen bg-background flex flex-col">
-                <Header />
-                <main className="flex-1 flex items-center justify-center">
-                    <LoadingSpinner />
-                </main>
-            </div>
-        )
-    }
-
-    if (error) {
-        return (
-            <div className="min-h-screen bg-background flex flex-col">
-                <Header />
-                <main className="flex-1 flex items-center justify-center">
-                    <div className="text-center">
-                        <h2 className="text-2xl font-bold text-destructive mb-2">Failed to load pricing</h2>
-                        <p className="text-muted-foreground">Please try again later</p>
-                    </div>
-                </main>
-            </div>
-        )
-    }
-
-    const transformedProducts = products?.map(transformProduct) || []
+    const transformedProducts = PRICING_PLANS?.map(transformProduct) || []
 
     return <PricingView products={transformedProducts} />
 }

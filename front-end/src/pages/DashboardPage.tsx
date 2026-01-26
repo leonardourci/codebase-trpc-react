@@ -9,7 +9,7 @@ export function DashboardPage() {
 
     if (!user) {
         return (
-            <AppLayout>
+            <AppLayout showSidebar>
                 <div className="flex items-center justify-center min-h-[400px]">
                     <div className="text-center">
                         <h2 className="text-xl font-semibold">Loading...</h2>
@@ -21,19 +21,17 @@ export function DashboardPage() {
 
     return (
         <AppLayout showSidebar>
-            <div className="space-y-6">
-                {/* Page Header */}
+            <div className="space-y-6 md:space-y-8">
                 <div>
-                    <h1 className="text-3xl font-bold">Dashboard</h1>
-                    <p className="text-muted-foreground">Welcome back, {user.fullName}</p>
+                    <h1 className="text-3xl md:text-4xl font-bold">Dashboard</h1>
+                    <p className="text-muted-foreground text-base md:text-lg mt-1">Welcome back, {user.fullName}</p>
                 </div>
 
-                {/* Main Content Grid */}
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <User className="h-5 w-5" />
+                            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+                                <User className="h-5 w-5 text-primary" />
                                 Profile Information
                             </CardTitle>
                             <CardDescription>
@@ -42,7 +40,9 @@ export function DashboardPage() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="flex items-center gap-3">
-                                <User className="h-4 w-4 text-muted-foreground" />
+                                <div className="p-2 bg-muted rounded-lg">
+                                    <User className="h-4 w-4 text-muted-foreground" />
+                                </div>
                                 <div>
                                     <p className="text-sm font-medium">Full Name</p>
                                     <p className="text-sm text-muted-foreground">{user.fullName}</p>
@@ -50,7 +50,9 @@ export function DashboardPage() {
                             </div>
 
                             <div className="flex items-center gap-3">
-                                <Mail className="h-4 w-4 text-muted-foreground" />
+                                <div className="p-2 bg-muted rounded-lg">
+                                    <Mail className="h-4 w-4 text-muted-foreground" />
+                                </div>
                                 <div>
                                     <p className="text-sm font-medium">Email</p>
                                     <p className="text-sm text-muted-foreground">{user.email}</p>
@@ -59,7 +61,9 @@ export function DashboardPage() {
 
                             {user.phone && (
                                 <div className="flex items-center gap-3">
-                                    <Phone className="h-4 w-4 text-muted-foreground" />
+                                    <div className="p-2 bg-muted rounded-lg">
+                                        <Phone className="h-4 w-4 text-muted-foreground" />
+                                    </div>
                                     <div>
                                         <p className="text-sm font-medium">Phone</p>
                                         <p className="text-sm text-muted-foreground">{user.phone}</p>
@@ -69,7 +73,9 @@ export function DashboardPage() {
 
                             {user.age && (
                                 <div className="flex items-center gap-3">
-                                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                                    <div className="p-2 bg-muted rounded-lg">
+                                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                                    </div>
                                     <div>
                                         <p className="text-sm font-medium">Age</p>
                                         <p className="text-sm text-muted-foreground">{user.age} years old</p>
@@ -81,7 +87,7 @@ export function DashboardPage() {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Welcome to Your Dashboard</CardTitle>
+                            <CardTitle className="text-lg md:text-xl">Welcome to Your Dashboard</CardTitle>
                             <CardDescription>
                                 This is your personal dashboard where you can manage your account and access features.
                             </CardDescription>
@@ -91,7 +97,7 @@ export function DashboardPage() {
                                 <p className="text-sm text-muted-foreground">
                                     You're successfully authenticated and can now access all the features of the application.
                                 </p>
-                                <div className="flex gap-2">
+                                <div className="flex flex-col sm:flex-row gap-2">
                                     <Button size="sm">Get Started</Button>
                                     <Button variant="outline" size="sm">Learn More</Button>
                                 </div>
@@ -101,7 +107,7 @@ export function DashboardPage() {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Quick Actions</CardTitle>
+                            <CardTitle className="text-lg md:text-xl">Quick Actions</CardTitle>
                             <CardDescription>
                                 Common tasks and shortcuts
                             </CardDescription>
@@ -125,52 +131,51 @@ export function DashboardPage() {
                     </Card>
                 </div>
 
-                {/* Features Section */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Application Features</CardTitle>
+                        <CardTitle className="text-lg md:text-xl">Application Features</CardTitle>
                         <CardDescription>
                             This template provides a solid foundation for your SaaS application
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            <div className="p-4 border border-border rounded-lg">
+                            <div className="p-5 bg-muted/50 rounded-xl border border-border/50">
                                 <h3 className="font-semibold mb-2">Authentication</h3>
                                 <p className="text-sm text-muted-foreground">
                                     Complete login/signup system with form validation and error handling
                                 </p>
                             </div>
 
-                            <div className="p-4 border border-border rounded-lg">
+                            <div className="p-5 bg-muted/50 rounded-xl border border-border/50">
                                 <h3 className="font-semibold mb-2">Protected Routes</h3>
                                 <p className="text-sm text-muted-foreground">
                                     Automatic redirection and session management for secure areas
                                 </p>
                             </div>
 
-                            <div className="p-4 border border-border rounded-lg">
+                            <div className="p-5 bg-muted/50 rounded-xl border border-border/50">
                                 <h3 className="font-semibold mb-2">Responsive Design</h3>
                                 <p className="text-sm text-muted-foreground">
                                     Mobile-first design that works perfectly on all devices
                                 </p>
                             </div>
 
-                            <div className="p-4 border border-border rounded-lg">
+                            <div className="p-5 bg-muted/50 rounded-xl border border-border/50">
                                 <h3 className="font-semibold mb-2">Modern UI</h3>
                                 <p className="text-sm text-muted-foreground">
                                     Beautiful components built with shadcn/ui and Tailwind CSS
                                 </p>
                             </div>
 
-                            <div className="p-4 border border-border rounded-lg">
+                            <div className="p-5 bg-muted/50 rounded-xl border border-border/50">
                                 <h3 className="font-semibold mb-2">Type Safety</h3>
                                 <p className="text-sm text-muted-foreground">
                                     Full TypeScript support with tRPC for end-to-end type safety
                                 </p>
                             </div>
 
-                            <div className="p-4 border border-border rounded-lg">
+                            <div className="p-5 bg-muted/50 rounded-xl border border-border/50">
                                 <h3 className="font-semibold mb-2">Production Ready</h3>
                                 <p className="text-sm text-muted-foreground">
                                     Optimized build process and deployment-ready configuration

@@ -1,10 +1,17 @@
-export const PRICING_PLANS = [
+import { IProduct } from "@/types"
+
+export const PRICING_PLANS:IProduct[] = [
     {
         id: 'basic',
         name: 'Basic',
         description: 'Perfect for getting started',
-        price: 9.99,
+        priceInCents: 999,
         currency: 'USD',
+        active: true,
+        createdAt: new Date().toString(),
+        type: '',
+        externalPriceId: '',
+        externalProductId: '',
         features: [
             'Up to 5 projects',
             'Basic analytics',
@@ -16,8 +23,13 @@ export const PRICING_PLANS = [
         id: 'pro',
         name: 'Pro',
         description: 'Everything you need to grow your business',
-        price: 29.99,
+        priceInCents: 2999,
         currency: 'USD',
+        active: true,
+        createdAt: new Date().toString(),
+        type: '',
+        externalPriceId: '',
+        externalProductId: '',
         features: [
             'Unlimited projects',
             'Advanced analytics',
@@ -30,8 +42,13 @@ export const PRICING_PLANS = [
         id: 'enterprise',
         name: 'Enterprise',
         description: 'For large teams and organizations',
-        price: 99.99,
+        priceInCents: 9999,
         currency: 'USD',
+        active: true,
+        createdAt: new Date().toString(),
+        type: '',
+        externalPriceId: '',
+        externalProductId: '',
         features: [
             'Everything in Pro',
             'SSO integration',
@@ -40,6 +57,6 @@ export const PRICING_PLANS = [
             'SLA guarantee'
         ]
     }
-] as const
+]
 
 export type PricingPlan = typeof PRICING_PLANS[number]

@@ -11,7 +11,7 @@ export function Card({ className, ref, ...props }: CardProps) {
             ref={ref}
             data-slot="card"
             className={cn(
-                "rounded-lg border bg-card text-card-foreground shadow-sm",
+                "rounded-xl border border-border/50 bg-card text-card-foreground shadow-lg shadow-black/5 transition-shadow hover:shadow-xl hover:shadow-black/10",
                 className
             )}
             {...props}
@@ -24,7 +24,7 @@ export function CardHeader({ className, ref, ...props }: ComponentProps<"div">) 
         <div
             ref={ref}
             data-slot="card-header"
-            className={cn("flex flex-col space-y-1.5 p-6", className)}
+            className={cn("flex flex-col space-y-1.5 p-6 md:p-8", className)}
             {...props}
         />
     )
@@ -36,7 +36,7 @@ export function CardTitle({ className, ref, ...props }: ComponentProps<"h3">) {
             ref={ref}
             data-slot="card-title"
             className={cn(
-                "text-2xl font-semibold leading-none tracking-tight",
+                "text-xl md:text-2xl font-semibold leading-none tracking-tight",
                 className
             )}
             {...props}
@@ -60,7 +60,7 @@ export function CardContent({ className, ref, ...props }: ComponentProps<"div">)
         <div
             ref={ref}
             data-slot="card-content"
-            className={cn("p-6 pt-0", className)}
+            className={cn("p-6 pt-0 md:p-8 md:pt-0", className)}
             {...props}
         />
     )

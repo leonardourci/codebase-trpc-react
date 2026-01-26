@@ -19,7 +19,7 @@ export function AppLayout({ children, showSidebar = false }: AppLayoutProps) {
     }
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-gradient-to-b from-background via-muted/20 to-background">
             <Header
                 onMenuToggle={toggleSidebar}
                 showMenuButton={showSidebar}
@@ -34,9 +34,9 @@ export function AppLayout({ children, showSidebar = false }: AppLayoutProps) {
                 )}
 
                 <main
-                    className={`flex-1 ${showSidebar ? 'lg:ml-64' : ''}`}
+                    className={`flex-1 transition-all duration-200 ${showSidebar ? 'lg:ml-64' : ''}`}
                 >
-                    <div className="p-4 sm:p-6 lg:p-8">
+                    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
                         {children}
                     </div>
                 </main>

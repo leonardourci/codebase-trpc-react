@@ -4,8 +4,6 @@ import z from 'zod'
 const envValidation = frontendEnvSchema.safeParse({
     VITE_API_BASE: import.meta.env.VITE_API_BASE,
     MODE: import.meta.env.MODE,
-    DEV: import.meta.env.DEV,
-    PROD: import.meta.env.PROD,
 })
 
 if (!envValidation.success) {

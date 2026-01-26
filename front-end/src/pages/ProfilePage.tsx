@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { AppLayout } from '@/components/layout/AppLayout'
@@ -52,7 +53,6 @@ export function ProfilePage() {
     }, [getProfile, setFormData])
 
     const onSubmit = async (data: TUpdateUserInput) => {
-        // Only include changed fields
         const updates: TUpdateUserInput = {}
         if (data.fullName !== profile?.fullName) updates.fullName = data.fullName
         if (data.email !== profile?.email) updates.email = data.email
@@ -107,20 +107,18 @@ export function ProfilePage() {
 
     return (
         <AppLayout showSidebar>
-            <div className="space-y-6">
-                {/* Page Header */}
+            <div className="space-y-6 md:space-y-8">
                 <div>
-                    <h1 className="text-3xl font-bold">Profile Settings</h1>
-                    <p className="text-muted-foreground">Manage your account information and preferences</p>
+                    <h1 className="text-3xl md:text-4xl font-bold">Profile Settings</h1>
+                    <p className="text-muted-foreground text-base md:text-lg mt-1">Manage your account information and preferences</p>
                 </div>
 
                 <div className="grid gap-6 lg:grid-cols-3">
-                    {/* Profile Form */}
                     <div className="lg:col-span-2">
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <User className="h-5 w-5" />
+                                <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+                                    <User className="h-5 w-5 text-primary" />
                                     Personal Information
                                 </CardTitle>
                                 <CardDescription>
@@ -131,24 +129,24 @@ export function ProfilePage() {
                                 <form onSubmit={(e) => {
                                     e.preventDefault()
                                     handleSubmit(onSubmit)
-                                }} className="space-y-4">
+                                }} className="space-y-5">
                                     {errors.general && (
-                                        <div className="p-3 text-sm text-destructive-foreground bg-destructive/10 border border-destructive/20 rounded-md">
+                                        <div className="p-4 text-sm text-destructive-foreground bg-destructive/10 border border-destructive/20 rounded-lg">
                                             {errors.general}
                                         </div>
                                     )}
 
                                     {successMessage && (
-                                        <div className="p-3 text-sm text-green-700 bg-green-50 border border-green-200 rounded-md">
+                                        <div className="p-4 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg">
                                             {successMessage}
                                         </div>
                                     )}
 
-                                    <div className="grid gap-4 md:grid-cols-2">
+                                    <div className="grid gap-5 md:grid-cols-2">
                                         <div className="space-y-2">
-                                            <label htmlFor="fullName" className="text-sm font-medium">
+                                            <Label htmlFor="fullName" className="text-base font-medium">
                                                 Full Name
-                                            </label>
+                                            </Label>
                                             <Input
                                                 id="fullName"
                                                 type="text"
@@ -158,14 +156,14 @@ export function ProfilePage() {
                                                 className={errors.fullName ? 'border-destructive' : ''}
                                             />
                                             {errors.fullName && (
-                                                <p className="text-sm text-destructive">{errors.fullName}</p>
+                                                <p className="text-sm text-destructive mt-1">{errors.fullName}</p>
                                             )}
                                         </div>
 
                                         <div className="space-y-2">
-                                            <label htmlFor="email" className="text-sm font-medium">
+                                            <Label htmlFor="email" className="text-base font-medium">
                                                 Email Address
-                                            </label>
+                                            </Label>
                                             <Input
                                                 id="email"
                                                 type="email"
@@ -175,14 +173,14 @@ export function ProfilePage() {
                                                 className={errors.email ? 'border-destructive' : ''}
                                             />
                                             {errors.email && (
-                                                <p className="text-sm text-destructive">{errors.email}</p>
+                                                <p className="text-sm text-destructive mt-1">{errors.email}</p>
                                             )}
                                         </div>
 
                                         <div className="space-y-2">
-                                            <label htmlFor="phone" className="text-sm font-medium">
+                                            <Label htmlFor="phone" className="text-base font-medium">
                                                 Phone Number
-                                            </label>
+                                            </Label>
                                             <Input
                                                 id="phone"
                                                 type="tel"
@@ -192,14 +190,14 @@ export function ProfilePage() {
                                                 className={errors.phone ? 'border-destructive' : ''}
                                             />
                                             {errors.phone && (
-                                                <p className="text-sm text-destructive">{errors.phone}</p>
+                                                <p className="text-sm text-destructive mt-1">{errors.phone}</p>
                                             )}
                                         </div>
 
                                         <div className="space-y-2">
-                                            <label htmlFor="age" className="text-sm font-medium">
+                                            <Label htmlFor="age" className="text-base font-medium">
                                                 Age
-                                            </label>
+                                            </Label>
                                             <Input
                                                 id="age"
                                                 type="number"
@@ -211,16 +209,17 @@ export function ProfilePage() {
                                                 max="120"
                                             />
                                             {errors.age && (
-                                                <p className="text-sm text-destructive">{errors.age}</p>
+                                                <p className="text-sm text-destructive mt-1">{errors.age}</p>
                                             )}
                                         </div>
                                     </div>
 
-                                    <div className="flex justify-end">
+                                    <div className="flex justify-end pt-2">
                                         <Button
                                             type="submit"
                                             disabled={isSubmitting}
                                             className="flex items-center gap-2"
+                                            size="lg"
                                         >
                                             {isSubmitting ? (
                                                 <>
@@ -240,11 +239,10 @@ export function ProfilePage() {
                         </Card>
                     </div>
 
-                    {/* Profile Summary */}
                     <div className="space-y-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Profile Summary</CardTitle>
+                                <CardTitle className="text-lg md:text-xl">Profile Summary</CardTitle>
                                 <CardDescription>
                                     Current account information
                                 </CardDescription>
@@ -253,7 +251,9 @@ export function ProfilePage() {
                                 {profile && (
                                     <>
                                         <div className="flex items-center gap-3">
-                                            <User className="h-4 w-4 text-muted-foreground" />
+                                            <div className="p-2 bg-muted rounded-lg">
+                                                <User className="h-4 w-4 text-muted-foreground" />
+                                            </div>
                                             <div>
                                                 <p className="text-sm font-medium">Full Name</p>
                                                 <p className="text-sm text-muted-foreground">{profile.fullName}</p>
@@ -261,7 +261,9 @@ export function ProfilePage() {
                                         </div>
 
                                         <div className="flex items-center gap-3">
-                                            <Mail className="h-4 w-4 text-muted-foreground" />
+                                            <div className="p-2 bg-muted rounded-lg">
+                                                <Mail className="h-4 w-4 text-muted-foreground" />
+                                            </div>
                                             <div>
                                                 <p className="text-sm font-medium">Email</p>
                                                 <p className="text-sm text-muted-foreground">{profile.email}</p>
@@ -269,7 +271,9 @@ export function ProfilePage() {
                                         </div>
 
                                         <div className="flex items-center gap-3">
-                                            <Phone className="h-4 w-4 text-muted-foreground" />
+                                            <div className="p-2 bg-muted rounded-lg">
+                                                <Phone className="h-4 w-4 text-muted-foreground" />
+                                            </div>
                                             <div>
                                                 <p className="text-sm font-medium">Phone</p>
                                                 <p className="text-sm text-muted-foreground">{profile.phone}</p>
@@ -277,7 +281,9 @@ export function ProfilePage() {
                                         </div>
 
                                         <div className="flex items-center gap-3">
-                                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                                            <div className="p-2 bg-muted rounded-lg">
+                                                <Calendar className="h-4 w-4 text-muted-foreground" />
+                                            </div>
                                             <div>
                                                 <p className="text-sm font-medium">Age</p>
                                                 <p className="text-sm text-muted-foreground">{profile.age} years old</p>

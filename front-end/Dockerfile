@@ -10,7 +10,7 @@ RUN npm ci && npm cache clean --force
 
 # Copy frontend source and environment
 COPY front-end/ ./
-COPY .env.frontend ./.env.frontend
+COPY .env ./.env
 
 # Build the application
 RUN npm run build

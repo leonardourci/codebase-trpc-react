@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken'
 
 import { CustomError, ZodValidationError } from './errors'
-import { EStatusCodes } from './statusCodes'
-import globalConfig from './globalConfig'
+import { EStatusCodes } from './status-codes'
+import globalConfig from './global-config'
 import { IUser } from '../types/user'
 import { TValidateTokenInput, IToken } from '../types/jwt'
 import { validateTokenSchema } from './validations/jwt.schemas'

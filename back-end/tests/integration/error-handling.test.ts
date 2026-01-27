@@ -4,7 +4,7 @@ import { cleanTestData, closeTestDb, getTestDb } from '../setup/test-db'
 import type { TSignupInput, TLoginInput } from '../../src/types/auth'
 import type { TCreateCheckoutSessionInput, TCreatePortalSessionInput } from '../../src/types/billing'
 import { IProduct, IProductDbRow } from '../../src/types/product'
-import { keysToSnakeCase, keysToCamelCase } from '../../src/utils/caseConversion'
+import { keysToSnakeCase, keysToCamelCase } from '../../src/utils/case-conversion'
 import { mockStripe, setupStripeMocks, resetStripeMocks } from '../mocks/stripe.mock'
 
 jest.mock('../../src/utils/stripe', () => require('../mocks/stripe.mock').mockStripe)

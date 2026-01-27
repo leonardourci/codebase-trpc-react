@@ -3,7 +3,7 @@ import { Response } from 'express'
 import { IBillingRequest } from '../middlewares/billing.middleware'
 import { getProductByExternalProductId } from '../database/repositories/product.repository'
 import { registerUserBilling, updateBillingOnPaymentFailed, updateBillingOnSubscriptionUpdated, updateBillingOnSubscriptionDeleted } from '../services/billing.service'
-import { EStatusCodes } from '../utils/statusCodes'
+import { EStatusCodes } from '../utils/status-codes'
 
 /**
  * Resposta do deepseek pros eventos que preciso escutar:

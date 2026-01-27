@@ -1,6 +1,6 @@
 import knex from '../knex'
 import { ICreateUserInput, IUserInfoByEmailResponse, IUser, IUserDbRow, EUserDbRowKeys } from '../../types/user'
-import { keysToCamelCase, keysToSnakeCase } from '../../utils/caseConversion'
+import { keysToCamelCase, keysToSnakeCase } from '../../utils/case-conversion'
 
 const USERS_TABLE = 'users'
 

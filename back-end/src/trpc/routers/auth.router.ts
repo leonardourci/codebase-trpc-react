@@ -1,7 +1,7 @@
 import { router, procedure } from '../trpc'
 import { protectedProcedure } from '../middleware/auth.middleware'
 import { loginSchema, signupSchema } from '../../utils/validations/auth.schemas'
-import { refreshTokenSchema } from '../../utils/validations/refreshToken.schemas'
+import { refreshTokenSchema } from '../../utils/validations/refresh-token.schemas'
 import { authenticateUser, registerUser, refreshAccessToken, revokeUserRefreshToken } from '../../services/auth.service'
 
 export const authRouter = router({

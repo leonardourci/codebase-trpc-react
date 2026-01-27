@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { refreshTokenSchema } from '../utils/validations/refreshToken.schemas'
+import { refreshTokenSchema } from '../utils/validations/refresh-token.schemas'
 
 export type TRefreshTokenInput = z.infer<typeof refreshTokenSchema>
 

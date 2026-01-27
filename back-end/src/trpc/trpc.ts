@@ -2,7 +2,7 @@ import { initTRPC, TRPCError } from '@trpc/server'
 import { Request, Response } from 'express'
 import { IUser } from '../types/user'
 import { CustomError, ZodValidationError } from '../utils/errors'
-import { EStatusCodes } from '../utils/statusCodes'
+import { EStatusCodes } from '../utils/status-codes'
 
 type TRPCErrorCode =
   | 'BAD_REQUEST'

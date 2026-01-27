@@ -1,4 +1,4 @@
-import globalConfig from './globalConfig'
+import globalConfig from './global-config'
 
 export default class Logger {
   private source: string

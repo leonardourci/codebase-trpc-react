@@ -1,7 +1,7 @@
 import { getTestDb, cleanTestData, closeTestDb } from '../setup/test-db'
 import { getProductById, getProductByExternalProductId, getAllProducts } from '../../src/database/repositories/product.repository'
 import { IProduct, IProductDbRow } from '../../src/types/product'
-import { keysToSnakeCase } from '../../src/utils/caseConversion'
+import { keysToSnakeCase } from '../../src/utils/case-conversion'
 
 describe('Product Repository', () => {
     let db: any

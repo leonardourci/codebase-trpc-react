@@ -1,6 +1,6 @@
 import knex from '../knex'
 import { IProduct, IProductDbRow } from '../../types/product'
-import { keysToCamelCase } from '../../utils/caseConversion'
+import { keysToCamelCase } from '../../utils/case-conversion'
 
 const PRODUCTS_TABLE = 'products'
 

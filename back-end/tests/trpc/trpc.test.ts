@@ -2,7 +2,7 @@ import { TRPCError } from '@trpc/server'
 import { Request, Response } from 'express'
 import { transformErrorToTRPC, createTRPCContext } from '../../src/trpc/trpc'
 import { CustomError, ZodValidationError } from '../../src/utils/errors'
-import { EStatusCodes } from '../../src/utils/statusCodes'
+import { EStatusCodes } from '../../src/utils/status-codes'
 import { ZodError } from 'zod'
 
 describe('tRPC Utilities', () => {

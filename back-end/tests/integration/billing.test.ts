@@ -6,7 +6,7 @@ import type { TCreateCheckoutSessionInput, TCreatePortalSessionInput } from '../
 import { createBilling, getBillingByUserId } from '../../src/database/repositories/billing.repository'
 import { createUser } from '../../src/database/repositories/user.repository'
 import { IProduct, IProductDbRow } from '../../src/types/product'
-import { keysToSnakeCase, keysToCamelCase } from '../../src/utils/caseConversion'
+import { keysToSnakeCase, keysToCamelCase } from '../../src/utils/case-conversion'
 import { mockStripe, setupStripeMocks, resetStripeMocks } from '../mocks/stripe.mock'
 
 jest.mock('../../src/utils/stripe', () => require('../mocks/stripe.mock').mockStripe)

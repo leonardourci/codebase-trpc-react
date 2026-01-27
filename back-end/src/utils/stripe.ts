@@ -1,5 +1,5 @@
 import Stripe from 'stripe'
-import globalConfig from './globalConfig'
+import globalConfig from './global-config'
 
 const stripe = new Stripe(globalConfig.stripeSecretKey, { typescript: true })
 

@@ -3,7 +3,7 @@ import { authenticateUser, registerUser, refreshAccessToken, revokeUserRefreshTo
 import * as userRepository from '../../src/database/repositories/user.repository'
 import * as jwt from '../../src/utils/jwt'
 import { CustomError } from '../../src/utils/errors'
-import { EStatusCodes } from '../../src/utils/statusCodes'
+import { EStatusCodes } from '../../src/utils/status-codes'
 import { TLoginInput, TSignupInput } from '../../src/types/auth'
 import { TRefreshTokenInput } from '../../src/types/refreshToken'
 

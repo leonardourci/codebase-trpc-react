@@ -1,5 +1,5 @@
 import app from './app'
-import globalConfig from './utils/globalConfig'
+import globalConfig from './utils/global-config'
 import Logger from './utils/logger'
 import { ENodeEnvs } from './types/envs'
 

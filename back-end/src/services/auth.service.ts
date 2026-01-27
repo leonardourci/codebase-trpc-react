@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt'
 
 import { generateJwtToken, verifyJwtToken } from '../utils/jwt'
 import { CustomError } from '../utils/errors'
-import { EStatusCodes } from '../utils/statusCodes'
+import { EStatusCodes } from '../utils/status-codes'
 import { TLoginInput, ILoginResponse, TSignupInput } from '../types/auth'
 import { TRefreshTokenInput, IRefreshTokenResponse } from '../types/refreshToken'
 import {

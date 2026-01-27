@@ -2,7 +2,7 @@ import { createTestClient } from '../setup/test-client'
 import { startTestServer, stopTestServer } from '../setup/test-server'
 import { cleanTestData, closeTestDb, getTestDb } from '../setup/test-db'
 import { type IProduct, type IProductDbRow } from '../../src/types/product'
-import { keysToCamelCase, keysToSnakeCase } from '../../src/utils/caseConversion'
+import { keysToCamelCase, keysToSnakeCase } from '../../src/utils/case-conversion'
 
 const PRODUCTS_TABLE = 'products'
 

@@ -3,7 +3,7 @@ import { processBillingWebhookHandler } from '../../src/controllers/billing.cont
 import { IBillingRequest } from '../../src/middlewares/billing.middleware'
 import * as productRepository from '../../src/database/repositories/product.repository'
 import * as billingService from '../../src/services/billing.service'
-import { EStatusCodes } from '../../src/utils/statusCodes'
+import { EStatusCodes } from '../../src/utils/status-codes'
 
 // Mock dependencies
 jest.mock('../../src/database/repositories/product.repository')

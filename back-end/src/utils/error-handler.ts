@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server'
-import { EStatusCodes } from './statusCodes'
+import { EStatusCodes } from './status-codes'
 
 export class CustomError extends Error {
     constructor(

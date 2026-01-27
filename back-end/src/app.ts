@@ -7,7 +7,7 @@ import * as trpcExpress from '@trpc/server/adapters/express'
 import { processBillingWebhookHandler } from './controllers/billing.controller'
 import { verifyStripeWebhookSignatureMiddleware } from './middlewares/billing.middleware'
 import { appRouter, createTRPCContext } from './trpc'
-import globalConfig from './utils/globalConfig'
+import globalConfig from './utils/global-config'
 
 const app = express()
 

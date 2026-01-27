@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken'
 import { generateJwtToken, verifyJwtToken, decodeJwtToken } from '../../src/utils/jwt'
 import { CustomError, ZodValidationError } from '../../src/utils/errors'
-import { EStatusCodes } from '../../src/utils/statusCodes'
-import globalConfig from '../../src/utils/globalConfig'
+import { EStatusCodes } from '../../src/utils/status-codes'
+import globalConfig from '../../src/utils/global-config'
 
 jest.mock('../../src/utils/globalConfig', () => ({
     jwtSecret: 'test-secret-key'

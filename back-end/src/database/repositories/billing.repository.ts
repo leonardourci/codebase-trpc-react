@@ -1,7 +1,7 @@
 import knex from '../knex'
 import { ICreateBilling, IBilling, IBillingDbRow } from '../../types/billing'
 import { IUser } from '../../types/user'
-import { keysToCamelCase, keysToSnakeCase } from '../../utils/caseConversion'
+import { keysToCamelCase, keysToSnakeCase } from '../../utils/case-conversion'
 
 const BILLINGS_TABLE = 'billings'
 

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { ENodeEnvs } from '../../types/envs'
-import { DEFAULT_FRONTEND_LOCALHOST } from '../globalConfig'
+import { DEFAULT_FRONTEND_LOCALHOST } from '../global-config'
 
 export const globalEnvsSchema = z.object({
     NODE_ENV: z.enum([ENodeEnvs.DEVELOPMENT, ENodeEnvs.PRODUCTION, ENodeEnvs.TEST]),

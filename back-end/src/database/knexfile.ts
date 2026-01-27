@@ -1,5 +1,5 @@
 import { Knex } from 'knex'
-import globalConfig from '../utils/globalConfig'
+import globalConfig from '../utils/global-config'
 import path from 'path'
 
 const config: Knex.Config = {

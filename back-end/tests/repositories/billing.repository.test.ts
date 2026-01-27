@@ -9,7 +9,7 @@ import {
 import { createUser } from '../../src/database/repositories/user.repository'
 import { ICreateBilling, IBilling } from '../../src/types/billing'
 import { IProduct, IProductDbRow } from '../../src/types/product'
-import { keysToSnakeCase } from '../../src/utils/caseConversion'
+import { keysToSnakeCase } from '../../src/utils/case-conversion'
 
 describe('Billing Repository', () => {
     let db: any

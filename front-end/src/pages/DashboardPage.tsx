@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { useAuth } from '@/hooks/useAuth'
+import { maskEmail, maskPhone } from '@/utils/format'
 import { User, Mail, Phone, Calendar } from 'lucide-react'
 
 export function DashboardPage() {
@@ -55,7 +56,7 @@ export function DashboardPage() {
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium">Email</p>
-                                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                                    <p className="text-sm text-muted-foreground">{maskEmail(user.email)}</p>
                                 </div>
                             </div>
 
@@ -66,7 +67,7 @@ export function DashboardPage() {
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium">Phone</p>
-                                        <p className="text-sm text-muted-foreground">{user.phone}</p>
+                                        <p className="text-sm text-muted-foreground">{maskPhone(user.phone)}</p>
                                     </div>
                                 </div>
                             )}

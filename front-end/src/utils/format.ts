@@ -84,3 +84,33 @@ export const formatInitials = (fullName: string): string => {
         .join('')
         .slice(0, 2)
 }
+
+export const maskEmail = (email: string): string => {
+    if (!email) return ''
+
+    const [localPart, domain] = email.split('@')
+    if (!localPart || !domain) return email
+
+    const firstTwoChars = localPart.slice(0, Math.min(2, localPart.length))
+    const lastThreeChars = localPart.length > 5
+        ? localPart.slice(-3)
+        : ''
+
+    const masked = lastThreeChars
+        ? `${firstTwoChars}****${lastThreeChars}@${domain}`
+        : `${firstTwoChars}****@${domain}`
+
+    return masked
+}
+
+export const maskPhone = (phone: string): string => {
+    if (!phone) return ''
+
+    const digitsOnly = phone.replace(/\D/g, '')
+    if (digitsOnly.length < 6) return phone
+
+    const firstThreeChars = digitsOnly.slice(0, 3)
+    const lastThreeChars = digitsOnly.slice(-3)
+
+    return `${firstThreeChars}****${lastThreeChars}`
+}

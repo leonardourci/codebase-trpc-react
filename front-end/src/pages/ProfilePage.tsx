@@ -9,8 +9,9 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { useUser } from '@/hooks/useUser'
 import { useFormValidation } from '@/hooks/useFormValidation'
 import type { IUserProfile, TUpdateUserInput } from '@/types/user'
-import { User, Mail, Phone, Calendar, Save } from 'lucide-react'
+import { User, Save } from 'lucide-react'
 import { updateUserSchema } from '@/validations/user.schemas'
+import { maskEmail, maskPhone } from '@/utils/format'
 
 export function ProfilePage() {
     const { isLoading, error, getProfile, updateProfile } = useUser()
@@ -114,9 +115,7 @@ export function ProfilePage() {
                     <p className="text-muted-foreground text-base md:text-lg mt-1">Manage your account information and preferences</p>
                 </div>
 
-                <div className="grid gap-6 lg:grid-cols-3">
-                    <div className="lg:col-span-2">
-                        <Card>
+                <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
                                     <User className="h-5 w-5 text-primary" />
@@ -165,7 +164,7 @@ export function ProfilePage() {
                                                 id="email"
                                                 type="email"
                                                 placeholder="Enter your email"
-                                                value={formData.email || ''}
+                                                value={maskEmail(formData.email || '')}
                                                 onChange={(e) => handleFormInputChange('email', e.target.value)}
                                                 className={errors.email ? 'border-destructive' : ''}
                                             />
@@ -182,7 +181,7 @@ export function ProfilePage() {
                                                 id="phone"
                                                 type="tel"
                                                 placeholder="Enter your phone number"
-                                                value={formData.phone || ''}
+                                                value={maskPhone(formData.phone || '')}
                                                 onChange={(e) => handleFormInputChange('phone', e.target.value)}
                                                 className={errors.phone ? 'border-destructive' : ''}
                                             />
@@ -234,64 +233,6 @@ export function ProfilePage() {
                                 </form>
                             </CardContent>
                         </Card>
-                    </div>
-
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg md:text-xl">Profile Summary</CardTitle>
-                                <CardDescription>
-                                    Current account information
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {profile && (
-                                    <>
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-muted rounded-lg">
-                                                <User className="h-4 w-4 text-muted-foreground" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-medium">Full Name</p>
-                                                <p className="text-sm text-muted-foreground">{profile.fullName}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-muted rounded-lg">
-                                                <Mail className="h-4 w-4 text-muted-foreground" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-medium">Email</p>
-                                                <p className="text-sm text-muted-foreground">{profile.email}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-muted rounded-lg">
-                                                <Phone className="h-4 w-4 text-muted-foreground" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-medium">Phone</p>
-                                                <p className="text-sm text-muted-foreground">{profile.phone}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-muted rounded-lg">
-                                                <Calendar className="h-4 w-4 text-muted-foreground" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-medium">Age</p>
-                                                <p className="text-sm text-muted-foreground">{profile.age} years old</p>
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
             </div>
         </AppLayout>
     )

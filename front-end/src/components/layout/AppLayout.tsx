@@ -33,10 +33,8 @@ export function AppLayout({ children, showSidebar = false }: AppLayoutProps) {
                     />
                 )}
 
-                <main
-                    className={`flex-1 transition-all duration-200 ${showSidebar ? 'lg:ml-64' : ''}`}
-                >
-                    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+                <main className="flex-1 transition-all duration-200 overflow-hidden">
+                    <div className="p-4 sm:p-6 lg:p-8 max-w-screen-2xl 2xl:mx-auto">
                         {children}
                     </div>
                 </main>

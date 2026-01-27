@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { userService, type IUpdateUserInput } from '../services/user.service'
-import { type IUserProfile } from '../utils/auth'
+import { useState, useCallback } from 'react'
+import { userService } from '../services/user.service'
+import { type IUserProfile, type TUpdateUserInput as IUpdateUserInput } from '@/types/user'
 
 export interface UseUserReturn {
     isLoading: boolean
@@ -13,7 +13,7 @@ export function useUser(): UseUserReturn {
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    const getProfile = async (): Promise<IUserProfile> => {
+    const getProfile = useCallback(async (): Promise<IUserProfile> => {
         setIsLoading(true)
         setError(null)
 
@@ -30,14 +30,17 @@ export function useUser(): UseUserReturn {
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [])
 
-    const updateProfile = async (updates: IUpdateUserInput): Promise<IUserProfile> => {
+    const updateProfile = useCallback(async (updates: IUpdateUserInput): Promise<IUserProfile> => {
         setIsLoading(true)
         setError(null)
 
         try {
             const updatedProfile = await userService.updateProfile(updates)
+            if (!updatedProfile) {
+                throw new Error('Failed to update profile')
+            }
             return updatedProfile
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to update profile'
@@ -46,7 +49,7 @@ export function useUser(): UseUserReturn {
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [])
 
     return {
         isLoading,

@@ -9,7 +9,10 @@ const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
-        <GoogleOAuthProvider clientId={googleClientId}>
+        <GoogleOAuthProvider
+            clientId={googleClientId}
+            locale='en'
+        >
             <TRPCProvider>
                 <App />
             </TRPCProvider>

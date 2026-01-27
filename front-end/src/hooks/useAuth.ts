@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { authService, type IAuthResponse } from '../services/auth.service'
-import { getUser, isAuthenticated, type IUser, type TLoginInput, type TSignupInput } from '../utils/auth'
+import { getUser, isAuthenticated } from '../utils/auth'
+import { IUserProfile } from '@/types'
+import { TLoginInput, TSignupInput } from '@/validations'
 
 export interface AuthState {
-    user: IUser | null
+    user: IUserProfile | null
     isAuthenticated: boolean
     isLoading: boolean
     error: string | null
@@ -47,6 +49,29 @@ export function useAuth() {
             return response
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Login failed'
+            setAuthState(prev => ({
+                ...prev,
+                isLoading: false,
+                error: errorMessage,
+            }))
+            throw error
+        }
+    }
+
+    const googleLogin = async (credential: string): Promise<IAuthResponse> => {
+        setAuthState(prev => ({ ...prev, isLoading: true, error: null }))
+
+        try {
+            const response = await authService.googleLogin(credential)
+            setAuthState({
+                user: response.user,
+                isAuthenticated: true,
+                isLoading: false,
+                error: null,
+            })
+            return response
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Google login failed'
             setAuthState(prev => ({
                 ...prev,
                 isLoading: false,
@@ -123,6 +148,7 @@ export function useAuth() {
     return {
         ...authState,
         login,
+        googleLogin,
         signup,
         logout,
         refreshTokens,

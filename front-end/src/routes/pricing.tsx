@@ -25,7 +25,7 @@ export function transformProduct(p: IProduct): PricingPlan {
 
 export function PricingView({ products }: { products: PricingPlan[] }) {
     return (
-        <div className="min-h-screen bg-gradient-to-b from-background via-muted/20 to-background flex flex-col">
+        <div className="min-h-screen bg-gradient-to-b from-background via-muted/20 to-background flex flex-col pt-16 md:pt-20">
             <Header />
             <main className="flex-1 flex flex-col items-center py-12 md:py-20 px-4">
                 <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16 space-y-4">

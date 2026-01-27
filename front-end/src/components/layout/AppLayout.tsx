@@ -19,7 +19,7 @@ export function AppLayout({ children, showSidebar = false }: AppLayoutProps) {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-background via-muted/20 to-background">
+        <div className="min-h-screen bg-gradient-to-b from-background via-muted/20 to-background pt-16 md:pt-20">
             <Header
                 onMenuToggle={toggleSidebar}
                 showMenuButton={showSidebar}

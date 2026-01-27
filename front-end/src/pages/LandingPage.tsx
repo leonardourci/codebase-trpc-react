@@ -6,7 +6,7 @@ import { Header } from '@/components/layout/Header'
 
 export function LandingPage() {
     return (
-        <div className="min-h-screen bg-gradient-to-b from-background via-muted/20 to-background">
+        <div className="min-h-screen bg-gradient-to-b from-background via-muted/20 to-background pt-16 md:pt-20">
             <Header />
 
             <section className="px-4 py-12 md:py-20 lg:py-24">

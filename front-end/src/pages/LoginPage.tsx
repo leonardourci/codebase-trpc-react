@@ -30,7 +30,7 @@ export function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-background via-muted/20 to-background">
+        <div className="min-h-screen bg-gradient-to-b from-background via-muted/20 to-background pt-16 md:pt-20">
             <Header />
             <div className="flex items-center justify-center px-4 py-12 md:py-20">
                 <Card className="w-full max-w-md">

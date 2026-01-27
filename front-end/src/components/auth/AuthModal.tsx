@@ -19,6 +19,8 @@ import { useAuthModal } from '@/contexts/AuthModalContext'
 import { loginSchema, type TLoginInput } from '@/validations/auth.schemas'
 import { signupSchema, type TSignUpFormInput } from '@/validations/auth.schemas'
 import type { TSignupInput } from '@/types/auth'
+import { GoogleAuthButton } from './GoogleAuthButton'
+import { AuthDivider } from './AuthDivider'
 
 interface AuthFormProps {
   mode: 'login' | 'signup'
@@ -97,6 +99,9 @@ function AuthForm({ mode, onSwitchMode, onSuccess }: AuthFormProps) {
           </div>
         )}
 
+        <GoogleAuthButton onSuccess={onSuccess} />
+        <AuthDivider />
+
         <div className="space-y-2">
           <Label htmlFor="auth-login-email">Email</Label>
           <Input
@@ -166,6 +171,9 @@ function AuthForm({ mode, onSwitchMode, onSuccess }: AuthFormProps) {
           {signupErrors.general}
         </div>
       )}
+
+      <GoogleAuthButton onSuccess={onSuccess} />
+      <AuthDivider />
 
       <div className="space-y-2">
         <Label htmlFor="auth-signup-fullName">Full Name</Label>
@@ -369,7 +377,7 @@ export function AuthButtons({ className }: AuthButtonsProps) {
         size="sm"
         onClick={() => openAuth('login')}
       >
-      
+
         Sign In
       </Button>
       <Button

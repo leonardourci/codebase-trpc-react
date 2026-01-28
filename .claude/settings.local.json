@@ -4,7 +4,13 @@
       "Bash(npm install:*)",
       "Bash(npm run build:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\ndocs: add Google OAuth implementation design\n\nDocument the design decisions and implementation plan for adding\nGoogle OAuth authentication with popup flow, account linking,\nand security considerations.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\ndocs: add Google OAuth implementation design\n\nDocument the design decisions and implementation plan for adding\nGoogle OAuth authentication with popup flow, account linking,\nand security considerations.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(npm run type-check:*)",
+      "Bash(npx tsc:*)",
+      "Bash(docker exec:*)",
+      "Bash(npm run db:migrate:test:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm test:*)"
     ]
   }
 }

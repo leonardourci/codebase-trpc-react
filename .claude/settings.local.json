@@ -10,7 +10,12 @@
       "Bash(docker exec:*)",
       "Bash(npm run db:migrate:test:*)",
       "Bash(npm run test:*)",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "Bash(node:*)",
+      "Bash(NODE_PATH=./node_modules node:*)",
+      "Bash(npm run db:rollback:*)",
+      "Bash(npm run db:migrate:*)",
+      "Bash(ls:*)"
     ]
   }
 }

@@ -25,7 +25,7 @@ export function AppLayout({ children, showSidebar = false }: AppLayoutProps) {
                 showMenuButton={showSidebar}
             />
 
-            <div className="flex">
+            <div className="flex max-w-screen-2xl 2xl:mx-auto w-full">
                 {showSidebar && (
                     <Sidebar
                         isOpen={isSidebarOpen}
@@ -34,7 +34,7 @@ export function AppLayout({ children, showSidebar = false }: AppLayoutProps) {
                 )}
 
                 <main className="flex-1 transition-all duration-200 overflow-hidden">
-                    <div className="p-4 sm:p-6 lg:p-8 max-w-screen-2xl 2xl:mx-auto">
+                    <div className="p-4 sm:p-6 lg:p-8">
                         {children}
                     </div>
                 </main>

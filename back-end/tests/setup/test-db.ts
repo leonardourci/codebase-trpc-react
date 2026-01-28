@@ -1,4 +1,5 @@
 import knex, { Knex } from 'knex'
+import { DEFAULT_TEST_DB_CONNECTION } from '../../src/database/knexfile'
 
 let _testDb: Knex | null = null
 
@@ -6,7 +7,7 @@ export function getTestDb(): Knex {
     if (!_testDb) {
         _testDb = knex({
             client: 'pg',
-            connection: process.env.TEST_DATABASE_URL || 'postgresql://test_user:test_password@localhost:5433/test_db',
+            connection: process.env.TEST_DATABASE_URL || DEFAULT_TEST_DB_CONNECTION,
             migrations: {
                 tableName: 'knex_migrations',
                 directory: './src/db/migrations',

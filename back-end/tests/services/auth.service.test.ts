@@ -46,25 +46,29 @@ describe('Auth Service', () => {
                 fullName: 'Test User'
             }
 
-            const mockToken = 'jwt-token-123'
+            const mockAccessToken = 'jwt-access-token-123'
+            const mockRefreshToken = 'jwt-refresh-token-123'
 
             mockUserRepository.getUserByEmail.mockResolvedValue(mockUser as any)
             mockBcrypt.compareSync.mockReturnValue(true)
-            mockJwt.generateJwtToken.mockReturnValue(mockToken)
+            mockJwt.generateJwtToken
+                .mockReturnValueOnce(mockAccessToken)
+                .mockReturnValueOnce(mockRefreshToken)
             mockUserRepository.updateUserById.mockResolvedValue(undefined)
 
             const result = await authenticateUser(loginInput)
 
             expect(mockUserRepository.getUserByEmail).toHaveBeenCalledWith({ email: loginInput.email })
             expect(mockBcrypt.compareSync).toHaveBeenCalledWith(loginInput.password, mockUser.passwordHash)
-            expect(mockJwt.generateJwtToken).toHaveBeenCalledWith({ userId: mockUser.id })
+            expect(mockJwt.generateJwtToken).toHaveBeenCalledWith({ userId: mockUser.id }, { expiresIn: '1h' })
+            expect(mockJwt.generateJwtToken).toHaveBeenCalledWith({ userId: mockUser.id }, { expiresIn: '7d' })
             expect(mockUserRepository.updateUserById).toHaveBeenCalledWith({
                 id: mockUser.id,
-                updates: { refreshToken: mockToken }
+                updates: { refreshToken: mockRefreshToken }
             })
             expect(result).toEqual({
-                accessToken: mockToken,
-                refreshToken: mockToken
+                accessToken: mockAccessToken,
+                refreshToken: mockRefreshToken
             })
         })
 
@@ -149,24 +153,28 @@ describe('Auth Service', () => {
             }
 
             const newAccessToken = 'new-access-token'
+            const newRefreshToken = 'new-refresh-token'
 
             mockJwt.verifyJwtToken.mockReturnValue(undefined)
             mockUserRepository.getUserByRefreshToken.mockResolvedValue(mockUser as any)
-            mockJwt.generateJwtToken.mockReturnValue(newAccessToken)
+            mockJwt.generateJwtToken
+                .mockReturnValueOnce(newAccessToken)
+                .mockReturnValueOnce(newRefreshToken)
             mockUserRepository.updateUserById.mockResolvedValue(undefined)
 
             const result = await refreshAccessToken(refreshTokenInput)
 
             expect(mockJwt.verifyJwtToken).toHaveBeenCalledWith({ token: refreshTokenInput.refreshToken })
             expect(mockUserRepository.getUserByRefreshToken).toHaveBeenCalledWith({ refreshToken: refreshTokenInput.refreshToken })
-            expect(mockJwt.generateJwtToken).toHaveBeenCalledWith({ userId: mockUser.id })
+            expect(mockJwt.generateJwtToken).toHaveBeenCalledWith({ userId: mockUser.id }, { expiresIn: '1h' })
+            expect(mockJwt.generateJwtToken).toHaveBeenCalledWith({ userId: mockUser.id }, { expiresIn: '7d' })
             expect(mockUserRepository.updateUserById).toHaveBeenCalledWith({
                 id: mockUser.id,
-                updates: { refreshToken: newAccessToken }
+                updates: { refreshToken: newRefreshToken }
             })
             expect(result).toEqual({
                 accessToken: newAccessToken,
-                refreshToken: newAccessToken
+                refreshToken: newRefreshToken
             })
         })
 

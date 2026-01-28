@@ -15,7 +15,7 @@ import {
 	updateUserById
 } from '../database/repositories/user.repository'
 import { removeUserSensitive } from './user.service'
-import { IUserProfile } from '../types/user'
+import { IUser, IUserProfile } from '../types/user'
 import globalConfig from '../utils/global-config'
 
 const { HASH_SALT } = process.env
@@ -25,6 +25,11 @@ const client = new OAuth2Client(globalConfig.googleClientId)
 export interface IGoogleAuthInput {
 	credential: string
 }
+
+const generateTokens = ({ userId }: { userId: IUser['id'] }): { accessToken: string, refreshToken: string } => ({
+	accessToken: generateJwtToken({ userId }, { expiresIn: '1h' }),
+	refreshToken: generateJwtToken({ userId }, { expiresIn: '7d' })
+})
 
 export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<ILoginResponse> {
 	const { credential } = input
@@ -75,8 +80,7 @@ export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<I
 		}
 	}
 
-	const accessToken = generateJwtToken({ userId: user.id })
-	const refreshToken = accessToken
+	const { accessToken, refreshToken } = generateTokens({ userId: user.id })
 
 	await updateUserById({ id: user.id, updates: { refreshToken } })
 
@@ -95,8 +99,7 @@ export async function authenticateUser(input: TLoginInput): Promise<ILoginRespon
 
 	if (!isValidPassword) throw new CustomError('Email or password is wrong', EStatusCodes.UNAUTHORIZED)
 
-	const accessToken = generateJwtToken({ userId: user.id })
-	const refreshToken = accessToken
+	const { accessToken, refreshToken } = generateTokens({ userId: user.id })
 
 	await updateUserById({ id: user.id, updates: { refreshToken } })
 
@@ -123,8 +126,7 @@ export async function refreshAccessToken(input: TRefreshTokenInput): Promise<IRe
 		throw new CustomError('Invalid refresh token', EStatusCodes.UNAUTHORIZED)
 	}
 
-	const accessToken = generateJwtToken({ userId: user.id })
-	const refreshToken = accessToken
+	const { accessToken, refreshToken } = generateTokens({ userId: user.id })
 
 	await updateUserById({ id: user.id, updates: { refreshToken } })
 

@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: test_password
       POSTGRES_DB: postgres
     ports:
-      - "5433:5432"  # Different port to avoid conflicts
+      - "5435:5432"  # Different port to avoid conflicts
     volumes:
       - postgres_test_data:/var/lib/postgresql/data
     healthcheck:

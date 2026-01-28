@@ -2,10 +2,12 @@ import { Knex } from 'knex'
 import globalConfig from '../utils/global-config'
 import path from 'path'
 
+export const DEFAULT_TEST_DB_CONNECTION = 'postgresql://test_user:test_password@localhost:5435/test_db'
+
 const config: Knex.Config = {
 	client: 'pg',
 	connection: globalConfig.nodeEnv === 'test'
-		? 'postgresql://test_user:test_password@localhost:5433/test_db'
+		? DEFAULT_TEST_DB_CONNECTION
 		: globalConfig.databaseConnectionString,
 	migrations: {
 		tableName: 'knex_migrations',

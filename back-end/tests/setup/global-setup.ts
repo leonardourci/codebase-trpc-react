@@ -1,14 +1,18 @@
 import knex from 'knex'
+import { DEFAULT_TEST_DB_CONNECTION } from '../../src/database/knexfile'
 
 export default async function globalSetup() {
     console.log('🚀 Setting up test database...')
 
-    const connectionString = process.env.TEST_DATABASE_URL || 'postgresql://test_user:test_password@localhost:5433/postgres'
+    const connectionString = process.env.TEST_DATABASE_URL || DEFAULT_TEST_DB_CONNECTION
     const testDbName = 'test_db'
+
+    // Connect to postgres database (not test_db) to be able to drop/create the test database
+    const postgresConnectionString = connectionString.replace(/\/[^\/]*$/, '/postgres')
 
     const adminDb = knex({
         client: 'pg',
-        connection: connectionString
+        connection: postgresConnectionString
     })
 
     try {

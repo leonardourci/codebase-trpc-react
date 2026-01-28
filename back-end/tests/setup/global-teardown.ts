@@ -1,5 +1,6 @@
 import knex from 'knex'
 import { closeTestDb } from './test-db'
+import { DEFAULT_TEST_DB_CONNECTION } from '../../src/database/knexfile'
 
 export default async function globalTeardown() {
     console.log('🧹 Tearing down test database...')
@@ -10,12 +11,15 @@ export default async function globalTeardown() {
     // Small delay to ensure connection is fully closed
     await new Promise(resolve => setTimeout(resolve, 100))
 
-    const connectionString = process.env.TEST_DATABASE_URL || 'postgresql://test_user:test_password@localhost:5433/postgres'
+    const connectionString = process.env.TEST_DATABASE_URL || DEFAULT_TEST_DB_CONNECTION
     const testDbName = 'test_db'
+
+    // Connect to postgres database (not test_db) to be able to drop the test database
+    const postgresConnectionString = connectionString.replace(/\/[^\/]*$/, '/postgres')
 
     const adminDb = knex({
         client: 'pg',
-        connection: connectionString
+        connection: postgresConnectionString
     })
 
     try {

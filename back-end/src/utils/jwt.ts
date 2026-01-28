@@ -7,7 +7,9 @@ import { IUser } from '../types/user'
 import { TValidateTokenInput, IToken } from '../types/jwt'
 import { validateTokenSchema } from './validations/jwt.schemas'
 
-export const generateJwtToken = (input: { userId: IUser['id'] }) => jwt.sign(input, globalConfig.jwtSecret, { expiresIn: '7d' })
+export const generateJwtToken = (input: { userId: IUser['id'] }, options?: jwt.SignOptions) => {
+	return jwt.sign(input, globalConfig.jwtSecret, options)
+}
 
 export const verifyJwtToken = (input: TValidateTokenInput): void => {
 	const { data, error } = validateTokenSchema.safeParse(input)

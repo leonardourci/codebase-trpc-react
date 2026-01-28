@@ -18,8 +18,8 @@ NODE_ENV=test
 REST_PORT=3001                    # Different port to avoid conflicts with dev server
 
 # Test Database Configuration
-TEST_DATABASE_URL=postgresql://test_user:test_password@localhost:5433/postgres
-DATABASE_CONNECTION_STRING=postgresql://test_user:test_password@localhost:5433/postgres
+TEST_DATABASE_URL=postgresql://test_user:test_password@localhost:5435/postgres
+DATABASE_CONNECTION_STRING=postgresql://test_user:test_password@localhost:5435/postgres
 
 # Test Security Configuration
 JWT_SECRET=test-jwt-secret-key-for-integration-tests
@@ -35,7 +35,7 @@ STRIPE_SECRET_KEY=sk_test_fake_key_for_integration_tests
 |----------|---------|------------|-------|
 | `NODE_ENV` | Environment identifier | `test` | Ensures test-specific behavior |
 | `REST_PORT` | Test server port | `3001` | Avoids conflicts with dev server (3000) |
-| `TEST_DATABASE_URL` | Test database connection | `postgresql://test_user:test_password@localhost:5433/postgres` | Uses port 5433 to avoid conflicts |
+| `TEST_DATABASE_URL` | Test database connection | `postgresql://test_user:test_password@localhost:5435/postgres` | Uses port 5435 to avoid conflicts |
 | `JWT_SECRET` | JWT token signing | `test-jwt-secret-key-for-integration-tests` | Test-specific secret |
 | `HASH_SALT` | Password hashing rounds | `10` | Lower value for faster tests |
 | `STRIPE_SECRET_KEY` | Stripe API key | `sk_test_fake_key_for_integration_tests` | Mocked in tests |
@@ -47,7 +47,7 @@ STRIPE_SECRET_KEY=sk_test_fake_key_for_integration_tests
 The test environment uses a completely separate PostgreSQL database:
 
 - **Host**: `localhost`
-- **Port**: `5433` (different from default 5432)
+- **Port**: `5435` (different from default 5432)
 - **Database**: `test_db` (created dynamically)
 - **User**: `test_user`
 - **Password**: `test_password`
@@ -84,7 +84,7 @@ services:
       POSTGRES_PASSWORD: test_password
       POSTGRES_DB: postgres
     ports:
-      - "5433:5432"  # Maps to port 5433 on host
+      - "5435:5432"  # Maps to port 5435 on host
     volumes:
       - postgres_test_data:/var/lib/postgresql/data
     healthcheck:
@@ -220,7 +220,7 @@ const product = await createTestProduct(productData)
 ### Common Issues
 
 1. **Port Conflicts**:
-   - Test database uses port 5433
+   - Test database uses port 5435
    - Test server uses port 3001
    - Change ports in `docker-compose.test.yml` if needed
 
@@ -350,7 +350,7 @@ jobs:
           POSTGRES_PASSWORD: test_password
           POSTGRES_DB: postgres
         ports:
-          - 5433:5432
+          - 5435:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -372,7 +372,7 @@ jobs:
       - name: Run integration tests
         run: npm test
         env:
-          TEST_DATABASE_URL: postgresql://test_user:test_password@localhost:5433/postgres
+          TEST_DATABASE_URL: postgresql://test_user:test_password@localhost:5435/postgres
 ```
 
 This configuration ensures the test environment is properly set up in CI/CD pipelines with the same database configuration as local development.

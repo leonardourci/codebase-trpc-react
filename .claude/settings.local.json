@@ -16,7 +16,8 @@
       "Bash(npm run db:rollback:*)",
       "Bash(npm run db:migrate:*)",
       "Bash(ls:*)",
-      "Bash(docker ps:*)"
+      "Bash(docker ps:*)",
+      "Bash(cat:*)"
     ]
   }
 }

@@ -30,7 +30,7 @@ export const billingRouter = router({
 
     createCheckoutSession: verifiedEmailProcedure
         .input(createCheckoutSessionSchema)
-        .mutation(async ({ input }) => {
+        .mutation(async ({ input, ctx }) => {
             const product = await getProductById({ id: input.productId })
             if (!product) {
                 throw new TRPCError({
@@ -41,6 +41,7 @@ export const billingRouter = router({
 
             const session = await stripe.checkout.sessions.create({
                 mode: 'subscription',
+                customer_email: ctx.user.email,
                 line_items: [{ price: product.externalPriceId, quantity: 1 }],
                 success_url: input.successUrl,
                 cancel_url: input.cancelUrl,

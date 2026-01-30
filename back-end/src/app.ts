@@ -13,6 +13,14 @@ const app = express()
 
 app.use(helmet())
 
+// Stripe webhook route must be registered before rate limiter and body parsers
+// It needs the raw body for signature verification and shouldn't be rate limited
+app.post('/webhooks/stripe',
+  express.raw({ type: 'application/json', limit: '1mb' }),
+  verifyStripeWebhookSignatureMiddleware,
+  processBillingWebhookHandler
+)
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -31,18 +39,12 @@ app.use(cors({
 }))
 
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'ok', 
+  res.status(200).json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   })
 })
-
-app.post('/webhooks/stripe',
-  express.raw({ type: 'application/json', limit: '1mb' }),
-  verifyStripeWebhookSignatureMiddleware,
-  processBillingWebhookHandler
-)
 
 app.use(express.json({ limit: '10mb' }))
 

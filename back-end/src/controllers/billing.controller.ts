@@ -39,7 +39,7 @@ export const processBillingWebhookHandler = async (req: IBillingRequest, res: Re
 					externalSubscriptionId: lineItems[0].subscription as string,
 					expiresAt: lineItems[0].period.end,
 
-					externalPaymentIntentId: String(paidInvoice)
+					externalPaymentIntentId: String(paidInvoice.payment_intent || paidInvoice.id)
 				})
 			}
 			break
@@ -59,22 +59,21 @@ export const processBillingWebhookHandler = async (req: IBillingRequest, res: Re
 
 		case 'customer.subscription.updated': {
 			const updatedSubscription = billingEvent.data.object
-			if (updatedSubscription.cancel_at_period_end) {
-				await updateBillingOnSubscriptionUpdated({
-					externalSubscriptionId: updatedSubscription.id,
-					status: updatedSubscription.status,
-					currentPeriodEnd: new Date((updatedSubscription.cancel_at || new Date().getTime()) * 1000)
-				})
-				console.log('customer.subscription.updated cancel_at_period_end', {
-					subscriptionId: updatedSubscription.id,
-					cancelAtPeriodEnd: updatedSubscription.cancel_at_period_end
-				})
-			} else {
-				console.log('customer.subscription.updated', {
-					subscriptionId: updatedSubscription.id,
-					status: updatedSubscription.status
-				})
-			}
+			const expiresAt = updatedSubscription.cancel_at
+				? new Date(updatedSubscription.cancel_at * 1000)
+				: new Date(updatedSubscription.current_period_end * 1000)
+
+			await updateBillingOnSubscriptionUpdated({
+				externalSubscriptionId: updatedSubscription.id,
+				status: updatedSubscription.status,
+				currentPeriodEnd: expiresAt
+			})
+
+			console.log('customer.subscription.updated', {
+				subscriptionId: updatedSubscription.id,
+				status: updatedSubscription.status,
+				cancelAtPeriodEnd: updatedSubscription.cancel_at_period_end
+			})
 
 			break
 		}

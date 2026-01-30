@@ -4,6 +4,7 @@ import { LoginPage } from './pages/LoginPage'
 import { SignupPage } from './pages/SignupPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { ProfilePage } from './pages/ProfilePage'
+import { BillingPage } from './pages/BillingPage'
 import { VerifyEmailPage } from './pages/VerifyEmailPage'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
@@ -96,6 +97,14 @@ function App() {
                     element: (
                         <ProtectedRoute>
                             <ProfilePage />
+                        </ProtectedRoute>
+                    ),
+                },
+                {
+                    path: "/billing",
+                    element: (
+                        <ProtectedRoute>
+                            <BillingPage />
                         </ProtectedRoute>
                     ),
                 },

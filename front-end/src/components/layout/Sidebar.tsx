@@ -1,9 +1,6 @@
-import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { cn } from '@/lib/utils'
-import { trpc } from '@/lib/trpc'
 import {
     Home,
     User,
@@ -20,45 +17,11 @@ interface SidebarProps {
 const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Profile', href: '/profile', icon: User },
+    { name: 'Billing', href: '/billing', icon: CreditCard },
 ]
 
 export function Sidebar({ isOpen = true, onClose, className }: SidebarProps) {
     const location = useLocation()
-    const [isLoadingPortal, setIsLoadingPortal] = useState(false)
-    const [portalError, setPortalError] = useState<string | null>(null)
-    const [showVerificationError, setShowVerificationError] = useState(false)
-
-    const createPortalSession = trpc.billing.createCustomerPortalSession.useMutation()
-    const resendMutation = trpc.auth.resendVerificationEmail.useMutation()
-
-    const handleManageSubscription = async () => {
-        setIsLoadingPortal(true)
-        setPortalError(null)
-
-        try {
-            const result = await createPortalSession.mutateAsync({
-                returnUrl: `${window.location.origin}/dashboard`
-            })
-
-            if (result.url) {
-                // Close sidebar on mobile before redirect
-                onClose?.()
-                // Redirect to Stripe Customer Portal
-                window.location.href = result.url
-            }
-        } catch (error: any) {
-            const errorMessage = error?.message || 'Failed to access billing portal'
-
-            // Check if error is due to email verification
-            if (error?.data?.httpStatus === 403 && errorMessage.includes('verify your email')) {
-                setShowVerificationError(true)
-            } else {
-                setPortalError(errorMessage)
-            }
-
-            setIsLoadingPortal(false)
-        }
-    }
 
     return (
         <>
@@ -116,32 +79,6 @@ export function Sidebar({ isOpen = true, onClose, className }: SidebarProps) {
                                 </Link>
                             )
                         })}
-
-                        <div className="pt-2 mt-2 border-t border-border/50">
-                            <Button
-                                onClick={handleManageSubscription}
-                                disabled={isLoadingPortal}
-                                variant="ghost"
-                                className="w-full justify-start px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                            >
-                                {isLoadingPortal ? (
-                                    <>
-                                        <LoadingSpinner size="sm" className="mr-3" />
-                                        <span>Loading...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <CreditCard className="h-5 w-5 mr-3" />
-                                        <span>Manage Subscription</span>
-                                    </>
-                                )}
-                            </Button>
-                            {portalError && (
-                                <p className="text-xs text-destructive px-4 mt-1">
-                                    {portalError}
-                                </p>
-                            )}
-                        </div>
                     </nav>
 
                     <div className="p-4 border-t border-border/50">
@@ -151,38 +88,6 @@ export function Sidebar({ isOpen = true, onClose, className }: SidebarProps) {
                     </div>
                 </div>
             </aside>
-
-            {showVerificationError && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-md">
-                        <h3 className="text-lg font-semibold mb-2">Email Verification Required</h3>
-                        <p className="text-gray-600 mb-4">
-                            Please verify your email address before making a purchase.
-                        </p>
-                        <div className="flex gap-3">
-                            <Button
-                                onClick={() => {
-                                    resendMutation.mutate(undefined, {
-                                        onSuccess: () => {
-                                            alert('Verification email sent! Please check your inbox.')
-                                            setShowVerificationError(false)
-                                        }
-                                    })
-                                }}
-                                disabled={resendMutation.isPending}
-                            >
-                                {resendMutation.isPending ? 'Sending...' : 'Resend Verification Email'}
-                            </Button>
-                            <Button
-                                variant="outline"
-                                onClick={() => setShowVerificationError(false)}
-                            >
-                                Close
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </>
     )
 }

@@ -1,12 +1,33 @@
 import { TRPCError } from '@trpc/server'
 import { router } from '../trpc'
-import { verifiedEmailProcedure } from '../middleware/auth.middleware'
+import { protectedProcedure, verifiedEmailProcedure } from '../middleware/auth.middleware'
 import { createCheckoutSessionSchema, createPortalSessionSchema } from '../../utils/validations/billing.schemas'
 import { getProductById } from '../../database/repositories/product.repository'
 import { getBillingByUserId } from '../../database/repositories/billing.repository'
 import stripe from '../../utils/stripe'
 
 export const billingRouter = router({
+    getUserBilling: protectedProcedure
+        .query(async ({ ctx }) => {
+            const billing = await getBillingByUserId({ userId: ctx.user.id })
+
+            if (!billing) {
+                return {
+                    hasSubscription: false,
+                    billing: null,
+                    product: null
+                }
+            }
+
+            const product = await getProductById({ id: billing.productId })
+
+            return {
+                hasSubscription: true,
+                billing,
+                product
+            }
+        }),
+
     createCheckoutSession: verifiedEmailProcedure
         .input(createCheckoutSessionSchema)
         .mutation(async ({ input }) => {

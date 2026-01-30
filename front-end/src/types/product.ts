@@ -6,7 +6,7 @@ export interface IProduct {
     currency: string
     type: string
     externalProductId: string
-    features: string[]
+    features?: string[]
     externalPriceId: string
     active: boolean
     createdAt: string

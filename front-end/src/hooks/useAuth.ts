@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { authService, type IAuthResponse } from '../services/auth.service'
-import { getUser, isAuthenticated, AUTH_STATE_CHANGE_EVENT } from '../utils/auth'
+import { getUser, isAuthenticated, AUTH_STATE_CHANGE_EVENT, setUser, getAccessToken } from '../utils/auth'
 import { IUserProfile } from '@/types'
 import { TLoginInput, TSignupInput } from '@/validations'
+import { globalConfig } from '@/utils/global-config'
 
 export interface AuthState {
     user: IUserProfile | null
@@ -163,6 +164,58 @@ export function useAuth() {
         }
     }
 
+    /**
+     * Refreshes user data from the backend to sync with the database.
+     *
+     * This is critical for security when:
+     * 1. User manipulates localStorage (e.g., setting emailVerified: true)
+     * 2. Backend rejects the request (e.g., 403 error for unverified email)
+     * 3. We need to re-sync frontend state with the actual backend/database state
+     *
+     * This ensures the frontend always displays the correct user state and prevents
+     * users from bypassing validations by manipulating client-side data.
+     */
+    const refreshUser = async () => {
+        try {
+            const token = getAccessToken()
+            if (!token) {
+                throw new Error('No access token available')
+            }
+
+            // Fetch fresh user data from the database via the user.getUserById endpoint
+            const response = await fetch(`${globalConfig.apiBase}/user.getUserById`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch user data')
+            }
+
+            const data = await response.json()
+            const freshUser: IUserProfile = data.result.data
+
+            // Update both localStorage and React state with fresh data from the database
+            setUser(freshUser)
+            setAuthState(prev => ({
+                ...prev,
+                user: freshUser,
+            }))
+
+            return freshUser
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to refresh user data'
+            setAuthState(prev => ({
+                ...prev,
+                error: errorMessage,
+            }))
+            throw error
+        }
+    }
+
     return {
         ...authState,
         login,
@@ -170,5 +223,6 @@ export function useAuth() {
         signup,
         logout,
         refreshTokens,
+        refreshUser,
     }
 }

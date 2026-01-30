@@ -12,7 +12,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { PRICING_PLANS } from '@/data/pricing'
 
 export function BillingPage() {
-    const { user } = useAuth()
+    const { user, refreshUser } = useAuth()
     const [isLoadingPortal, setIsLoadingPortal] = useState(false)
     const [showVerificationError, setShowVerificationError] = useState(false)
     const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
@@ -37,6 +37,15 @@ export function BillingPage() {
             const errorMessage = error?.message || 'Failed to access billing portal'
 
             if (error?.data?.httpStatus === 403 && errorMessage.includes('verify your email')) {
+                // Backend rejected the request because email is not verified
+                // This means the frontend state is out of sync (possibly manipulated)
+                // Re-fetch user data from the database to sync frontend with backend state
+                try {
+                    await refreshUser()
+                } catch (refreshError) {
+                    console.error('Failed to refresh user data:', refreshError)
+                }
+
                 setShowVerificationError(true)
             } else {
                 alert(errorMessage)

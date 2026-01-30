@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { trpc } from '../lib/trpc'
 import { LoadingSpinner } from '../components/ui/loading-spinner'
 import { Button } from '../components/ui/button'
-import { getUser, setUser } from '../utils/auth'
+import { useAuth } from '../hooks/useAuth'
 
 type VerificationState = 'verifying' | 'success' | 'error' | 'already-verified'
 
@@ -12,6 +12,7 @@ export function VerifyEmailPage() {
 	const navigate = useNavigate()
 	const [state, setState] = useState<VerificationState>('verifying')
 	const [errorMessage, setErrorMessage] = useState<string>('')
+	const { refreshUser } = useAuth()
 
 	const verifyMutation = trpc.auth.verifyEmail.useMutation()
 	const resendMutation = trpc.auth.resendVerificationEmail.useMutation()
@@ -28,13 +29,13 @@ export function VerifyEmailPage() {
 		verifyMutation.mutate(
 			{ token },
 			{
-				onSuccess: () => {
-					const currentUser = getUser()
-					if (currentUser) {
-						setUser({
-							...currentUser,
-							emailVerified: true
-						})
+				onSuccess: async () => {
+					// Email was successfully verified on the backend
+					// Refresh user data from the database to sync the emailVerified status
+					try {
+						await refreshUser()
+					} catch (error) {
+						console.error('Failed to refresh user data:', error)
 					}
 
 					setState('success')

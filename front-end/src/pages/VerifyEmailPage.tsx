@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { trpc } from '../lib/trpc'
 import { LoadingSpinner } from '../components/ui/loading-spinner'
 import { Button } from '../components/ui/button'
+import { getUser, setUser } from '../utils/auth'
 
 type VerificationState = 'verifying' | 'success' | 'error' | 'already-verified'
 
@@ -28,6 +29,14 @@ export function VerifyEmailPage() {
 			{ token },
 			{
 				onSuccess: () => {
+					const currentUser = getUser()
+					if (currentUser) {
+						setUser({
+							...currentUser,
+							emailVerified: true
+						})
+					}
+
 					setState('success')
 					setTimeout(() => {
 						navigate('/dashboard')

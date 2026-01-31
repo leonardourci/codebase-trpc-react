@@ -1,29 +1,8 @@
-import { PricingCard } from '@/components/pricing/PricingCard'
+import { SubscriptionPricingGrid } from '@/components/billing/SubscriptionPricingGrid'
 import { Header } from '@/components/layout/Header'
-import type { IProduct } from '@/types/product'
 import { PRICING_PLANS } from '@/data/pricing'
 
-export interface PricingPlan {
-    id: string
-    name: string
-    description: string
-    price: number
-    currency: string
-    features: string[]
-}
-
-export function transformProduct(p: IProduct): PricingPlan {
-    return {
-        id: p.id,
-        name: p.name,
-        description: p.description,
-        price: p.priceInCents / 100,
-        currency: p.currency || 'USD',
-        features: [],
-    }
-}
-
-export function PricingView({ products }: { products: PricingPlan[] }) {
+export function PricingView() {
     return (
         <div className="min-h-screen bg-gradient-to-b from-background via-muted/20 to-background flex flex-col pt-16 md:pt-20">
             <Header />
@@ -36,18 +15,11 @@ export function PricingView({ products }: { products: PricingPlan[] }) {
                         Choose the plan that's right for you. No hidden fees.
                     </p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 w-full max-w-6xl">
-                    {products.map((p, index) => (
-                        <PricingCard
-                            key={p.id}
-                            name={p.name}
-                            description={p.description}
-                            price={p.price}
-                            currency={p.currency}
-                            features={p.features}
-                            popular={index === 1}
-                        />
-                    ))}
+                <div className="w-full max-w-6xl">
+                    <SubscriptionPricingGrid
+                        plans={PRICING_PLANS}
+                        buttonText="Get Started"
+                    />
                 </div>
             </main>
         </div>
@@ -55,7 +27,5 @@ export function PricingView({ products }: { products: PricingPlan[] }) {
 }
 
 export function PricingRoute() {
-    const transformedProducts = PRICING_PLANS?.map(transformProduct) || []
-
-    return <PricingView products={transformedProducts} />
+    return <PricingView />
 }

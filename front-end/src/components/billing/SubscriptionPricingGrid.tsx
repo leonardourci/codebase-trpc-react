@@ -8,17 +8,21 @@ import type { IProduct } from '@/types'
 
 interface SubscriptionPricingGridProps {
     plans: IProduct[]
-    onSubscribe: (productId: string) => void
-    checkoutLoading: string | null
-    isEmailVerified: boolean
+    onSubscribe?: (productId: string) => void
+    checkoutLoading?: string | null
+    isEmailVerified?: boolean
+    buttonText?: string
 }
 
 export function SubscriptionPricingGrid({
     plans,
     onSubscribe,
-    checkoutLoading,
-    isEmailVerified
+    checkoutLoading = null,
+    isEmailVerified = true,
+    buttonText = 'Subscribe'
 }: SubscriptionPricingGridProps) {
+    const isInteractive = !!onSubscribe
+
     return (
         <TooltipProvider>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -72,29 +76,29 @@ export function SubscriptionPricingGrid({
                             <TooltipTrigger asChild>
                                 <div className="w-full">
                                     <Button
-                                        onClick={() => onSubscribe(plan.id)}
-                                        disabled={checkoutLoading === plan.id || !isEmailVerified}
+                                        onClick={isInteractive ? () => onSubscribe(plan.id) : undefined}
+                                        disabled={isInteractive && (checkoutLoading === plan.id || !isEmailVerified)}
                                         className={cn(
                                             'w-full transition-all duration-300',
                                             index === 1 ? 'shadow-md hover:shadow-lg' : '',
-                                            (checkoutLoading === plan.id || !isEmailVerified)
+                                            isInteractive && (checkoutLoading === plan.id || !isEmailVerified)
                                                 ? 'cursor-not-allowed'
                                                 : 'cursor-pointer'
                                         )}
                                         size="lg"
                                     >
-                                        {checkoutLoading === plan.id ? (
+                                        {isInteractive && checkoutLoading === plan.id ? (
                                             <>
                                                 <LoadingSpinner size="sm" className="mr-2" />
                                                 Loading...
                                             </>
                                         ) : (
-                                            'Subscribe'
+                                            buttonText
                                         )}
                                     </Button>
                                 </div>
                             </TooltipTrigger>
-                            {!isEmailVerified && (
+                            {isInteractive && !isEmailVerified && (
                                 <TooltipContent>
                                     <p>You must verify your email before subscribing</p>
                                 </TooltipContent>

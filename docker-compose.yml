@@ -1,3 +1,5 @@
+# Local development database only
+# Usage: docker compose up -d
 services:
   db:
     image: postgres:16-alpine
@@ -10,25 +12,6 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5433:5432"
-
-  api:
-    build:
-      context: ./back-end
-    env_file:
-      - ./.env.backend
-    ports:
-      - "3000:3000"
-    depends_on:
-      - db
-
-  web:
-    build:
-      context: .
-      dockerfile: front-end/Dockerfile
-    depends_on:
-      - api
-    ports:
-      - "8080:80"
 
 volumes:
   postgres_data:

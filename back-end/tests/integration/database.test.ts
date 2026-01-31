@@ -181,8 +181,6 @@ describe('Database Integration Tests', () => {
                 name: 'Test Product',
                 description: 'A test product for integration testing',
                 price_in_cents: 1999,
-                currency: 'USD',
-                type: 'subscription',
                 external_product_id: 'prod_test123',
                 external_price_id: 'price_test123',
                 active: true
@@ -219,7 +217,6 @@ describe('Database Integration Tests', () => {
                 name: 'Another Product',
                 description: 'Another test product',
                 price_in_cents: 2999,
-                currency: 'USD',
                 type: 'one-time',
                 external_product_id: 'prod_test456',
                 external_price_id: 'price_test456',
@@ -231,8 +228,6 @@ describe('Database Integration Tests', () => {
                 name: 'Inactive Product',
                 description: 'An inactive product',
                 price_in_cents: 999,
-                currency: 'USD',
-                type: 'subscription',
                 external_product_id: 'prod_inactive',
                 external_price_id: 'price_inactive',
                 active: false
@@ -270,8 +265,6 @@ describe('Database Integration Tests', () => {
                 name: 'Billing Test Product',
                 description: 'Product for billing tests',
                 price_in_cents: 2999,
-                currency: 'USD',
-                type: 'subscription',
                 external_product_id: 'prod_billing123',
                 external_price_id: 'price_billing123',
                 active: true
@@ -387,8 +380,6 @@ describe('Database Integration Tests', () => {
                 name: 'FK Test Product',
                 description: 'Product for FK test',
                 price_in_cents: 1999,
-                currency: 'USD',
-                type: 'subscription',
                 external_product_id: 'prod_fk123',
                 external_price_id: 'price_fk123',
                 active: true
@@ -462,8 +453,6 @@ describe('Database Integration Tests', () => {
                 name: 'Cascade Test Product',
                 description: 'Product for cascade test',
                 price_in_cents: 1999,
-                currency: 'USD',
-                type: 'subscription',
                 external_product_id: 'prod_cascade123',
                 external_price_id: 'price_cascade123',
                 active: true

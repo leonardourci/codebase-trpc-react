@@ -24,8 +24,6 @@ describe('Product Repository', () => {
                 name: 'Test Product',
                 description: 'A test product',
                 priceInCents: 1999,
-                currency: 'USD',
-                type: 'subscription',
                 externalProductId: 'prod_test123',
                 externalPriceId: 'price_test123',
                 active: true
@@ -96,8 +94,6 @@ describe('Product Repository', () => {
                 name: 'Active Product',
                 description: 'An active product',
                 priceInCents: 1500,
-                currency: 'USD',
-                type: 'subscription',
                 externalProductId: 'prod_active_123',
                 externalPriceId: 'price_active_123',
                 active: true
@@ -107,8 +103,6 @@ describe('Product Repository', () => {
                 name: 'Inactive Product',
                 description: 'An inactive product',
                 priceInCents: 2500,
-                currency: 'USD',
-                type: 'subscription',
                 externalProductId: 'prod_inactive_123',
                 externalPriceId: 'price_inactive_123',
                 active: false
@@ -131,8 +125,6 @@ describe('Product Repository', () => {
                 name: 'Product 1',
                 description: 'First product',
                 priceInCents: 1000,
-                currency: 'USD',
-                type: 'subscription',
                 externalProductId: 'prod_1',
                 externalPriceId: 'price_1',
                 active: true

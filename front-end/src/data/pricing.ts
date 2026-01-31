@@ -6,10 +6,8 @@ export const PRICING_PLANS:IProduct[] = [
         name: 'Basic',
         description: 'Perfect for getting started',
         priceInCents: 999,
-        currency: 'USD',
         active: true,
         createdAt: new Date().toString(),
-        type: '',
         externalPriceId: '',
         externalProductId: '',
         features: [
@@ -24,10 +22,8 @@ export const PRICING_PLANS:IProduct[] = [
         name: 'Pro',
         description: 'Everything you need to grow your business',
         priceInCents: 2999,
-        currency: 'USD',
         active: true,
         createdAt: new Date().toString(),
-        type: '',
         externalPriceId: '',
         externalProductId: '',
         features: [
@@ -43,10 +39,8 @@ export const PRICING_PLANS:IProduct[] = [
         name: 'Enterprise',
         description: 'For large teams and organizations',
         priceInCents: 9999,
-        currency: 'USD',
         active: true,
         createdAt: new Date().toString(),
-        type: '',
         externalPriceId: '',
         externalProductId: '',
         features: [

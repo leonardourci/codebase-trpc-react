@@ -58,8 +58,6 @@ describe('Error Handling Integration Tests', () => {
             name: 'Test Product',
             description: 'A test product for error testing',
             priceInCents: 2999,
-            currency: 'USD',
-            type: 'subscription',
             externalProductId: 'prod_test123',
             externalPriceId: 'price_test123',
             active: true

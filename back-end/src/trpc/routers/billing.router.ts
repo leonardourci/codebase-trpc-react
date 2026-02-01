@@ -11,18 +11,13 @@ export const billingRouter = router({
         .query(async ({ ctx }) => {
             const billing = await getBillingByUserId({ userId: ctx.user.id })
 
-            if (!billing) {
-                return {
-                    hasSubscription: false,
-                    billing: null,
-                    product: null
-                }
-            }
-
-            const product = await getProductById({ id: billing.productId })
+            // Get current product from user's currentProductId (works for both free and paid)
+            const product = ctx.user.currentProductId
+                ? await getProductById({ id: ctx.user.currentProductId })
+                : null
 
             return {
-                hasSubscription: true,
+                hasSubscription: !!billing && billing.status === 'active',
                 billing,
                 product
             }
@@ -36,6 +31,13 @@ export const billingRouter = router({
                 throw new TRPCError({
                     code: 'NOT_FOUND',
                     message: 'Product not found'
+                })
+            }
+
+            if (!product.externalPriceId || !product.externalProductId) {
+                throw new TRPCError({
+                    code: 'BAD_REQUEST',
+                    message: 'This product is not available for purchase'
                 })
             }
 

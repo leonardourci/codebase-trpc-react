@@ -35,3 +35,17 @@ export const getAllProducts = async (): Promise<IProduct[]> => {
 
     return rows.map(row => keysToCamelCase<IProductDbRow, IProduct>(row))
 }
+
+export const getFreeTierProduct = async (): Promise<IProduct | null> => {
+    const [row] = await knex(PRODUCTS_TABLE)
+        .where({ price_in_cents: 0 })
+        .whereNull('external_product_id')
+        .select()
+        .limit(1)
+
+    if (!row) {
+        return null
+    }
+
+    return keysToCamelCase<IProductDbRow, IProduct>(row)
+}

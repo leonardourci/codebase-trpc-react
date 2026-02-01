@@ -1,4 +1,4 @@
-import { getUserByEmail, getUserById } from '../database/repositories/user.repository'
+import { getUserByEmail, getUserById, updateUserById } from '../database/repositories/user.repository'
 import {
 	createBilling,
 	getBillingByUserId as getBillingByUserId,
@@ -6,8 +6,10 @@ import {
 	getBillingByExternalSubscriptionId,
 	updateBillingById
 } from '../database/repositories/billing.repository'
+import { getFreeTierProduct } from '../database/repositories/product.repository'
 import { CustomError } from '../utils/errors'
 import { EStatusCodes } from '../utils/status-codes'
+import { unixTimestampToDate } from '../utils/time'
 
 async function hasUserVerifiedEmail({ userId }: { userId: string }): Promise<void> {
 	const user = await getUserById({ id: userId })
@@ -50,14 +52,19 @@ export const registerUserBilling = async (input: IUpdateUserBillingInput) => {
 			externalSubscriptionId: input.externalSubscriptionId,
 			externalCustomerId: input.externalCustomerId,
 			status: 'active',
-			expiresAt: new Date(input.expiresAt * 1000)
+			expiresAt: unixTimestampToDate(input.expiresAt)
 		})
 	} else {
 		await updateBillingByUserId({
 			id: billing.id as string,
-			expiresAt: new Date(input.expiresAt * 1000)
+			expiresAt: unixTimestampToDate(input.expiresAt)
 		})
 	}
+
+	await updateUserById({
+		id: user.id,
+		updates: { currentProductId: input.productId }
+	})
 }
 
 export const updateBillingOnPaymentFailed = async (externalSubscriptionId: string) => {
@@ -82,9 +89,18 @@ export const updateBillingOnSubscriptionDeleted = async (externalSubscriptionId:
 	if (!externalSubscriptionId) return
 	const billing = await getBillingByExternalSubscriptionId({ externalSubscriptionId })
 	if (!billing) return
+
 	await updateBillingById({
 		id: billing.id as string,
 		status: 'canceled',
 		expiresAt: new Date()
 	})
+
+	const freeTierProduct = await getFreeTierProduct()
+	if (freeTierProduct) {
+		await updateUserById({
+			id: billing.userId,
+			updates: { currentProductId: freeTierProduct.id }
+		})
+	}
 }

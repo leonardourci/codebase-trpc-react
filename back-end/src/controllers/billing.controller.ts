@@ -4,6 +4,7 @@ import { IBillingRequest } from '../middlewares/billing.middleware'
 import { getProductByExternalProductId } from '../database/repositories/product.repository'
 import { registerUserBilling, updateBillingOnPaymentFailed, updateBillingOnSubscriptionUpdated, updateBillingOnSubscriptionDeleted } from '../services/billing.service'
 import { EStatusCodes } from '../utils/status-codes'
+import { unixTimestampToDate } from '../utils/time'
 
 export const processBillingWebhookHandler = async (req: IBillingRequest, res: Response): Promise<void> => {
 	if (!req.billingEvent) {
@@ -39,7 +40,7 @@ export const processBillingWebhookHandler = async (req: IBillingRequest, res: Re
 					externalSubscriptionId: lineItems[0].subscription as string,
 					expiresAt: lineItems[0].period.end,
 
-					externalPaymentIntentId: String(paidInvoice.payment_intent || paidInvoice.id)
+					externalPaymentIntentId: paidInvoice.id
 				})
 			}
 			break
@@ -59,9 +60,16 @@ export const processBillingWebhookHandler = async (req: IBillingRequest, res: Re
 
 		case 'customer.subscription.updated': {
 			const updatedSubscription = billingEvent.data.object
+
+			const currentPeriodEnd = updatedSubscription.items.data[0]?.current_period_end
+			
+			if (!currentPeriodEnd) {
+				throw new Error('Subscription item missing current_period_end')
+			}
+
 			const expiresAt = updatedSubscription.cancel_at
-				? new Date(updatedSubscription.cancel_at * 1000)
-				: new Date(updatedSubscription.current_period_end * 1000)
+				? unixTimestampToDate(updatedSubscription.cancel_at)
+				: unixTimestampToDate(currentPeriodEnd)
 
 			await updateBillingOnSubscriptionUpdated({
 				externalSubscriptionId: updatedSubscription.id,

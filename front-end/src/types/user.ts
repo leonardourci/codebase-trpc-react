@@ -5,10 +5,11 @@ export interface IUser {
     phone: string
     age: number
     passwordHash: string
-    refreshToken?: string
+    refreshToken: string | null
     emailVerified: boolean
+    currentProductId: string | null
     createdAt: Date
-    updatedAt?: Date | null
+    updatedAt: Date | null
 }
 
 export interface IUserProfile {

@@ -4,6 +4,7 @@ import { IBillingRequest } from '../../src/middlewares/billing.middleware'
 import * as productRepository from '../../src/database/repositories/product.repository'
 import * as billingService from '../../src/services/billing.service'
 import { EStatusCodes } from '../../src/utils/status-codes'
+import { unixTimestampToDate } from '../../src/utils/time'
 
 // Mock dependencies
 jest.mock('../../src/database/repositories/product.repository')
@@ -11,6 +12,10 @@ jest.mock('../../src/services/billing.service')
 
 const mockProductRepository = productRepository as jest.Mocked<typeof productRepository>
 const mockBillingService = billingService as jest.Mocked<typeof billingService>
+
+// Test timestamp constants - Unix timestamps (seconds since epoch)
+const MOCK_INVOICE_PERIOD_END = 1640995200 // Dec 31, 2021 16:00:00 UTC - Invoice line item period end & subscription cancel_at
+const MOCK_SUBSCRIPTION_CURRENT_PERIOD_END = 1641081600 // Jan 2, 2022 00:00:00 UTC - Subscription item's current_period_end
 
 describe('Billing Controller', () => {
     let mockReq: Partial<IBillingRequest>
@@ -59,7 +64,7 @@ describe('Billing Controller', () => {
                                     },
                                     subscription: 'sub_123',
                                     period: {
-                                        end: 1640995200 // timestamp
+                                        end: MOCK_INVOICE_PERIOD_END
                                     }
                                 }]
                             }
@@ -80,7 +85,7 @@ describe('Billing Controller', () => {
                     productId: 'product-123',
                     externalCustomerId: 'cus_123',
                     externalSubscriptionId: 'sub_123',
-                    expiresAt: 1640995200,
+                    expiresAt: MOCK_INVOICE_PERIOD_END,
                     externalPaymentIntentId: expect.any(String)
                 })
                 expect(mockRes.status).toHaveBeenCalledWith(EStatusCodes.OK)
@@ -103,7 +108,7 @@ describe('Billing Controller', () => {
                                     },
                                     subscription: 'sub_123',
                                     period: {
-                                        end: 1640995200
+                                        end: MOCK_INVOICE_PERIOD_END
                                     }
                                 }]
                             }
@@ -200,7 +205,12 @@ describe('Billing Controller', () => {
                             id: 'sub_123',
                             status: 'active',
                             cancel_at_period_end: true,
-                            cancel_at: 1640995200
+                            cancel_at: MOCK_INVOICE_PERIOD_END,
+                            items: {
+                                data: [{
+                                    current_period_end: MOCK_SUBSCRIPTION_CURRENT_PERIOD_END
+                                }]
+                            }
                         }
                     }
                 } as any
@@ -212,7 +222,7 @@ describe('Billing Controller', () => {
                 expect(mockBillingService.updateBillingOnSubscriptionUpdated).toHaveBeenCalledWith({
                     externalSubscriptionId: 'sub_123',
                     status: 'active',
-                    currentPeriodEnd: new Date(1640995200 * 1000)
+                    currentPeriodEnd: unixTimestampToDate(MOCK_INVOICE_PERIOD_END)
                 })
                 expect(mockRes.status).toHaveBeenCalledWith(EStatusCodes.OK)
             })
@@ -224,15 +234,45 @@ describe('Billing Controller', () => {
                         object: {
                             id: 'sub_123',
                             status: 'active',
-                            cancel_at_period_end: false
+                            cancel_at_period_end: false,
+                            items: {
+                                data: [{
+                                    current_period_end: MOCK_SUBSCRIPTION_CURRENT_PERIOD_END
+                                }]
+                            }
                         }
                     }
                 } as any
 
+                mockBillingService.updateBillingOnSubscriptionUpdated.mockResolvedValue(undefined)
+
                 await processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)
 
-                expect(mockBillingService.updateBillingOnSubscriptionUpdated).not.toHaveBeenCalled()
+                expect(mockBillingService.updateBillingOnSubscriptionUpdated).toHaveBeenCalledWith({
+                    externalSubscriptionId: 'sub_123',
+                    status: 'active',
+                    currentPeriodEnd: unixTimestampToDate(MOCK_SUBSCRIPTION_CURRENT_PERIOD_END)
+                })
                 expect(mockRes.status).toHaveBeenCalledWith(EStatusCodes.OK)
+            })
+
+            it('should throw error when subscription items missing current_period_end', async () => {
+                mockReq.billingEvent = {
+                    type: 'customer.subscription.updated',
+                    data: {
+                        object: {
+                            id: 'sub_123',
+                            status: 'active',
+                            cancel_at_period_end: false,
+                            items: {
+                                data: []
+                            }
+                        }
+                    }
+                } as any
+
+                await expect(processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response))
+                    .rejects.toThrow('Subscription item missing current_period_end')
             })
         })
 

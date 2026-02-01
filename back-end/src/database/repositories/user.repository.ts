@@ -67,7 +67,7 @@ export const getUserByEmailVerificationToken = async ({ token }: { token: string
 
 export const updateUserById = async ({ id: userId, updates }: {
 	id: string,
-	updates: Partial<Pick<IUser, 'email' | 'fullName' | 'phone' | 'age' | 'passwordHash' | 'refreshToken' | 'googleId' | 'emailVerified' | 'emailVerificationToken'>>
+	updates: Partial<Pick<IUser, 'email' | 'fullName' | 'phone' | 'age' | 'passwordHash' | 'refreshToken' | 'googleId' | 'emailVerified' | 'emailVerificationToken' | 'currentProductId'>>
 }
 ): Promise<IUser> => {
 	const updateData = keysToSnakeCase<typeof updates & { updatedAt: Date }, Partial<IUserDbRow>>({

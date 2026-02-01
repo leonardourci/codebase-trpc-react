@@ -23,16 +23,16 @@ export interface ICreateBilling {
 }
 
 export interface IBillingDbRow {
-  id?: string
-  user_id?: string
-  product_id?: string
-  external_payment_intent_id?: string
-  external_subscription_id?: string
-  external_customer_id?: string
-  status?: string
-  expires_at?: Date
-  created_at?: Date
-  updated_at?: Date | null
+  id: string
+  user_id: string
+  product_id: string
+  external_payment_intent_id: string
+  external_subscription_id: string
+  external_customer_id: string
+  status: string
+  expires_at: Date
+  created_at: Date
+  updated_at: Date | null
 }
 
 export interface ICreateCheckoutSessionResponse {

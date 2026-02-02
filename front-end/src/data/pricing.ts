@@ -6,6 +6,8 @@ export const PRICING_PLANS: IProduct[] = [
         name: 'Em Dia',
         description: 'Perfect for getting started',
         priceInCents: 999,
+        isFreeTier: true,
+        maxProjects: 1,
         features: [
             'Up to 5 projects',
             'Basic analytics',
@@ -18,6 +20,8 @@ export const PRICING_PLANS: IProduct[] = [
         name: 'Em Alta',
         description: 'Everything you need to grow your business',
         priceInCents: 2999,
+        isFreeTier: true,
+        maxProjects: 1,
         features: [
             'Unlimited projects',
             'Advanced analytics',
@@ -31,6 +35,8 @@ export const PRICING_PLANS: IProduct[] = [
         name: 'Em Destaque',
         description: 'For large teams and organizations',
         priceInCents: 9999,
+        isFreeTier: true,
+        maxProjects: 1,
         features: [
             'Everything in Pro',
             'SSO integration',

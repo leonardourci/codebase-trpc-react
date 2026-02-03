@@ -14,7 +14,7 @@ export interface IUser extends IBaseModel {
 	googleId: string | null
 	emailVerified: boolean
 	emailVerificationToken: string | null
-	currentProductId: string
+	productId: string
 }
 
 export interface IUserProfile extends Pick<IUser, 'id' | 'age' | 'email' | 'fullName' | 'phone' | 'emailVerified'> {
@@ -30,7 +30,7 @@ export interface ICreateUserInput {
 	googleId?: string
 	emailVerified?: boolean
 	emailVerificationToken?: string
-	currentProductId?: string
+	productId?: string
 }
 
 export enum EUserDbRowKeys {
@@ -44,7 +44,7 @@ export enum EUserDbRowKeys {
 	googleId = 'google_id',
 	emailVerified = 'email_verified',
 	emailVerificationToken = 'email_verification_token',
-	currentProductId = 'current_product_id',
+	productId = 'product_id',
 	createdAt = 'created_at',
 	updatedAt = 'updated_at'
 }
@@ -60,7 +60,7 @@ export interface IUserDbRow {
 	google_id: string | null
 	email_verified: boolean
 	email_verification_token: string | null
-	current_product_id: string | null
+	product_id: string | null
 	created_at: Date
 	updated_at: Date | null
 }

@@ -9,7 +9,7 @@ export interface IUser {
   passwordHash: string
   refreshToken: string | null
   emailVerified: boolean
-  currentProductId: string | null
+  productId: string | null
   createdAt: Date
   updatedAt: Date | null
 }

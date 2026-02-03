@@ -48,7 +48,7 @@ export const getUserById = async (input: { id: string }): Promise<IUser | null> 
 export const getUserWithProductById = async (input: { id: string }): Promise<IUserWithProduct | null> => {
 	const row = await knex(USERS_TABLE)
 		.where({ [`${USERS_TABLE}.id`]: input.id })
-		.leftJoin(PRODUCTS_TABLE, `${USERS_TABLE}.current_product_id`, `${PRODUCTS_TABLE}.id`)
+		.leftJoin(PRODUCTS_TABLE, `${USERS_TABLE}.product_id`, `${PRODUCTS_TABLE}.id`)
 		.select(
 			`${USERS_TABLE}.*`,
 			knex.raw(`json_build_object(
@@ -95,7 +95,7 @@ export const updateUserById = async ({
 	updates: Partial<
 		Pick<
 			IUser,
-			'email' | 'fullName' | 'phone' | 'age' | 'passwordHash' | 'refreshToken' | 'googleId' | 'emailVerified' | 'emailVerificationToken' | 'currentProductId'
+			'email' | 'fullName' | 'phone' | 'age' | 'passwordHash' | 'refreshToken' | 'googleId' | 'emailVerified' | 'emailVerificationToken' | 'productId'
 		>
 	>
 }): Promise<IUser> => {

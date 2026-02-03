@@ -58,7 +58,7 @@ export const registerUserBilling = async (input: IUpdateUserBillingInput) => {
 
 	await updateUserById({
 		id: user.id,
-		updates: { currentProductId: input.productId }
+		updates: { productId: input.productId }
 	})
 }
 
@@ -101,6 +101,6 @@ export const updateBillingOnSubscriptionDeleted = async (externalSubscriptionId:
 	const defaultProduct = await getFreeTierProduct()
 	await updateUserById({
 		id: billing.userId,
-		updates: { currentProductId: defaultProduct.id }
+		updates: { productId: defaultProduct.id }
 	})
 }

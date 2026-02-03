@@ -75,7 +75,7 @@ export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<I
 				age: 0,
 				passwordHash,
 				googleId,
-				currentProductId: defaultProduct.id,
+				productId: defaultProduct.id,
 
 				// If the user is loggin in with Google, we assume that the email is correct.
 				emailVerified: true
@@ -121,7 +121,7 @@ export async function registerUser({ password, ...input }: TSignupInput): Promis
 		...input,
 		passwordHash,
 		emailVerified: false,
-		currentProductId: defaultProduct.id
+		productId: defaultProduct.id
 	})
 
 	const verificationToken = generateJwtToken({ userId: user.id, purpose: ETokenPurpose.EMAIL_VERIFICATION }, { expiresIn: '30m' })

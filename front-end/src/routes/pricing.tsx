@@ -1,8 +1,23 @@
 import { SubscriptionPricingGrid } from '@/components/billing/SubscriptionPricingGrid'
 import { Header } from '@/components/layout/Header'
 import { PRICING_PLANS } from '@shared/config/pricing.config'
+import { useAuth } from '@/hooks/useAuth'
+import { useAuthModal } from '@/contexts/AuthModalContext'
 
 export function PricingView() {
+  const { isAuthenticated, user } = useAuth()
+  const { openAuth } = useAuthModal()
+
+  const handleButtonClick = () => {
+    if (!isAuthenticated) {
+      // Open signup modal for unauthenticated users
+      openAuth('signup')
+    } else {
+      // Redirect authenticated users to billing page
+      window.location.href = '/billing'
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-muted/20 to-background flex flex-col pt-16 md:pt-20">
       <Header />
@@ -19,6 +34,8 @@ export function PricingView() {
           <SubscriptionPricingGrid
             plans={PRICING_PLANS}
             buttonText="Get Started"
+            onSubscribe={handleButtonClick}
+            currentPlanExternalPriceId={isAuthenticated ? user?.currentProduct?.externalPriceId : undefined}
           />
         </div>
       </main>

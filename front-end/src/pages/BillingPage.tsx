@@ -138,6 +138,7 @@ export function BillingPage() {
             onSubscribe={handleSubscribe}
             checkoutLoading={checkoutLoading}
             isEmailVerified={!!user?.emailVerified}
+            currentPlanExternalPriceId={product?.externalPriceId}
           />
         )}
 

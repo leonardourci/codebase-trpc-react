@@ -9,14 +9,7 @@ import { sendVerificationEmail, sendPasswordResetEmail } from './email.service'
 import { TLoginInput, ILoginResponse, TSignupInput } from '../types/auth'
 import { TRefreshTokenInput, IRefreshTokenResponse } from '../types/refreshToken'
 import { ETokenPurpose } from '../types/jwt'
-import {
-	createUser,
-	getUserByEmail,
-	getUserByGoogleId,
-	getUserByRefreshToken,
-	updateUserById,
-	getUserById
-} from '../database/repositories/user.repository'
+import { createUser, getUserByEmail, getUserByGoogleId, getUserByRefreshToken, updateUserById, getUserById } from '../database/repositories/user.repository'
 import { getFreeTierProduct } from '../database/repositories/product.repository'
 import { removeUserSensitive } from './user.service'
 import { IUser, IUserProfile } from '../types/user'
@@ -30,7 +23,7 @@ export interface IGoogleAuthInput {
 	credential: string
 }
 
-const generateTokens = ({ userId }: { userId: IUser['id'] }): { accessToken: string, refreshToken: string } => ({
+const generateTokens = ({ userId }: { userId: IUser['id'] }): { accessToken: string; refreshToken: string } => ({
 	accessToken: generateJwtToken({ userId }, { expiresIn: '1h' }),
 	refreshToken: generateJwtToken({ userId }, { expiresIn: '7d' })
 })
@@ -131,10 +124,7 @@ export async function registerUser({ password, ...input }: TSignupInput): Promis
 		currentProductId: defaultProduct.id
 	})
 
-	const verificationToken = generateJwtToken(
-		{ userId: user.id, purpose: ETokenPurpose.EMAIL_VERIFICATION },
-		{ expiresIn: '30m' }
-	)
+	const verificationToken = generateJwtToken({ userId: user.id, purpose: ETokenPurpose.EMAIL_VERIFICATION }, { expiresIn: '30m' })
 
 	await updateUserById({
 		id: user.id,
@@ -152,7 +142,12 @@ export async function registerUser({ password, ...input }: TSignupInput): Promis
 		// Continue - because user can resend later
 	}
 
-	return removeUserSensitive({ user })
+	return removeUserSensitive({
+		user: {
+			...user,
+			product: defaultProduct
+		}
+	})
 }
 
 export async function refreshAccessToken(input: TRefreshTokenInput): Promise<IRefreshTokenResponse> {
@@ -223,10 +218,7 @@ export async function resendVerificationEmail({ userId }: { userId: string }): P
 		throw new CustomError('Email already verified', EStatusCodes.BAD_REQUEST)
 	}
 
-	const verificationToken = generateJwtToken(
-		{ userId: user.id, purpose: ETokenPurpose.EMAIL_VERIFICATION },
-		{ expiresIn: '30m' }
-	)
+	const verificationToken = generateJwtToken({ userId: user.id, purpose: ETokenPurpose.EMAIL_VERIFICATION }, { expiresIn: '30m' })
 
 	await updateUserById({
 		id: user.id,
@@ -248,10 +240,7 @@ export async function forgotPassword({ email }: { email: string }): Promise<void
 		return
 	}
 
-	const resetToken = generateJwtToken(
-		{ userId: user.id, purpose: ETokenPurpose.PASSWORD_RESET },
-		{ expiresIn: '15m' }
-	)
+	const resetToken = generateJwtToken({ userId: user.id, purpose: ETokenPurpose.PASSWORD_RESET }, { expiresIn: '15m' })
 
 	await sendPasswordResetEmail({
 		to: user.email,

@@ -24,6 +24,7 @@ interface SubscriptionPricingGridProps {
   checkoutLoading?: string | null
   isEmailVerified?: boolean
   buttonText?: string
+  currentPlanExternalPriceId?: string | null
 }
 
 export function SubscriptionPricingGrid({
@@ -32,8 +33,20 @@ export function SubscriptionPricingGrid({
   checkoutLoading = null,
   isEmailVerified = true,
   buttonText = 'Subscribe',
+  currentPlanExternalPriceId,
 }: SubscriptionPricingGridProps) {
   const isInteractive = !!onSubscribe
+
+  const isCurrentPlan = (plan: IPricingPlan): boolean => {
+    // If no currentPlanExternalPriceId provided, no plan is current (unauthenticated)
+    if (currentPlanExternalPriceId === undefined) {
+      return false
+    }
+
+    // Match by externalPriceId
+    // Both null = free tier match
+    return plan.externalPriceId === currentPlanExternalPriceId
+  }
 
   return (
     <TooltipProvider>
@@ -89,34 +102,35 @@ export function SubscriptionPricingGrid({
                   <div className="w-full">
                     <Button
                       onClick={
-                        isInteractive && plan.externalPriceId
+                        isInteractive
                           ? () => onSubscribe(plan.externalPriceId!)
                           : undefined
                       }
                       disabled={
                         isInteractive &&
-                        (checkoutLoading === plan.externalPriceId ||
+                        (!!checkoutLoading && checkoutLoading === plan.externalPriceId ||
                           !isEmailVerified ||
-                          plan.isFreeTier)
+                          isCurrentPlan(plan))
                       }
                       className={cn(
                         'w-full transition-all duration-300',
                         index === 1 ? 'shadow-md hover:shadow-lg' : '',
                         isInteractive &&
-                          (checkoutLoading === plan.externalPriceId ||
+                          (!!checkoutLoading && checkoutLoading === plan.externalPriceId ||
                             !isEmailVerified ||
-                            plan.isFreeTier)
+                            isCurrentPlan(plan))
                           ? 'cursor-not-allowed'
                           : 'cursor-pointer'
                       )}
                       size="lg"
                     >
-                      {isInteractive && checkoutLoading === plan.externalPriceId ? (
+                      {isInteractive &&
+                      !!checkoutLoading && checkoutLoading === plan.externalPriceId ? (
                         <>
                           <LoadingSpinner size="sm" className="mr-2" />
                           Loading...
                         </>
-                      ) : plan.isFreeTier ? (
+                      ) : isCurrentPlan(plan) ? (
                         'Current Plan'
                       ) : (
                         buttonText

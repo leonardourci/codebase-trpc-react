@@ -45,10 +45,20 @@ export const getBillingByExternalSubscriptionId = async ({ externalSubscriptionI
 	return keysToCamelCase<IBillingDbRow, IBilling>(row)
 }
 
-export const updateBillingById = async (input: { id: string; status?: string; expiresAt?: Date }): Promise<IBilling> => {
-	const updates: Partial<IBilling> = { updatedAt: new Date() }
-	if (input.status) updates.status = input.status
-	if (input.expiresAt) updates.expiresAt = input.expiresAt
+export const updateBillingById = async (input: {
+	id: string
+	updates: {
+		productId?: string
+		externalSubscriptionId?: string
+		externalCustomerId?: string
+		status?: string
+		expiresAt?: Date
+	}
+}): Promise<IBilling> => {
+	const updates: Partial<IBilling> = {
+		...input.updates,
+		updatedAt: new Date()
+	}
 
 	const updateData = keysToSnakeCase<Partial<IBilling>, Partial<IBillingDbRow>>(updates)
 

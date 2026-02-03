@@ -20,10 +20,7 @@ async function hasUserVerifiedEmail({ userId }: { userId: string }): Promise<voi
 	}
 
 	if (!user.emailVerified) {
-		throw new CustomError(
-			'Please verify your email before making a purchase',
-			EStatusCodes.FORBIDDEN
-		)
+		throw new CustomError('Please verify your email before making a purchase', EStatusCodes.FORBIDDEN)
 	}
 }
 
@@ -33,7 +30,8 @@ export const registerUserBilling = async (input: IUpdateUserBillingInput) => {
 		throw new Error(`User with email "${input.userEmail}" not found`)
 	}
 
-	await hasUserVerifiedEmail({ userId: user.id })
+	// Email verification removed - already checked at checkout creation via verifiedEmailProcedure
+	// Renewals are automatic and shouldn't be blocked by verification status changes
 
 	const billing = await getBillingByUserId({ userId: user.id })
 	if (!billing) {
@@ -46,9 +44,15 @@ export const registerUserBilling = async (input: IUpdateUserBillingInput) => {
 			expiresAt: unixTimestampToDate(input.expiresAt)
 		})
 	} else {
-		await updateBillingByUserId({
+		await updateBillingById({
 			id: billing.id as string,
-			expiresAt: unixTimestampToDate(input.expiresAt)
+			updates: {
+				productId: input.productId,
+				externalSubscriptionId: input.externalSubscriptionId,
+				externalCustomerId: input.externalCustomerId,
+				status: 'active',
+				expiresAt: unixTimestampToDate(input.expiresAt)
+			}
 		})
 	}
 
@@ -62,7 +66,10 @@ export const updateBillingOnPaymentFailed = async (externalSubscriptionId: strin
 	if (!externalSubscriptionId) return
 	const billing = await getBillingByExternalSubscriptionId({ externalSubscriptionId })
 	if (!billing) return
-	await updateBillingById({ id: billing.id as string, status: 'past_due' })
+	await updateBillingById({
+		id: billing.id as string,
+		updates: { status: 'past_due' }
+	})
 }
 
 export const updateBillingOnSubscriptionUpdated = async (input: { externalSubscriptionId: string; status?: string; currentPeriodEnd: Date }) => {
@@ -71,8 +78,10 @@ export const updateBillingOnSubscriptionUpdated = async (input: { externalSubscr
 	if (!billing) return
 	await updateBillingById({
 		id: billing.id as string,
-		status: input.status,
-		expiresAt: input.currentPeriodEnd
+		updates: {
+			status: input.status,
+			expiresAt: input.currentPeriodEnd
+		}
 	})
 }
 
@@ -83,8 +92,10 @@ export const updateBillingOnSubscriptionDeleted = async (externalSubscriptionId:
 
 	await updateBillingById({
 		id: billing.id as string,
-		status: 'canceled',
-		expiresAt: new Date()
+		updates: {
+			status: 'canceled',
+			expiresAt: new Date()
+		}
 	})
 
 	const defaultProduct = await getFreeTierProduct()

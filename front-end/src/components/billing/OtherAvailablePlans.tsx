@@ -1,14 +1,14 @@
 import { Check } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import type { IProduct } from '@/types'
+import type { IPricingPlan } from '@shared/types/pricing.types'
 
 interface OtherAvailablePlansProps {
-    plans: IProduct[]
-    currentProductId?: string
+    plans: IPricingPlan[]
+    currentProductExternalId?: string | null
 }
 
-export function OtherAvailablePlans({ plans, currentProductId }: OtherAvailablePlansProps) {
-    const otherPlans = plans.filter(p => p.id !== currentProductId)
+export function OtherAvailablePlans({ plans, currentProductExternalId }: OtherAvailablePlansProps) {
+    const otherPlans = plans.filter(p => p.externalProductId !== currentProductExternalId)
 
     if (otherPlans.length === 0) {
         return null
@@ -22,7 +22,7 @@ export function OtherAvailablePlans({ plans, currentProductId }: OtherAvailableP
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {otherPlans.map((plan) => (
-                    <Card key={plan.id} className="opacity-75">
+                    <Card key={plan.name} className="opacity-75">
                         <CardHeader className="text-center pb-4">
                             <CardTitle className="text-xl font-bold">{plan.name}</CardTitle>
                             <CardDescription>{plan.description}</CardDescription>

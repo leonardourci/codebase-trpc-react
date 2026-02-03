@@ -2,7 +2,7 @@ import { TRPCError } from '@trpc/server'
 import { router } from '../trpc'
 import { protectedProcedure, verifiedEmailProcedure } from '../middleware/auth.middleware'
 import { createCheckoutSessionSchema, createPortalSessionSchema } from '../../utils/validations/billing.schemas'
-import { getProductById } from '../../database/repositories/product.repository'
+import { getProductById, getProductByExternalPriceId } from '../../database/repositories/product.repository'
 import { getBillingByUserId } from '../../database/repositories/billing.repository'
 import stripe from '../../utils/stripe'
 
@@ -26,11 +26,11 @@ export const billingRouter = router({
     createCheckoutSession: verifiedEmailProcedure
         .input(createCheckoutSessionSchema)
         .mutation(async ({ input, ctx }) => {
-            const product = await getProductById({ id: input.productId })
+            const product = await getProductByExternalPriceId({ priceId: input.priceId })
             if (!product) {
                 throw new TRPCError({
                     code: 'NOT_FOUND',
-                    message: 'Product not found'
+                    message: 'Product not found for the given price ID'
                 })
             }
 
@@ -44,7 +44,7 @@ export const billingRouter = router({
             const session = await stripe.checkout.sessions.create({
                 mode: 'subscription',
                 customer_email: ctx.user.email,
-                line_items: [{ price: product.externalPriceId, quantity: 1 }],
+                line_items: [{ price: input.priceId, quantity: 1 }],
                 success_url: input.successUrl,
                 cancel_url: input.cancelUrl,
                 metadata: { productId: product.id },

@@ -28,6 +28,18 @@ export const getProductByExternalProductId = async ({ id }: { id: string }): Pro
     return keysToCamelCase<IProductDbRow, IProduct>(row)
 }
 
+export const getProductByExternalPriceId = async ({ priceId }: { priceId: string }): Promise<IProduct | null> => {
+    const [row] = await knex(PRODUCTS_TABLE)
+        .where({ external_price_id: priceId })
+        .select()
+
+    if (!row) {
+        return null
+    }
+
+    return keysToCamelCase<IProductDbRow, IProduct>(row)
+}
+
 export const getAllProducts = async (): Promise<IProduct[]> => {
     const rows = await knex(PRODUCTS_TABLE)
         .where({ active: true })

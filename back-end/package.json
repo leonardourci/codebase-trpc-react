@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "Codebase back-end",
   "scripts": {
-    "start": "NODE_ENV=production npm run build && NODE_ENV=production node dist/server.js",
+    "start": "NODE_ENV=production npm run build && NODE_ENV=production node -r tsconfig-paths/register dist/server.js",
     "build": "rm -rf dist && tsc --project tsconfig.build.json",
-    "dev": "npx nodemon --watch 'src/**/*.ts' --exec 'npx ts-node' src/server.ts",
+    "dev": "npx nodemon --watch 'src/**/*.ts' --exec 'npx ts-node -r tsconfig-paths/register' src/server.ts",
     "test": "NODE_ENV=test jest",
     "test:coverage": "NODE_ENV=test jest --coverage",
     "test:watch": "NODE_ENV=test jest --watch",
@@ -13,10 +13,10 @@
     "test:db:down": "docker compose -f docker-compose.test.yml down",
     "test:db:logs": "docker compose -f docker-compose.test.yml logs -f postgres-test",
     "test:integration": "npm run test:db:up && npm test && npm run test:db:down",
-    "db:migrate": "npx knex migrate:latest --knexfile src/database/knexfile.ts",
-    "db:migrate:test": "NODE_ENV=test npx knex migrate:latest --knexfile src/database/knexfile.ts",
-    "db:rollback": "npx knex migrate:rollback --knexfile src/database/knexfile.ts",
-    "db:seed": "npx knex seed:run --knexfile src/database/knexfile.ts"
+    "db:migrate": "node -r tsconfig-paths/register -r ts-node/register ./node_modules/.bin/knex migrate:latest --knexfile src/database/knexfile.ts",
+    "db:migrate:test": "NODE_ENV=test node -r tsconfig-paths/register -r ts-node/register ./node_modules/.bin/knex migrate:latest --knexfile src/database/knexfile.ts",
+    "db:rollback": "node -r tsconfig-paths/register -r ts-node/register ./node_modules/.bin/knex migrate:rollback --knexfile src/database/knexfile.ts",
+    "db:seed": "node -r tsconfig-paths/register -r ts-node/register ./node_modules/.bin/knex seed:run --knexfile src/database/knexfile.ts"
   },
   "keywords": [],
   "author": "Leonardo Guimarães Urci <https://github.com/leonardourci>",
@@ -39,6 +39,7 @@
     "prettier": "^3.6.2",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {

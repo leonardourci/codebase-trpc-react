@@ -17,6 +17,8 @@ import {
 } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import type { IPricingPlan } from '@shared/types/pricing.types'
+import { EBillingPeriod } from '@shared/types/pricing.types'
+import { formatPrice, getMonthlyEquivalent } from '@shared/utils/pricing.utils'
 
 interface SubscriptionPricingGridProps {
   plans: IPricingPlan[]
@@ -75,12 +77,25 @@ export function SubscriptionPricingGrid({
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-baseline justify-center">
-                <span className="text-3xl md:text-4xl font-bold">$</span>
-                <span className="text-5xl md:text-6xl font-extrabold tracking-tight">
-                  {(plan.priceInCents / 100).toFixed(0)}
-                </span>
-                <span className="text-muted-foreground ml-1 text-lg">/mo</span>
+              <div className="flex flex-col items-center gap-1">
+                <div className="flex items-baseline justify-center">
+                  <span className="text-3xl md:text-4xl font-bold">$</span>
+                  <span className="text-5xl md:text-6xl font-extrabold tracking-tight">
+                    {plan.billingPeriod === EBillingPeriod.YEARLY &&
+                    !plan.isFreeTier
+                      ? formatPrice({ priceInCents: getMonthlyEquivalent({ yearlyPriceInCents: plan.priceInCents }) })
+                      : formatPrice({ priceInCents: plan.priceInCents })}
+                  </span>
+                  <span className="text-muted-foreground ml-1 text-lg">
+                    /mo
+                  </span>
+                </div>
+                {plan.billingPeriod === EBillingPeriod.YEARLY &&
+                  !plan.isFreeTier && (
+                    <p className="text-sm text-muted-foreground">
+                      ${formatPrice({ priceInCents: plan.priceInCents })} billed yearly
+                    </p>
+                  )}
               </div>
               {plan.features && plan.features.length > 0 && (
                 <ul className="space-y-3">
@@ -108,7 +123,8 @@ export function SubscriptionPricingGrid({
                       }
                       disabled={
                         isInteractive &&
-                        (!!checkoutLoading && checkoutLoading === plan.externalPriceId ||
+                        ((!!checkoutLoading &&
+                          checkoutLoading === plan.externalPriceId) ||
                           !isEmailVerified ||
                           isCurrentPlan(plan))
                       }
@@ -116,7 +132,8 @@ export function SubscriptionPricingGrid({
                         'w-full transition-all duration-300',
                         index === 1 ? 'shadow-md hover:shadow-lg' : '',
                         isInteractive &&
-                          (!!checkoutLoading && checkoutLoading === plan.externalPriceId ||
+                          ((!!checkoutLoading &&
+                            checkoutLoading === plan.externalPriceId) ||
                             !isEmailVerified ||
                             isCurrentPlan(plan))
                           ? 'cursor-not-allowed'
@@ -125,7 +142,8 @@ export function SubscriptionPricingGrid({
                       size="lg"
                     >
                       {isInteractive &&
-                      !!checkoutLoading && checkoutLoading === plan.externalPriceId ? (
+                      !!checkoutLoading &&
+                      checkoutLoading === plan.externalPriceId ? (
                         <>
                           <LoadingSpinner size="sm" className="mr-2" />
                           Loading...

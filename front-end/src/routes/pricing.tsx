@@ -1,12 +1,23 @@
+import { useState } from 'react'
 import { SubscriptionPricingGrid } from '@/components/billing/SubscriptionPricingGrid'
 import { Header } from '@/components/layout/Header'
 import { PRICING_PLANS } from '@shared/config/pricing.config'
 import { useAuth } from '@/hooks/useAuth'
 import { useAuthModal } from '@/contexts/AuthModalContext'
+import { BillingPeriodToggle } from '@/components/billing/BillingPeriodToggle'
+import { EBillingPeriod } from '@shared/types/pricing.types'
 
 export function PricingView() {
   const { isAuthenticated, user } = useAuth()
   const { openAuth } = useAuthModal()
+
+  const [selectedPeriod, setSelectedPeriod] = useState<EBillingPeriod>(
+    EBillingPeriod.YEARLY
+  )
+
+  const displayedPlans = PRICING_PLANS.filter(
+    plan => plan.isFreeTier || plan.billingPeriod === selectedPeriod
+  )
 
   const handleButtonClick = () => {
     if (!isAuthenticated) {
@@ -31,11 +42,19 @@ export function PricingView() {
           </p>
         </div>
         <div className="w-full max-w-6xl">
+          <BillingPeriodToggle
+            selectedPeriod={selectedPeriod}
+            onPeriodChange={setSelectedPeriod}
+          />
           <SubscriptionPricingGrid
-            plans={PRICING_PLANS}
+            plans={displayedPlans}
             buttonText="Get Started"
             onSubscribe={handleButtonClick}
-            currentPlanExternalPriceId={isAuthenticated ? user?.currentProduct?.externalPriceId : undefined}
+            currentPlanExternalPriceId={
+              isAuthenticated
+                ? user?.currentProduct?.externalPriceId
+                : undefined
+            }
           />
         </div>
       </main>

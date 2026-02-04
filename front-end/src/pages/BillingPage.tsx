@@ -7,15 +7,20 @@ import { EmailVerificationDialog } from '@/components/billing/EmailVerificationD
 import { CurrentSubscriptionCard } from '@/components/billing/CurrentSubscriptionCard'
 import { SubscriptionPricingGrid } from '@/components/billing/SubscriptionPricingGrid'
 import { OtherAvailablePlans } from '@/components/billing/OtherAvailablePlans'
+import { BillingPeriodToggle } from '@/components/billing/BillingPeriodToggle'
 import { trpc } from '@/lib/trpc'
 import { useAuth } from '@/hooks/useAuth'
 import { PRICING_PLANS } from '@shared/config/pricing.config'
+import { EBillingPeriod } from '@shared/types/pricing.types'
 
 export function BillingPage() {
   const { user, refreshUser } = useAuth()
   const [isLoadingPortal, setIsLoadingPortal] = useState(false)
   const [showVerificationError, setShowVerificationError] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
+  const [selectedPeriod, setSelectedPeriod] = useState<EBillingPeriod>(
+    EBillingPeriod.YEARLY
+  )
 
   const { data: billingData, isLoading } =
     trpc.billing.getUserBilling.useQuery()
@@ -111,6 +116,10 @@ export function BillingPage() {
   const billing = billingData?.billing
   const product = billingData?.product
 
+  const displayedPlans = PRICING_PLANS.filter(
+    plan => plan.isFreeTier || plan.billingPeriod === selectedPeriod
+  )
+
   return (
     <AppLayout showSidebar>
       <div className="space-y-8">
@@ -133,20 +142,32 @@ export function BillingPage() {
         )}
 
         {!hasSubscription && (
-          <SubscriptionPricingGrid
-            plans={PRICING_PLANS}
-            onSubscribe={handleSubscribe}
-            checkoutLoading={checkoutLoading}
-            isEmailVerified={!!user?.emailVerified}
-            currentPlanExternalPriceId={product?.externalPriceId}
-          />
+          <>
+            <BillingPeriodToggle
+              selectedPeriod={selectedPeriod}
+              onPeriodChange={setSelectedPeriod}
+            />
+            <SubscriptionPricingGrid
+              plans={displayedPlans}
+              onSubscribe={handleSubscribe}
+              checkoutLoading={checkoutLoading}
+              isEmailVerified={!!user?.emailVerified}
+              currentPlanExternalPriceId={product?.externalPriceId}
+            />
+          </>
         )}
 
         {hasSubscription && (
-          <OtherAvailablePlans
-            plans={PRICING_PLANS}
-            currentProductExternalId={product?.externalProductId}
-          />
+          <>
+            <BillingPeriodToggle
+              selectedPeriod={selectedPeriod}
+              onPeriodChange={setSelectedPeriod}
+            />
+            <OtherAvailablePlans
+              plans={displayedPlans}
+              currentProductExternalId={product?.externalProductId}
+            />
+          </>
         )}
       </div>
 

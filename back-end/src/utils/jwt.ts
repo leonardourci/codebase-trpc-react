@@ -1,13 +1,12 @@
 import jwt from 'jsonwebtoken'
 
+import { TGenerateTokenInput, TToken, TValidateTokenInput } from '../types/jwt'
 import { CustomError, ZodValidationError } from './errors'
-import { EStatusCodes } from './status-codes'
 import globalConfig from './global-config'
-import { IUser } from '../types/user'
-import { TValidateTokenInput, IToken, ETokenPurpose } from '../types/jwt'
+import { EStatusCodes } from './status-codes'
 import { validateTokenSchema } from './validations/jwt.schemas'
 
-export const generateJwtToken = (input: { userId: IUser['id']; purpose?: ETokenPurpose }, options?: jwt.SignOptions) => {
+export const generateJwtToken = (input: TGenerateTokenInput, options?: jwt.SignOptions) => {
 	return jwt.sign(input, globalConfig.jwtSecret, options)
 }
 
@@ -23,19 +22,10 @@ export const verifyJwtToken = (input: TValidateTokenInput): void => {
 	}
 }
 
-export const decodeJwtToken = (input: TValidateTokenInput): IToken => {
+export const decodeJwtToken = (input: TValidateTokenInput): TToken => {
 	const { data, error } = validateTokenSchema.safeParse({ token: input.token })
 
 	if (error) throw new ZodValidationError(error)
 
-	return jwt.decode(data.token) as IToken
-}
-
-export const verifyJwtTokenSimple = ({ token }: { token: string }): { userId: string; purpose?: ETokenPurpose } => {
-	try {
-		const decoded = jwt.verify(token, globalConfig.jwtSecret) as { userId: string; purpose?: ETokenPurpose }
-		return decoded
-	} catch (err) {
-		throw new CustomError(`Invalid or expired token: ${err}`, EStatusCodes.UNAUTHORIZED)
-	}
+	return jwt.decode(data.token) as TToken
 }

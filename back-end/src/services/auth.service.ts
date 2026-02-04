@@ -1,11 +1,10 @@
 import bcrypt from 'bcrypt'
 import crypto from 'crypto'
-import { OAuth2Client } from 'google-auth-library'
+import { OAuth2Client, TokenPayload } from 'google-auth-library'
 
-import { generateJwtToken, verifyJwtToken, verifyJwtTokenSimple } from '../utils/jwt'
+import { decodeJwtToken, generateJwtToken, verifyJwtToken } from '../utils/jwt'
 import { CustomError } from '../utils/errors'
 import { EStatusCodes } from '../utils/status-codes'
-import { sendVerificationEmail, sendPasswordResetEmail } from './email.service'
 import { TLoginInput, ILoginResponse, TSignupInput } from '../types/auth'
 import { TRefreshTokenInput, IRefreshTokenResponse } from '../types/refreshToken'
 import { ETokenPurpose } from '../types/jwt'
@@ -14,6 +13,7 @@ import { getFreeTierProduct } from '../database/repositories/product.repository'
 import { removeUserSensitive } from './user.service'
 import { IUser, IUserProfile } from '../types/user'
 import globalConfig from '../utils/global-config'
+import { sendVerificationEmail, sendPasswordResetEmail } from 'src/utils/email'
 
 const { HASH_SALT } = process.env
 
@@ -31,7 +31,7 @@ const generateTokens = ({ userId }: { userId: IUser['id'] }): { accessToken: str
 export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<ILoginResponse> {
 	const { credential } = input
 
-	let payload
+	let payload: TokenPayload | undefined
 	try {
 		const ticket = await client.verifyIdToken({
 			idToken: credential,
@@ -50,15 +50,15 @@ export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<I
 	const email = payload.email
 	const fullName = payload.name || 'Google User'
 
-	let user = await getUserByGoogleId({ googleId })
+	let userByGoogleId = await getUserByGoogleId({ googleId })
 
-	if (!user) {
-		const existingUser = await getUserByEmail({ email })
+	if (!userByGoogleId) {
+		const userByEmail = await getUserByEmail({ email })
 
-		if (existingUser) {
+		if (userByEmail) {
 			// Link Google account to existing user
-			user = await updateUserById({
-				id: existingUser.id,
+			userByGoogleId = await updateUserById({
+				id: userByEmail.id,
 				updates: { googleId, emailVerified: true }
 			})
 		} else {
@@ -68,7 +68,7 @@ export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<I
 
 			const defaultProduct = await getFreeTierProduct()
 
-			user = await createUser({
+			userByGoogleId = await createUser({
 				email,
 				fullName,
 				phone: '',
@@ -83,9 +83,9 @@ export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<I
 		}
 	}
 
-	const { accessToken, refreshToken } = generateTokens({ userId: user.id })
+	const { accessToken, refreshToken } = generateTokens({ userId: userByGoogleId.id })
 
-	await updateUserById({ id: user.id, updates: { refreshToken } })
+	await updateUserById({ id: userByGoogleId.id, updates: { refreshToken } })
 
 	return {
 		accessToken,
@@ -174,8 +174,8 @@ export async function revokeUserRefreshToken({ userId }: { userId: string }): Pr
 }
 
 export async function verifyUserEmail({ token }: { token: string }): Promise<void> {
-	// Verify and decode token
-	const decoded = verifyJwtTokenSimple({ token })
+	verifyJwtToken({ token })
+	const decoded = decodeJwtToken({ token })
 
 	if (decoded.purpose !== ETokenPurpose.EMAIL_VERIFICATION) {
 		throw new CustomError('Invalid verification token', EStatusCodes.BAD_REQUEST)
@@ -187,17 +187,15 @@ export async function verifyUserEmail({ token }: { token: string }): Promise<voi
 		throw new CustomError('Invalid verification token', EStatusCodes.BAD_REQUEST)
 	}
 
-	// Verify token matches what's stored (prevent token reuse after resend)
+	// Prevent token reuse after resend)
 	if (user.emailVerificationToken !== token) {
 		throw new CustomError('Invalid or expired verification token', EStatusCodes.BAD_REQUEST)
 	}
 
-	// Check if already verified
 	if (user.emailVerified) {
-		return // Already verified, return success
+		return
 	}
 
-	// Mark as verified
 	await updateUserById({
 		id: user.id,
 		updates: {
@@ -250,7 +248,8 @@ export async function forgotPassword({ email }: { email: string }): Promise<void
 }
 
 export async function resetPassword({ token, newPassword }: { token: string; newPassword: string }): Promise<void> {
-	const decoded = verifyJwtTokenSimple({ token })
+	verifyJwtToken({ token })
+	const decoded = decodeJwtToken({ token })
 
 	if (decoded.purpose !== ETokenPurpose.PASSWORD_RESET) {
 		throw new CustomError('Invalid reset token', EStatusCodes.BAD_REQUEST)

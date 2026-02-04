@@ -100,7 +100,7 @@ export const updateUserById = async ({
 	>
 }): Promise<IUser> => {
 	const updateData = keysToSnakeCase<typeof updates & { updatedAt: Date }, Partial<IUserDbRow>>({
-		...updates,
+		...keysToSnakeCase(updates),
 		updatedAt: new Date()
 	})
 

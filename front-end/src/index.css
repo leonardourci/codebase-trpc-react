@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --color-background: hsl(var(--background));
@@ -53,7 +53,7 @@
   .dark {
     --background: 220 15% 12%;
     --foreground: 210 20% 98%;
-    --card: 220 15% 14%;
+    --card: 220 15% 20%;
     --card-foreground: 210 20% 98%;
     --popover: 220 15% 14%;
     --popover-foreground: 210 20% 98%;
@@ -61,7 +61,7 @@
     --primary-foreground: 210 40% 98%;
     --secondary: 220 15% 20%;
     --secondary-foreground: 210 20% 98%;
-    --muted: 220 15% 18%;
+    --muted: 220 15% 30%;
     --muted-foreground: 215 15% 70%;
     --accent: 220 15% 18%;
     --accent-foreground: 210 20% 98%;
@@ -76,5 +76,7 @@
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  font-feature-settings: "rlig" 1, "calt" 1;
+  font-feature-settings:
+    'rlig' 1,
+    'calt' 1;
 }

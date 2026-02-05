@@ -16,9 +16,7 @@ export interface IUser extends IBaseModel {
 	productId: string
 }
 
-export interface IUserProfile extends Pick<IUser, 'id' | 'age' | 'email' | 'fullName' | 'phone' | 'emailVerified'> {
-	externalPriceId: string | null
-}
+export interface IUserProfile extends Pick<IUser, 'id' | 'age' | 'email' | 'fullName' | 'phone' | 'emailVerified'> {}
 
 export interface ICreateUserInput {
 	fullName: string

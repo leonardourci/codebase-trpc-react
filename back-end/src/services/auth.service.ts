@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt'
 import crypto from 'crypto'
-import { OAuth2Client, TokenPayload } from 'google-auth-library'
+import { OAuth2Client } from 'google-auth-library'
 
 import { decodeJwtToken, generateJwtToken, verifyJwtToken } from '../utils/jwt'
 import { CustomError } from '../utils/errors'
@@ -47,16 +47,11 @@ async function downgradeToFreeTier(userId: string): Promise<void> {
 export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<ILoginResponse> {
 	const { credential } = input
 
-	let payload: TokenPayload | undefined
-	try {
-		const ticket = await client.verifyIdToken({
-			idToken: credential,
-			audience: globalConfig.googleClientId
-		})
-		payload = ticket.getPayload()
-	} catch {
-		throw new CustomError('Invalid Google token', EStatusCodes.UNAUTHORIZED)
-	}
+	const ticket = await client.verifyIdToken({
+		idToken: credential,
+		audience: globalConfig.googleClientId
+	})
+	const payload = ticket.getPayload()
 
 	if (!payload || !payload.sub || !payload.email) {
 		throw new CustomError('Invalid Google token payload', EStatusCodes.UNAUTHORIZED)
@@ -216,7 +211,7 @@ export async function verifyUserEmail({ token }: { token: string }): Promise<voi
 		throw new CustomError('Invalid verification token', EStatusCodes.BAD_REQUEST)
 	}
 
-	// Prevent token reuse after resend)
+	// Prevent token reuse after resend
 	if (user.emailVerificationToken !== token) {
 		throw new CustomError('Invalid or expired verification token', EStatusCodes.BAD_REQUEST)
 	}

@@ -19,7 +19,6 @@ export interface IUserProfile {
   age: number
   phone: string
   emailVerified: boolean
-  externalPriceId: string | null
 }
 
 export interface TUpdateUserInput {

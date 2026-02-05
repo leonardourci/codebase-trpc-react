@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { BillingPageHeader } from '@/components/billing/BillingPageHeader'
@@ -16,6 +17,7 @@ import { getPlanByExternalPriceId } from '@/utils/pricing'
 
 export function BillingPage() {
   const { user, refreshUser } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [isLoadingPortal, setIsLoadingPortal] = useState(false)
   const [showVerificationError, setShowVerificationError] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
@@ -23,8 +25,22 @@ export function BillingPage() {
     EBillingPeriod.YEARLY
   )
 
-  const { data: billingData, isLoading } =
-    trpc.billing.getUserBilling.useQuery()
+  const {
+    data: billingData,
+    isLoading,
+    refetch: refetchBilling,
+  } = trpc.billing.getUserBilling.useQuery()
+
+  // After a successful checkout, Stripe redirects back with ?success=true.
+  // Refresh user profile and billing data so the page reflects the new subscription.
+  useEffect(() => {
+    if (searchParams.get('success') === 'true') {
+      refreshUser()
+      refetchBilling()
+      searchParams.delete('success')
+      setSearchParams(searchParams, { replace: true })
+    }
+  }, [searchParams])
   const createPortalSession =
     trpc.billing.createCustomerPortalSession.useMutation()
   const createCheckoutSession = trpc.billing.createCheckoutSession.useMutation()
@@ -116,11 +132,13 @@ export function BillingPage() {
   const hasSubscription = billingData?.hasSubscription
   const billing = billingData?.billing
 
-  // Derive the current plan from user's externalPriceId
-  const currentPlan = getPlanByExternalPriceId(user?.externalPriceId ?? null)
+  // Derive current plan from billing data (fresh from DB)
+  const currentPlan = getPlanByExternalPriceId(
+    billingData?.externalPriceId ?? null
+  )
 
-  // User is on free tier if: plan is free tier OR no active subscription
-  const isOnFreeTier = currentPlan.isFreeTier || !hasSubscription
+  // If billing says there's an active subscription, trust that over the auth context
+  const isOnFreeTier = !hasSubscription
 
   const displayedPlans = PRICING_PLANS.filter(
     plan => plan.isFreeTier || plan.billingPeriod === selectedPeriod

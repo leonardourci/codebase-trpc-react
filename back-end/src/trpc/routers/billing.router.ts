@@ -2,17 +2,19 @@ import { TRPCError } from '@trpc/server'
 import { router } from '../trpc'
 import { protectedProcedure, verifiedEmailProcedure } from '../middleware/auth.middleware'
 import { createCheckoutSessionSchema, createPortalSessionSchema } from '../../utils/validations/billing.schemas'
-import { getProductByExternalPriceId } from '../../database/repositories/product.repository'
+import { getProductByExternalPriceId, getProductById } from '../../database/repositories/product.repository'
 import { getBillingByUserId } from '../../database/repositories/billing.repository'
 import stripe from '../../utils/stripe'
 
 export const billingRouter = router({
 	getUserBilling: protectedProcedure.query(async ({ ctx }) => {
 		const billing = await getBillingByUserId({ userId: ctx.user.id })
+		const product = billing?.productId ? await getProductById({ id: billing.productId }) : null
 
 		return {
 			hasSubscription: !!billing && billing.status === 'active',
-			billing
+			billing,
+			externalPriceId: product?.externalPriceId ?? null
 		}
 	}),
 

@@ -17,55 +17,26 @@ export function PricingView() {
     EBillingPeriod.YEARLY
   )
 
-  // Fetch billing data for authenticated users to detect current plan
   const { data: billingData } = trpc.billing.getUserBilling.useQuery(
     undefined,
     { enabled: isAuthenticated }
   )
-  const createPortalSession = trpc.billing.createCustomerPortalSession.useMutation()
+  const createPortalSession =
+    trpc.billing.createCustomerPortalSession.useMutation()
 
   const displayedPlans = PRICING_PLANS.filter(
     plan => plan.isFreeTier || plan.billingPeriod === selectedPeriod
   )
 
-  const hasSubscription = billingData?.hasSubscription
-  const currentPriceId = billingData?.product?.externalPriceId
-  const currentProduct = billingData?.product
+  // Authenticated users: use externalPriceId from billing (null = free tier, matches free plan's null).
+  // Unauthenticated: billingData is undefined, so no plan is marked as current.
+  const currentPlanPriceId = billingData
+    ? (billingData.externalPriceId ?? null)
+    : undefined
 
-  // Helper to determine plan tier level
-  const getPlanTier = (planName: string): number => {
-    const tiers: Record<string, number> = {
-      'Free': 0,
-      'Pro': 1,
-      'Enterprise': 2,
-    }
-    return tiers[planName] ?? 0
-  }
-
-  // Helper to get button text for a plan
   const getButtonText = (plan: IPricingPlan): string => {
     if (!isAuthenticated) return 'Get Started'
-    if (!currentProduct) return 'Subscribe'
-
-    // Check if this is the exact current plan (by price ID, not just name)
-    // The grid already handles showing "Current Plan" for exact matches,
-    // so we don't need to return it here
-    const currentTier = getPlanTier(currentProduct.name)
-    const planTier = getPlanTier(plan.name)
-
-    if (planTier > currentTier) {
-      return `Upgrade to ${plan.name}`
-    } else if (planTier < currentTier) {
-      return `Downgrade to ${plan.name}`
-    } else {
-      // Same tier but different billing period (e.g., Pro Monthly vs Pro Yearly)
-      // Don't mark as "Current Plan" - let the grid handle exact matches
-      if (plan.billingPeriod === EBillingPeriod.YEARLY) {
-        return 'Switch to Yearly'
-      } else {
-        return 'Switch to Monthly'
-      }
-    }
+    return 'Subscribe'
   }
 
   const handleButtonClick = async (priceId: string) => {
@@ -115,7 +86,7 @@ export function PricingView() {
             buttonText={getButtonText}
             onSubscribe={handleButtonClick}
             checkoutLoading={isLoadingPortal ? 'loading' : null}
-            currentPlanExternalPriceId={currentPriceId}
+            currentPlanExternalPriceId={currentPlanPriceId}
           />
         </div>
       </main>

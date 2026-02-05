@@ -1,17 +1,14 @@
 import { updateUserById, getUserById } from '../database/repositories/user.repository'
-import { getProductById } from '../database/repositories/product.repository'
 import type { IUser, IUserProfile, TUpdateUserInput } from '../types/user'
-import type { IProduct } from '../types/product'
 
-export const removeUserSensitive = ({ user, product }: { user: IUser; product: IProduct | null }): IUserProfile => {
+export const removeUserSensitive = ({ user }: { user: IUser }): IUserProfile => {
 	return {
 		id: user.id,
 		email: user.email,
 		fullName: user.fullName,
 		age: user.age,
 		phone: user.phone,
-		emailVerified: user.emailVerified,
-		externalPriceId: product?.externalPriceId ?? null
+		emailVerified: user.emailVerified
 	}
 }
 
@@ -22,9 +19,7 @@ export async function getUserProfile({ userId }: { userId: IUser['id'] }): Promi
 		return null
 	}
 
-	const product = user.productId ? await getProductById({ id: user.productId }) : null
-
-	return removeUserSensitive({ user, product })
+	return removeUserSensitive({ user })
 }
 
 export async function updateUserProfile({ userId, updates }: { userId: IUser['id']; updates: TUpdateUserInput }): Promise<IUserProfile | null> {
@@ -34,7 +29,5 @@ export async function updateUserProfile({ userId, updates }: { userId: IUser['id
 		return null
 	}
 
-	const product = user.productId ? await getProductById({ id: user.productId }) : null
-
-	return removeUserSensitive({ user, product })
+	return removeUserSensitive({ user })
 }

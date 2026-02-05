@@ -1,5 +1,3 @@
-import { IProduct } from './product'
-
 export interface IUser {
   id: string
   email: string
@@ -21,7 +19,7 @@ export interface IUserProfile {
   age: number
   phone: string
   emailVerified: boolean
-  currentProduct: IProduct
+  externalPriceId: string | null
 }
 
 export interface TUpdateUserInput {

@@ -12,6 +12,7 @@ import { trpc } from '@/lib/trpc'
 import { useAuth } from '@/hooks/useAuth'
 import { PRICING_PLANS } from '@shared/config/pricing.config'
 import { EBillingPeriod } from '@shared/types/pricing.types'
+import { getPlanByExternalPriceId } from '@/utils/pricing'
 
 export function BillingPage() {
   const { user, refreshUser } = useAuth()
@@ -114,7 +115,12 @@ export function BillingPage() {
 
   const hasSubscription = billingData?.hasSubscription
   const billing = billingData?.billing
-  const product = billingData?.product
+
+  // Derive the current plan from user's externalPriceId
+  const currentPlan = getPlanByExternalPriceId(user?.externalPriceId ?? null)
+
+  // User is on free tier if: plan is free tier OR no active subscription
+  const isOnFreeTier = currentPlan.isFreeTier || !hasSubscription
 
   const displayedPlans = PRICING_PLANS.filter(
     plan => plan.isFreeTier || plan.billingPeriod === selectedPeriod
@@ -122,8 +128,8 @@ export function BillingPage() {
 
   return (
     <AppLayout showSidebar>
-      <div className="space-y-8">
-        <BillingPageHeader hasSubscription={!!hasSubscription} />
+      <div className="space-y-6">
+        <BillingPageHeader hasSubscription={hasSubscription && !isOnFreeTier} />
 
         {!user?.emailVerified && (
           <EmailVerificationWarning
@@ -132,16 +138,16 @@ export function BillingPage() {
           />
         )}
 
-        {hasSubscription && billing && product && (
+        {hasSubscription && billing && !isOnFreeTier && (
           <CurrentSubscriptionCard
             billing={billing}
-            product={product}
+            plan={currentPlan}
             onManageSubscription={handleManageSubscription}
             isLoading={isLoadingPortal}
           />
         )}
 
-        {!hasSubscription && (
+        {isOnFreeTier && (
           <>
             <BillingPeriodToggle
               selectedPeriod={selectedPeriod}
@@ -149,23 +155,13 @@ export function BillingPage() {
             />
             <SubscriptionPricingGrid
               plans={displayedPlans}
+              allPlans={PRICING_PLANS}
               onSubscribe={handleSubscribe}
               checkoutLoading={checkoutLoading}
               isEmailVerified={!!user?.emailVerified}
-              currentPlanExternalPriceId={product?.externalPriceId}
-            />
-          </>
-        )}
-
-        {hasSubscription && (
-          <>
-            <BillingPeriodToggle
-              selectedPeriod={selectedPeriod}
-              onPeriodChange={setSelectedPeriod}
-            />
-            <OtherAvailablePlans
-              plans={displayedPlans}
-              currentProductExternalId={product?.externalProductId}
+              currentPlanExternalPriceId={
+                hasSubscription ? currentPlan.externalPriceId : null
+              }
             />
           </>
         )}

@@ -24,7 +24,18 @@
       "Bash(git push)",
       "Bash(find:*)",
       "WebFetch(domain:docs.stripe.com)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(npm run migrate:latest:*)",
+      "Bash(npm run:*)",
+      "Bash(stripe prices list:*)",
+      "Bash(stripe products:*)",
+      "Bash(psql:*)",
+      "Bash(stripe prices retrieve:*)",
+      "Bash(stripe api_resources list:*)",
+      "Bash(python3:*)",
+      "mcp__acp__Bash",
+      "mcp__acp__Edit",
+      "mcp__acp__Write"
     ]
   }
 }

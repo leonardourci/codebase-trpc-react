@@ -5,27 +5,90 @@ import { PRICING_PLANS } from '@shared/config/pricing.config'
 import { useAuth } from '@/hooks/useAuth'
 import { useAuthModal } from '@/contexts/AuthModalContext'
 import { BillingPeriodToggle } from '@/components/billing/BillingPeriodToggle'
-import { EBillingPeriod } from '@shared/types/pricing.types'
+import { EBillingPeriod, type IPricingPlan } from '@shared/types/pricing.types'
+import { trpc } from '@/lib/trpc'
 
 export function PricingView() {
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated } = useAuth()
   const { openAuth } = useAuthModal()
+  const [isLoadingPortal, setIsLoadingPortal] = useState(false)
 
   const [selectedPeriod, setSelectedPeriod] = useState<EBillingPeriod>(
     EBillingPeriod.YEARLY
   )
 
+  // Fetch billing data for authenticated users to detect current plan
+  const { data: billingData } = trpc.billing.getUserBilling.useQuery(
+    undefined,
+    { enabled: isAuthenticated }
+  )
+  const createPortalSession = trpc.billing.createCustomerPortalSession.useMutation()
+
   const displayedPlans = PRICING_PLANS.filter(
     plan => plan.isFreeTier || plan.billingPeriod === selectedPeriod
   )
 
-  const handleButtonClick = () => {
+  const hasSubscription = billingData?.hasSubscription
+  const currentPriceId = billingData?.product?.externalPriceId
+  const currentProduct = billingData?.product
+
+  // Helper to determine plan tier level
+  const getPlanTier = (planName: string): number => {
+    const tiers: Record<string, number> = {
+      'Free': 0,
+      'Pro': 1,
+      'Enterprise': 2,
+    }
+    return tiers[planName] ?? 0
+  }
+
+  // Helper to get button text for a plan
+  const getButtonText = (plan: IPricingPlan): string => {
+    if (!isAuthenticated) return 'Get Started'
+    if (!currentProduct) return 'Subscribe'
+
+    // Check if this is the exact current plan (by price ID, not just name)
+    // The grid already handles showing "Current Plan" for exact matches,
+    // so we don't need to return it here
+    const currentTier = getPlanTier(currentProduct.name)
+    const planTier = getPlanTier(plan.name)
+
+    if (planTier > currentTier) {
+      return `Upgrade to ${plan.name}`
+    } else if (planTier < currentTier) {
+      return `Downgrade to ${plan.name}`
+    } else {
+      // Same tier but different billing period (e.g., Pro Monthly vs Pro Yearly)
+      // Don't mark as "Current Plan" - let the grid handle exact matches
+      if (plan.billingPeriod === EBillingPeriod.YEARLY) {
+        return 'Switch to Yearly'
+      } else {
+        return 'Switch to Monthly'
+      }
+    }
+  }
+
+  const handleButtonClick = async (priceId: string) => {
     if (!isAuthenticated) {
       // Open signup modal for unauthenticated users
       openAuth('signup')
-    } else {
-      // Redirect authenticated users to billing page
-      window.location.href = '/billing'
+      return
+    }
+
+    // For authenticated users, open Stripe Portal to manage subscription
+    setIsLoadingPortal(true)
+    try {
+      const result = await createPortalSession.mutateAsync({
+        returnUrl: `${window.location.origin}/pricing`,
+      })
+
+      if (result.url) {
+        window.location.href = result.url
+      }
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Failed to access billing portal'
+      alert(errorMessage)
+      setIsLoadingPortal(false)
     }
   }
 
@@ -48,13 +111,11 @@ export function PricingView() {
           />
           <SubscriptionPricingGrid
             plans={displayedPlans}
-            buttonText="Get Started"
+            allPlans={PRICING_PLANS}
+            buttonText={getButtonText}
             onSubscribe={handleButtonClick}
-            currentPlanExternalPriceId={
-              isAuthenticated
-                ? user?.currentProduct?.externalPriceId
-                : undefined
-            }
+            checkoutLoading={isLoadingPortal ? 'loading' : null}
+            currentPlanExternalPriceId={currentPriceId}
           />
         </div>
       </main>

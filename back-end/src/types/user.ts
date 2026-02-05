@@ -2,7 +2,6 @@ import z from 'zod'
 
 import { IBaseModel } from './base'
 import { updateUserSchema } from '../utils/validations/user.schemas'
-import { IProduct } from './product'
 
 export interface IUser extends IBaseModel {
 	email: string
@@ -18,7 +17,7 @@ export interface IUser extends IBaseModel {
 }
 
 export interface IUserProfile extends Pick<IUser, 'id' | 'age' | 'email' | 'fullName' | 'phone' | 'emailVerified'> {
-	currentProduct: IProduct
+	externalPriceId: string | null
 }
 
 export interface ICreateUserInput {
@@ -63,19 +62,6 @@ export interface IUserDbRow {
 	product_id: string | null
 	created_at: Date
 	updated_at: Date | null
-}
-
-export interface IUserInfoByEmailResponse {
-	id: string
-	email: string
-	fullName: string
-	passwordHash: string
-	googleId?: string
-	emailVerified: boolean
-}
-
-export interface IUserWithProduct extends IUser {
-	product: IProduct
 }
 
 export type TUpdateUserInput = z.infer<typeof updateUserSchema>

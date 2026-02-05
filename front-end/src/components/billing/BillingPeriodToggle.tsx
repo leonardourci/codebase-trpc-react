@@ -12,16 +12,16 @@ export function BillingPeriodToggle({
   onPeriodChange,
 }: BillingPeriodToggleProps) {
   return (
-    <div className="flex items-center justify-center gap-4 mb-8">
-      <div className="inline-flex items-center rounded-lg border border-input bg-background p-1 shadow-sm">
+    <div className="flex items-center justify-center mb-6">
+      <div className="inline-flex items-center rounded-lg border border-input bg-background p-1">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => onPeriodChange(EBillingPeriod.MONTHLY)}
           className={cn(
-            'rounded-md px-6 transition-all',
+            'rounded-md px-6 transition-colors',
             selectedPeriod === EBillingPeriod.MONTHLY
-              ? 'bg-primary text-primary-foreground shadow-sm'
+              ? 'bg-primary text-primary-foreground'
               : 'hover:bg-transparent'
           )}
         >
@@ -32,9 +32,9 @@ export function BillingPeriodToggle({
           size="sm"
           onClick={() => onPeriodChange(EBillingPeriod.YEARLY)}
           className={cn(
-            'rounded-md px-6 transition-all',
+            'rounded-md px-6 transition-colors',
             selectedPeriod === EBillingPeriod.YEARLY
-              ? 'bg-primary text-primary-foreground shadow-sm'
+              ? 'bg-primary text-primary-foreground'
               : 'hover:bg-transparent'
           )}
         >

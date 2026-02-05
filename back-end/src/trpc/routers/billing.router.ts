@@ -2,7 +2,7 @@ import { TRPCError } from '@trpc/server'
 import { router } from '../trpc'
 import { protectedProcedure, verifiedEmailProcedure } from '../middleware/auth.middleware'
 import { createCheckoutSessionSchema, createPortalSessionSchema } from '../../utils/validations/billing.schemas'
-import { getProductById, getProductByExternalPriceId } from '../../database/repositories/product.repository'
+import { getProductByExternalPriceId } from '../../database/repositories/product.repository'
 import { getBillingByUserId } from '../../database/repositories/billing.repository'
 import stripe from '../../utils/stripe'
 
@@ -10,13 +10,9 @@ export const billingRouter = router({
 	getUserBilling: protectedProcedure.query(async ({ ctx }) => {
 		const billing = await getBillingByUserId({ userId: ctx.user.id })
 
-		// Get current product from user's productId (works for both free and paid)
-		const product = ctx.user.productId ? await getProductById({ id: ctx.user.productId }) : null
-
 		return {
 			hasSubscription: !!billing && billing.status === 'active',
-			billing,
-			product
+			billing
 		}
 	}),
 
@@ -39,7 +35,7 @@ export const billingRouter = router({
 		const session = await stripe.checkout.sessions.create({
 			mode: 'subscription',
 			customer_email: ctx.user.email,
-			line_items: [{ price: input.priceId, quantity: 1 }],
+			line_items: [{ price: product.externalPriceId, quantity: 1 }],
 			success_url: input.successUrl,
 			cancel_url: input.cancelUrl,
 			metadata: { productId: product.id },

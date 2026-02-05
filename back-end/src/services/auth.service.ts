@@ -10,7 +10,8 @@ import { TRefreshTokenInput, IRefreshTokenResponse } from '../types/refreshToken
 import { ETokenPurpose } from '../types/jwt'
 import { createUser, getUserByEmail, getUserByGoogleId, getUserByRefreshToken, updateUserById, getUserById } from '../database/repositories/user.repository'
 import { getFreeTierProduct } from '../database/repositories/product.repository'
-import { removeUserSensitive } from './user.service'
+import { getBillingByUserId } from '../database/repositories/billing.repository'
+import { getUserProfile } from './user.service'
 import { IUser, IUserProfile } from '../types/user'
 import globalConfig from '../utils/global-config'
 import { sendVerificationEmail, sendPasswordResetEmail } from 'src/utils/email'
@@ -27,6 +28,21 @@ const generateTokens = ({ userId }: { userId: IUser['id'] }): { accessToken: str
 	accessToken: generateJwtToken({ userId }, { expiresIn: '1h' }),
 	refreshToken: generateJwtToken({ userId }, { expiresIn: '7d' })
 })
+
+async function hasExpiredSubscription(userId: string): Promise<boolean> {
+	const billing = await getBillingByUserId({ userId })
+
+	if (!billing || !billing.expiresAt) {
+		return false
+	}
+
+	return new Date(billing.expiresAt).getTime() < new Date().getTime()
+}
+
+async function downgradeToFreeTier(userId: string): Promise<void> {
+	const defaultProduct = await getFreeTierProduct()
+	await updateUserById({ id: userId, updates: { productId: defaultProduct.id } })
+}
 
 export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<ILoginResponse> {
 	const { credential } = input
@@ -83,6 +99,10 @@ export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<I
 		}
 	}
 
+	if (await hasExpiredSubscription(userByGoogleId.id)) {
+		await downgradeToFreeTier(userByGoogleId.id)
+	}
+
 	const { accessToken, refreshToken } = generateTokens({ userId: userByGoogleId.id })
 
 	await updateUserById({ id: userByGoogleId.id, updates: { refreshToken } })
@@ -102,6 +122,10 @@ export async function authenticateUser(input: TLoginInput): Promise<ILoginRespon
 
 	if (!isValidPassword) throw new CustomError('Email or password is wrong', EStatusCodes.UNAUTHORIZED)
 
+	if (await hasExpiredSubscription(user.id)) {
+		await downgradeToFreeTier(user.id)
+	}
+
 	const { accessToken, refreshToken } = generateTokens({ userId: user.id })
 
 	await updateUserById({ id: user.id, updates: { refreshToken } })
@@ -118,8 +142,8 @@ export async function registerUser({ password, ...input }: TSignupInput): Promis
 	const defaultProduct = await getFreeTierProduct()
 
 	const user = await createUser({
-		...input,
 		passwordHash,
+		...input,
 		emailVerified: false,
 		productId: defaultProduct.id
 	})
@@ -142,12 +166,13 @@ export async function registerUser({ password, ...input }: TSignupInput): Promis
 		// Continue - because user can resend later
 	}
 
-	return removeUserSensitive({
-		user: {
-			...user,
-			product: defaultProduct
-		}
-	})
+	const userProfile = await getUserProfile({ userId: user.id })
+
+	if (!userProfile) {
+		throw new CustomError('Failed to retrieve user profile', EStatusCodes.INTERNAL_SERVER_ERROR)
+	}
+
+	return userProfile
 }
 
 export async function refreshAccessToken(input: TRefreshTokenInput): Promise<IRefreshTokenResponse> {
@@ -157,6 +182,10 @@ export async function refreshAccessToken(input: TRefreshTokenInput): Promise<IRe
 
 	if (!user) {
 		throw new CustomError('Invalid refresh token', EStatusCodes.UNAUTHORIZED)
+	}
+
+	if (await hasExpiredSubscription(user.id)) {
+		await downgradeToFreeTier(user.id)
 	}
 
 	const { accessToken, refreshToken } = generateTokens({ userId: user.id })

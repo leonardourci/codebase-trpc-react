@@ -61,16 +61,19 @@ export function Header({ onMenuToggle, showMenuButton = false }: HeaderProps) {
                     <nav className="hidden md:flex items-center space-x-2">
                         <ThemeToggle />
 
-                        {!isAuthenticated && (
-                            <Link to="/pricing">
-                                <Button variant="ghost" size="sm">
-                                    Pricing
-                                </Button>
-                            </Link>
-                        )}
+                        <Link to="/pricing">
+                            <Button variant="ghost" size="sm">
+                                Pricing
+                            </Button>
+                        </Link>
 
                         {isAuthenticated ? (
                             <>
+                                <Link to="/dashboard">
+                                    <Button variant="ghost" size="sm">
+                                        Dashboard
+                                    </Button>
+                                </Link>
                                 <div className="flex items-center space-x-2 text-sm text-muted-foreground px-3">
                                     <User className="h-4 w-4" />
                                     <span>{user?.fullName || user?.email}</span>
@@ -139,6 +142,16 @@ export function Header({ onMenuToggle, showMenuButton = false }: HeaderProps) {
                                 <User className="h-4 w-4" />
                                 <span>{user?.fullName || user?.email}</span>
                             </div>
+                            <Link to="/pricing" onClick={() => setIsMobileMenuOpen(false)}>
+                                <Button variant="ghost" className="w-full justify-start">
+                                    Pricing
+                                </Button>
+                            </Link>
+                            <Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                                <Button variant="ghost" className="w-full justify-start">
+                                    Dashboard
+                                </Button>
+                            </Link>
                             <Button
                                 variant="ghost"
                                 onClick={handleLogout}

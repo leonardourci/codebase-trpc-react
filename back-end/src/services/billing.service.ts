@@ -25,25 +25,38 @@ async function hasUserVerifiedEmail({ userId }: { userId: string }): Promise<voi
 }
 
 export const registerUserBilling = async (input: IUpdateUserBillingInput) => {
+	console.log('[SERVICE] registerUserBilling - Input:', {
+		userEmail: input.userEmail,
+		productId: input.productId,
+		expiresAtUnix: input.expiresAt,
+		expiresAtConverted: unixTimestampToDate(input.expiresAt)
+	})
+
 	const user = await getUserByEmail({ email: input.userEmail })
 	if (!user) {
 		throw new Error(`User with email "${input.userEmail}" not found`)
 	}
 
+	console.log('[SERVICE] User found:', { userId: user.id, currentProductId: user.productId })
+
 	// Email verification removed - already checked at checkout creation via verifiedEmailProcedure
 	// Renewals are automatic and shouldn't be blocked by verification status changes
 
 	const billing = await getBillingByUserId({ userId: user.id })
+	const expiresAtDate = unixTimestampToDate(input.expiresAt)
+
 	if (!billing) {
+		console.log('[SERVICE] Creating new billing record')
 		await createBilling({
 			userId: user.id,
 			productId: input.productId,
 			externalSubscriptionId: input.externalSubscriptionId,
 			externalCustomerId: input.externalCustomerId,
 			status: 'active',
-			expiresAt: unixTimestampToDate(input.expiresAt)
+			expiresAt: expiresAtDate
 		})
 	} else {
+		console.log('[SERVICE] Updating existing billing record:', { billingId: billing.id })
 		await updateBillingById({
 			id: billing.id as string,
 			updates: {
@@ -51,15 +64,18 @@ export const registerUserBilling = async (input: IUpdateUserBillingInput) => {
 				externalSubscriptionId: input.externalSubscriptionId,
 				externalCustomerId: input.externalCustomerId,
 				status: 'active',
-				expiresAt: unixTimestampToDate(input.expiresAt)
+				expiresAt: expiresAtDate
 			}
 		})
 	}
 
+	console.log('[SERVICE] Updating user.productId to:', input.productId)
 	await updateUserById({
 		id: user.id,
 		updates: { productId: input.productId }
 	})
+
+	console.log('[SERVICE] registerUserBilling - Completed')
 }
 
 export const updateBillingOnPaymentFailed = async (externalSubscriptionId: string) => {

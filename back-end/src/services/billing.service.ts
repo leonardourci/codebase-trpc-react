@@ -82,7 +82,7 @@ export const updateBillingOnSubscriptionUpdated = async (input: {
 				id: billing.id as string,
 				updates: {
 					...(input.productId && { productId: input.productId }),
-					status: input.status,
+					...(input.status && { status: input.status }),
 					expiresAt: input.currentPeriodEnd
 				}
 			},

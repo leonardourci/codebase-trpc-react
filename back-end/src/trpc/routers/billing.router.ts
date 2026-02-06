@@ -34,9 +34,12 @@ export const billingRouter = router({
 			})
 		}
 
+		// Reuse the customer to avoid creating duplicates on resubscription
+		const billing = await getBillingByUserId({ userId: ctx.user.id })
+
 		const session = await stripe.checkout.sessions.create({
 			mode: 'subscription',
-			customer_email: ctx.user.email,
+			...(billing?.externalCustomerId ? { customer: billing.externalCustomerId } : { customer_email: ctx.user.email }),
 			line_items: [{ price: product.externalPriceId, quantity: 1 }],
 			success_url: input.successUrl,
 			cancel_url: input.cancelUrl,

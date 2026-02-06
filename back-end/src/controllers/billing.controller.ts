@@ -104,8 +104,24 @@ export const processBillingWebhookHandler = async (req: IBillingRequest, res: Re
 
 			const expiresAt = updatedSubscription.cancel_at ? unixTimestampToDate(updatedSubscription.cancel_at) : unixTimestampToDate(currentPeriodEnd)
 
+			const priceId = updatedSubscription.items.data[0]?.price?.id
+			let productId: string | undefined
+
+			if (priceId) {
+				const product = await getProductByExternalPriceId({ priceId })
+				if (product) {
+					productId = product.id
+					console.log('[WEBHOOK] Product detected in subscription.updated:', {
+						priceId,
+						productId: product.id,
+						productName: product.name
+					})
+				}
+			}
+
 			await updateBillingOnSubscriptionUpdated({
 				externalSubscriptionId: updatedSubscription.id,
+				productId,
 				status: updatedSubscription.status,
 				currentPeriodEnd: expiresAt
 			})

@@ -44,7 +44,7 @@ export function BillingPage() {
       searchParams.delete('success')
       setSearchParams(searchParams, { replace: true })
     }
-  }, [searchParams])
+  }, [searchParams, refreshUser, refetchBilling, setSearchParams])
   const createPortalSession =
     trpc.billing.createCustomerPortalSession.useMutation()
   const createCheckoutSession = trpc.billing.createCheckoutSession.useMutation()

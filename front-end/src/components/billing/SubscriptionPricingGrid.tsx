@@ -172,7 +172,7 @@ export function SubscriptionPricingGrid({
                   <div className="w-full">
                     <Button
                       onClick={
-                        isInteractive
+                        isInteractive && plan.externalPriceId
                           ? () => onSubscribe(plan.externalPriceId!)
                           : undefined
                       }

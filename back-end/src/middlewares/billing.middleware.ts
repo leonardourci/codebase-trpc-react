@@ -2,10 +2,13 @@ import Stripe from 'stripe'
 import { NextFunction, Request, Response } from 'express'
 import stripe from '../utils/stripe'
 import globalConfig from '../utils/global-config'
+import Logger from 'src/utils/logger'
 
 export interface IBillingRequest extends Request {
 	billingEvent?: Stripe.Event
 }
+
+const logger = new Logger({ source: 'billing-middleware' })
 
 export const verifyStripeWebhookSignatureMiddleware = (req: Request, res: Response, next: NextFunction) => {
 	const signature = req.headers['stripe-signature']
@@ -18,6 +21,9 @@ export const verifyStripeWebhookSignatureMiddleware = (req: Request, res: Respon
 		return next()
 	} catch (err: unknown) {
 		const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+
+		logger.error(errorMessage, err)
+
 		return res.sendStatus(400)
 	}
 }

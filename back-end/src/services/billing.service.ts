@@ -1,28 +1,8 @@
-import { getUserByEmail, getUserById, updateUserById } from '../database/repositories/user.repository'
-import {
-	createBilling,
-	getBillingByUserId as getBillingByUserId,
-	updateBillingByUserId,
-	getBillingByExternalSubscriptionId,
-	updateBillingById
-} from '../database/repositories/billing.repository'
+import { createBilling, getBillingByExternalSubscriptionId, getBillingByUserId, updateBillingById } from '../database/repositories/billing.repository'
 import { getFreeTierProduct } from '../database/repositories/product.repository'
-import { CustomError } from '../utils/errors'
-import { EStatusCodes } from '../utils/status-codes'
-import { unixTimestampToDate } from '../utils/time'
+import { getUserByEmail, updateUserById } from '../database/repositories/user.repository'
 import { IUpdateUserBillingInput } from '../types/billing'
-
-async function hasUserVerifiedEmail({ userId }: { userId: string }): Promise<void> {
-	const user = await getUserById({ id: userId })
-
-	if (!user) {
-		throw new CustomError('User not found', EStatusCodes.UNAUTHORIZED)
-	}
-
-	if (!user.emailVerified) {
-		throw new CustomError('Please verify your email before making a purchase', EStatusCodes.FORBIDDEN)
-	}
-}
+import { unixTimestampToDate } from '../utils/time'
 
 export const registerUserBilling = async (input: IUpdateUserBillingInput) => {
 	console.log('[SERVICE] registerUserBilling - Input:', {
@@ -55,25 +35,21 @@ export const registerUserBilling = async (input: IUpdateUserBillingInput) => {
 			status: 'active',
 			expiresAt: expiresAtDate
 		})
+
+		await updateUserById({
+			id: user.id,
+			updates: { productId: input.productId }
+		})
 	} else {
-		console.log('[SERVICE] Updating existing billing record:', { billingId: billing.id })
 		await updateBillingById({
 			id: billing.id as string,
 			updates: {
-				productId: input.productId,
 				externalSubscriptionId: input.externalSubscriptionId,
 				externalCustomerId: input.externalCustomerId,
-				status: 'active',
-				expiresAt: expiresAtDate
+				status: 'active'
 			}
 		})
 	}
-
-	console.log('[SERVICE] Updating user.productId to:', input.productId)
-	await updateUserById({
-		id: user.id,
-		updates: { productId: input.productId }
-	})
 
 	console.log('[SERVICE] registerUserBilling - Completed')
 }

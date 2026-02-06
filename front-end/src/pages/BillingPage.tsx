@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
+import { Button } from '@/components/ui/button'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { BillingPageHeader } from '@/components/billing/BillingPageHeader'
 import { EmailVerificationWarning } from '@/components/billing/EmailVerificationWarning'
@@ -29,7 +30,10 @@ export function BillingPage() {
     data: billingData,
     isLoading,
     refetch: refetchBilling,
-  } = trpc.billing.getUserBilling.useQuery()
+  } = trpc.billing.getUserBilling.useQuery(undefined, {
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+  })
 
   // After a successful checkout, Stripe redirects back with ?success=true.
   // Refresh user profile and billing data so the page reflects the new subscription.
@@ -167,6 +171,28 @@ export function BillingPage() {
 
         {isOnFreeTier && (
           <>
+            {billing?.externalCustomerId && (
+              <div className="border rounded-lg p-4 bg-card flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  View your past invoices, payment methods and billing history
+                </p>
+                <Button
+                  onClick={handleManageSubscription}
+                  disabled={isLoadingPortal}
+                  variant="outline"
+                  size="sm"
+                >
+                  {isLoadingPortal ? (
+                    <>
+                      <LoadingSpinner size="sm" className="mr-2" />
+                      Loading...
+                    </>
+                  ) : (
+                    'Billing History'
+                  )}
+                </Button>
+              </div>
+            )}
             <BillingPeriodToggle
               selectedPeriod={selectedPeriod}
               onPeriodChange={setSelectedPeriod}

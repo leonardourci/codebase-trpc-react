@@ -8,24 +8,11 @@ import type { IPricingPlan } from '@shared/types/pricing.types'
 export function getPlanByExternalPriceId(
   externalPriceId: string | null
 ): IPricingPlan {
-  console.log(
-    '[PRICING] getPlanByExternalPriceId called with:',
-    externalPriceId
-  )
-
   if (!externalPriceId) {
-    console.log('[PRICING] No externalPriceId, returning free tier')
     return getFreeTierPlan()
   }
 
   const plan = PRICING_PLANS.find(p => p.externalPriceId === externalPriceId)
-
-  console.log(
-    '[PRICING] Found plan:',
-    plan
-      ? `${plan.name} - ${plan.billingPeriod} - $${plan.priceInCents / 100}`
-      : 'NOT FOUND'
-  )
 
   return plan ?? getFreeTierPlan()
 }

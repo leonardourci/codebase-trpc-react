@@ -5,28 +5,17 @@ import { IUpdateUserBillingInput } from '../types/billing'
 import { unixTimestampToDate } from '../utils/time'
 
 export const registerUserBilling = async (input: IUpdateUserBillingInput) => {
-	console.log('[SERVICE] registerUserBilling - Input:', {
-		userEmail: input.userEmail,
-		productId: input.productId,
-		expiresAtUnix: input.expiresAt,
-		expiresAtConverted: unixTimestampToDate(input.expiresAt)
-	})
-
 	const user = await getUserByEmail({ email: input.userEmail })
 	if (!user) {
 		throw new Error(`User with email "${input.userEmail}" not found`)
 	}
 
-	console.log('[SERVICE] User found:', { userId: user.id, currentProductId: user.productId })
-
 	// Email verification removed - already checked at checkout creation via verifiedEmailProcedure
 	// Renewals are automatic and shouldn't be blocked by verification status changes
-
 	const billing = await getBillingByUserId({ userId: user.id })
 	const expiresAtDate = unixTimestampToDate(input.expiresAt)
 
 	if (!billing) {
-		console.log('[SERVICE] Creating new billing record')
 		await createBilling({
 			userId: user.id,
 			productId: input.productId,
@@ -50,8 +39,6 @@ export const registerUserBilling = async (input: IUpdateUserBillingInput) => {
 			}
 		})
 	}
-
-	console.log('[SERVICE] registerUserBilling - Completed')
 }
 
 export const updateBillingOnPaymentFailed = async (externalSubscriptionId: string) => {
@@ -85,7 +72,6 @@ export const updateBillingOnSubscriptionUpdated = async (input: {
 	})
 
 	if (input.status === 'canceled' || input.status === 'unpaid') {
-		console.log('[SERVICE] Subscription became canceled/unpaid, downgrading to free tier')
 		const defaultProduct = await getFreeTierProduct()
 		await updateUserById({
 			id: billing.userId,
@@ -93,10 +79,6 @@ export const updateBillingOnSubscriptionUpdated = async (input: {
 		})
 	} else if (input.productId && input.productId !== billing.productId) {
 		// If productId changed and subscription is still active/past_due, update user's productId
-		console.log('[SERVICE] Product changed in subscription, updating user:', {
-			oldProductId: billing.productId,
-			newProductId: input.productId
-		})
 		await updateUserById({
 			id: billing.userId,
 			updates: { productId: input.productId }

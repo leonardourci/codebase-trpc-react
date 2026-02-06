@@ -255,7 +255,7 @@ To verify test environment is correctly configured:
 npm test -- tests/setup/test-database.test.ts
 
 # Check environment variables in test
-console.log('NODE_ENV:', process.env.NODE_ENV)
+, payment methodsconsole.log('NODE_ENV:', process.env.NODE_ENV)
 console.log('TEST_DATABASE_URL:', process.env.TEST_DATABASE_URL)
 console.log('JWT_SECRET:', process.env.JWT_SECRET)
 ```

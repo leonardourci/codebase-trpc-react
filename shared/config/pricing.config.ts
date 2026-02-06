@@ -1,5 +1,6 @@
 import type { IPricingPlan } from "../types/pricing.types";
 import { EBillingPeriod } from "../types/pricing.types";
+import { validatePricingConfig } from "../validations/pricing.validation";
 
 export const PRICING_PLANS: IPricingPlan[] = [
     {
@@ -24,8 +25,8 @@ export const PRICING_PLANS: IPricingPlan[] = [
         description: "Everything you need to grow",
         priceInCents: 2990,
         billingPeriod: EBillingPeriod.MONTHLY,
-        externalProductId: "prod_TtaWqAfTdcspvK",
-        externalPriceId: "price_1SvnLpPUl9sTYXHR9yk4VPG3",
+        externalProductId: "prod_id",
+        externalPriceId: "price_id",
         active: true,
         isFreeTier: false,
         maxProjects: null,
@@ -42,8 +43,8 @@ export const PRICING_PLANS: IPricingPlan[] = [
         description: "Everything you need to grow",
         priceInCents: 29000,
         billingPeriod: EBillingPeriod.YEARLY,
-        externalProductId: "prod_TtaWqAfTdcspvK",
-        externalPriceId: "price_1SxCQYPUl9sTYXHRZdEhOaVP",
+        externalProductId: "prod_id",
+        externalPriceId: "price_id",
         active: true,
         isFreeTier: false,
         maxProjects: null,
@@ -60,8 +61,8 @@ export const PRICING_PLANS: IPricingPlan[] = [
         description: "For large teams",
         priceInCents: 5900,
         billingPeriod: EBillingPeriod.MONTHLY,
-        externalProductId: "prod_Tuz22nh4bX0tdu",
-        externalPriceId: "price_1Sx94cPUl9sTYXHRrtqzO6KO",
+        externalProductId: "prod_id",
+        externalPriceId: "price_id",
         active: true,
         isFreeTier: false,
         maxProjects: null,
@@ -78,8 +79,8 @@ export const PRICING_PLANS: IPricingPlan[] = [
         description: "For large teams",
         priceInCents: 59000,
         billingPeriod: EBillingPeriod.YEARLY,
-        externalProductId: "prod_Tuz22nh4bX0tdu",
-        externalPriceId: "price_1SxCSwPUl9sTYXHRgo6TlQnM",
+        externalProductId: "prod_id",
+        externalPriceId: "price_id",
         active: true,
         isFreeTier: false,
         maxProjects: null,
@@ -92,30 +93,5 @@ export const PRICING_PLANS: IPricingPlan[] = [
         ],
     },
 ];
-
-export function validatePricingConfig(): void {
-    const freeTiers = PRICING_PLANS.filter((p) => p.isFreeTier);
-
-    if (freeTiers.length === 0) {
-        throw new Error("Pricing config must have exactly one free tier");
-    }
-
-    if (freeTiers.length > 1) {
-        throw new Error(
-            `Pricing config has ${freeTiers.length} free tiers, must have exactly one`,
-        );
-    }
-
-    if (freeTiers[0]!.priceInCents !== 0) {
-        throw new Error("Free tier must have priceInCents = 0");
-    }
-
-    const paidPlans = PRICING_PLANS.filter((p) => !p.isFreeTier);
-    for (const plan of paidPlans) {
-        if (!plan.externalPriceId) {
-            throw new Error(`Paid plan "${plan.name}" missing externalPriceId`);
-        }
-    }
-}
 
 validatePricingConfig();

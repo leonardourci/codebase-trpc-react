@@ -23,9 +23,6 @@ export const processBillingWebhookHandler = async (req: IBillingRequest, res: Re
 			const paidInvoice = billingEvent.data.object
 			const lineItems = paidInvoice.lines.data
 
-			console.log('[WEBHOOK] ========== invoice.paid received ==========')
-			console.log('[WEBHOOK] Customer email:', paidInvoice.customer_email)
-
 			if (lineItems[0]) {
 				const subscription = paidInvoice.parent?.subscription_details?.subscription
 				const subscriptionId = typeof subscription === 'string' ? subscription : subscription?.id
@@ -52,16 +49,6 @@ export const processBillingWebhookHandler = async (req: IBillingRequest, res: Re
 					throw new Error('Period end missing from invoice line item')
 				}
 
-				console.log('[WEBHOOK] Extracted data:', {
-					subscriptionId,
-					productId: product.id,
-					productName: product.name,
-					expiresAtUnix: unixTimestampExpiresAt,
-					expiresAtDate: new Date(unixTimestampExpiresAt * 1000).toISOString(),
-					periodStart: new Date(lineItems[0].period.start * 1000).toISOString(),
-					periodEnd: new Date(lineItems[0].period.end * 1000).toISOString()
-				})
-
 				await registerUserBilling({
 					userEmail: paidInvoice.customer_email || '',
 					productId: product.id,
@@ -69,8 +56,6 @@ export const processBillingWebhookHandler = async (req: IBillingRequest, res: Re
 					externalSubscriptionId: subscriptionId,
 					expiresAt: unixTimestampExpiresAt
 				})
-
-				console.log('[WEBHOOK] ========== invoice.paid completed ==========')
 			}
 			break
 		}
@@ -111,11 +96,6 @@ export const processBillingWebhookHandler = async (req: IBillingRequest, res: Re
 				const product = await getProductByExternalPriceId({ priceId })
 				if (product) {
 					productId = product.id
-					console.log('[WEBHOOK] Product detected in subscription.updated:', {
-						priceId,
-						productId: product.id,
-						productName: product.name
-					})
 				}
 			}
 

@@ -8,120 +8,117 @@ import globalConfig from '../utils/global-config'
 import { ENodeEnvs } from '../types/envs'
 
 type TRPCErrorCode =
-  | 'BAD_REQUEST'
-  | 'UNAUTHORIZED'
-  | 'FORBIDDEN'
-  | 'NOT_FOUND'
-  | 'METHOD_NOT_SUPPORTED'
-  | 'TIMEOUT'
-  | 'CONFLICT'
-  | 'PRECONDITION_FAILED'
-  | 'PAYLOAD_TOO_LARGE'
-  | 'UNSUPPORTED_MEDIA_TYPE'
-  | 'UNPROCESSABLE_CONTENT'
-  | 'TOO_MANY_REQUESTS'
-  | 'CLIENT_CLOSED_REQUEST'
-  | 'INTERNAL_SERVER_ERROR'
+	| 'BAD_REQUEST'
+	| 'UNAUTHORIZED'
+	| 'FORBIDDEN'
+	| 'NOT_FOUND'
+	| 'METHOD_NOT_SUPPORTED'
+	| 'TIMEOUT'
+	| 'CONFLICT'
+	| 'PRECONDITION_FAILED'
+	| 'PAYLOAD_TOO_LARGE'
+	| 'UNSUPPORTED_MEDIA_TYPE'
+	| 'UNPROCESSABLE_CONTENT'
+	| 'TOO_MANY_REQUESTS'
+	| 'CLIENT_CLOSED_REQUEST'
+	| 'INTERNAL_SERVER_ERROR'
 
 const ERROR_STATUS_CODE_TO_TRPC_CODE: Record<number, TRPCErrorCode> = {
-  [EStatusCodes.UNAUTHORIZED]: 'UNAUTHORIZED',
-  [EStatusCodes.NOT_FOUND]: 'NOT_FOUND',
-  [EStatusCodes.NOT_ACCEPTABLE]: 'BAD_REQUEST',
-  [EStatusCodes.CONFLICT]: 'CONFLICT',
-  [EStatusCodes.PRECONDITION_FAILED]: 'PRECONDITION_FAILED',
-  [EStatusCodes.UNPROCESSABLE]: 'UNPROCESSABLE_CONTENT',
-  [EStatusCodes.INTERNAL_SERVER_ERROR]: 'INTERNAL_SERVER_ERROR'
+	[EStatusCodes.UNAUTHORIZED]: 'UNAUTHORIZED',
+	[EStatusCodes.NOT_FOUND]: 'NOT_FOUND',
+	[EStatusCodes.NOT_ACCEPTABLE]: 'BAD_REQUEST',
+	[EStatusCodes.CONFLICT]: 'CONFLICT',
+	[EStatusCodes.PRECONDITION_FAILED]: 'PRECONDITION_FAILED',
+	[EStatusCodes.UNPROCESSABLE]: 'UNPROCESSABLE_CONTENT',
+	[EStatusCodes.INTERNAL_SERVER_ERROR]: 'INTERNAL_SERVER_ERROR'
 }
 
 const mapStatusCodeToTRPCCode = (statusCode: number): TRPCErrorCode => {
-  return ERROR_STATUS_CODE_TO_TRPC_CODE[statusCode] || 'INTERNAL_SERVER_ERROR'
+	return ERROR_STATUS_CODE_TO_TRPC_CODE[statusCode] || 'INTERNAL_SERVER_ERROR'
 }
 
 export const transformErrorToTRPC = (error: unknown): TRPCError => {
-  if (error instanceof ZodValidationError) {
-    return new TRPCError({
-      code: mapStatusCodeToTRPCCode(error.statusCode),
-      message: error.message,
-      cause: {
-        messages: error.messages,
-        statusCode: error.statusCode
-      }
-    })
-  }
+	if (error instanceof ZodValidationError) {
+		return new TRPCError({
+			code: mapStatusCodeToTRPCCode(error.statusCode),
+			message: error.message,
+			cause: {
+				messages: error.messages,
+				statusCode: error.statusCode
+			}
+		})
+	}
 
-  if (error instanceof CustomError) {
-    return new TRPCError({
-      code: mapStatusCodeToTRPCCode(error.statusCode),
-      message: error.message,
-      cause: {
-        statusCode: error.statusCode
-      }
-    })
-  }
+	if (error instanceof CustomError) {
+		return new TRPCError({
+			code: mapStatusCodeToTRPCCode(error.statusCode),
+			message: error.message,
+			cause: {
+				statusCode: error.statusCode
+			}
+		})
+	}
 
-  if (error instanceof Error) {
-    return new TRPCError({
-      code: 'INTERNAL_SERVER_ERROR',
-      message: error.message
-    })
-  }
+	if (error instanceof Error) {
+		return new TRPCError({
+			code: 'INTERNAL_SERVER_ERROR',
+			message: error.message
+		})
+	}
 
-  return new TRPCError({
-    code: 'INTERNAL_SERVER_ERROR',
-    message: (error as any)?.message || 'An unexpected error occurred'
-  })
+	return new TRPCError({
+		code: 'INTERNAL_SERVER_ERROR',
+		message: (error as any)?.message || 'An unexpected error occurred'
+	})
 }
 export interface ITRPCContext {
-  user?: IUser
-  req: Request
-  res: Response
+	user?: IUser
+	req: Request
+	res: Response
 }
 
 export const createTRPCContext = (opts: { req: Request; res: Response }): ITRPCContext => {
-  return {
-    req: opts.req,
-    res: opts.res,
-    // user will be populated by authentication middleware
-  }
+	return {
+		req: opts.req,
+		res: opts.res
+		// user will be populated by authentication middleware
+	}
 }
 
 // Initialize tRPC instance
 const t = initTRPC.context<ITRPCContext>().create({
-  errorFormatter({ shape, error }) {
-    const isProduction = globalConfig.nodeEnv === ENodeEnvs.PRODUCTION
+	errorFormatter({ shape, error }) {
+		const isProduction = globalConfig.nodeEnv === ENodeEnvs.PRODUCTION
 
-    // In production, remove sensitive data like stack traces and internal paths
-    // In development, keep full error details for debugging
-    if (isProduction) {
-      console.log('isproduciton')
+		// In production, remove sensitive data like stack traces and internal paths
+		// In development, keep full error details for debugging
+		if (isProduction) {
+			// Sanitize error message for production - hide database/internal details
+			const sanitizedMessage =
+				shape.message.includes('column') || shape.message.includes('table') || shape.message.includes('database')
+					? 'An internal error occurred. Please try again later.'
+					: shape.message
 
-      // Sanitize error message for production - hide database/internal details
-      const sanitizedMessage = shape.message.includes('column') ||
-        shape.message.includes('table') ||
-        shape.message.includes('database')
-        ? 'An internal error occurred. Please try again later.'
-        : shape.message
+			return {
+				...shape,
+				message: sanitizedMessage,
+				data: {
+					code: shape.data.code,
+					httpStatus: shape.data.httpStatus,
+					path: shape.data.path
+				}
+			}
+		}
 
-      return {
-        ...shape,
-        message: sanitizedMessage,
-        data: {
-          code: shape.data.code,
-          httpStatus: shape.data.httpStatus,
-          path: shape.data.path
-        }
-      }
-    }
-
-    // Development: include full error details for debugging
-    return {
-      ...shape,
-      data: {
-        ...shape.data,
-        details: error.cause
-      }
-    }
-  }
+		// Development: include full error details for debugging
+		return {
+			...shape,
+			data: {
+				...shape.data,
+				details: error.cause
+			}
+		}
+	}
 })
 
 // Export tRPC utilities

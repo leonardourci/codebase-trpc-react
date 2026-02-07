@@ -20,15 +20,13 @@ const MOCK_SUBSCRIPTION_CURRENT_PERIOD_END = 1641081600 // Jan 2, 2022 00:00:00 
 describe('Billing Controller', () => {
 	let mockReq: Partial<IBillingRequest>
 	let mockRes: Partial<Response>
-	let mockNext: jest.Mock
 
 	beforeEach(() => {
 		mockReq = {}
 		mockRes = {
 			status: jest.fn().mockReturnThis(),
-			send: jest.fn()
+			json: jest.fn()
 		}
-		mockNext = jest.fn()
 
 		jest.clearAllMocks()
 	})
@@ -47,7 +45,7 @@ describe('Billing Controller', () => {
 				const mockProduct = {
 					id: 'product-123',
 					name: 'Test Product',
-					externalProductId: 'prod_external_123'
+					externalPriceId: 'price_123'
 				}
 
 				mockReq.billingEvent = {
@@ -56,17 +54,21 @@ describe('Billing Controller', () => {
 						object: {
 							customer_email: 'test@example.com',
 							customer: 'cus_123',
-							payment_intent: 'pi_test123',
+							parent: {
+								subscription_details: {
+									subscription: 'sub_123'
+								}
+							},
 							lines: {
 								data: [
 									{
 										pricing: {
 											price_details: {
-												product: 'prod_external_123'
+												price: 'price_123'
 											}
 										},
-										subscription: 'sub_123',
 										period: {
+											start: MOCK_INVOICE_PERIOD_END - 2592000,
 											end: MOCK_INVOICE_PERIOD_END
 										}
 									}
@@ -74,15 +76,15 @@ describe('Billing Controller', () => {
 							}
 						}
 					}
-				} as any
+				}
 
-				mockProductRepository.getProductByExternalPriceId.mockResolvedValue(mockProduct as any)
+				mockProductRepository.getProductByExternalPriceId.mockResolvedValue(mockProduct)
 				mockBillingService.registerUserBilling.mockResolvedValue(undefined)
 
 				await processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)
 
 				expect(mockProductRepository.getProductByExternalPriceId).toHaveBeenCalledWith({
-					id: 'prod_external_123'
+					priceId: 'price_123'
 				})
 				expect(mockBillingService.registerUserBilling).toHaveBeenCalledWith({
 					userEmail: 'test@example.com',
@@ -92,26 +94,31 @@ describe('Billing Controller', () => {
 					expiresAt: MOCK_INVOICE_PERIOD_END
 				})
 				expect(mockRes.status).toHaveBeenCalledWith(EStatusCodes.OK)
-				expect(mockRes.send).toHaveBeenCalledWith('Webhook processed successfully')
+				expect(mockRes.json).toHaveBeenCalledWith({ received: true })
 			})
 
-			it('should throw error when product is not found', async () => {
+			it('should log error and return 200 when product is not found', async () => {
 				mockReq.billingEvent = {
 					type: 'invoice.paid',
 					data: {
 						object: {
 							customer_email: 'test@example.com',
 							customer: 'cus_123',
+							parent: {
+								subscription_details: {
+									subscription: 'sub_123'
+								}
+							},
 							lines: {
 								data: [
 									{
 										pricing: {
 											price_details: {
-												product: 'prod_nonexistent'
+												price: 'price_nonexistent'
 											}
 										},
-										subscription: 'sub_123',
 										period: {
+											start: MOCK_INVOICE_PERIOD_END - 2592000,
 											end: MOCK_INVOICE_PERIOD_END
 										}
 									}
@@ -119,12 +126,150 @@ describe('Billing Controller', () => {
 							}
 						}
 					}
-				} as any
+				}
 
 				mockProductRepository.getProductByExternalPriceId.mockResolvedValue(null)
 
+				await processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)
+
+				expect(mockBillingService.registerUserBilling).not.toHaveBeenCalled()
+				expect(mockRes.status).toHaveBeenCalledWith(EStatusCodes.OK)
+				expect(mockRes.json).toHaveBeenCalledWith({ received: true })
+			})
+
+			it('should handle subscription as object with id property', async () => {
+				const mockProduct = {
+					id: 'product-123',
+					name: 'Test Product',
+					externalPriceId: 'price_123'
+				}
+
+				mockReq.billingEvent = {
+					type: 'invoice.paid',
+					data: {
+						object: {
+							customer_email: 'test@example.com',
+							customer: 'cus_123',
+							parent: {
+								subscription_details: {
+									subscription: { id: 'sub_obj_123' }
+								}
+							},
+							lines: {
+								data: [
+									{
+										pricing: {
+											price_details: {
+												price: 'price_123'
+											}
+										},
+										period: {
+											start: MOCK_INVOICE_PERIOD_END - 2592000,
+											end: MOCK_INVOICE_PERIOD_END
+										}
+									}
+								]
+							}
+						}
+					}
+				}
+
+				mockProductRepository.getProductByExternalPriceId.mockResolvedValue(mockProduct)
+				mockBillingService.registerUserBilling.mockResolvedValue(undefined)
+
+				await processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)
+
+				expect(mockBillingService.registerUserBilling).toHaveBeenCalledWith(expect.objectContaining({ externalSubscriptionId: 'sub_obj_123' }))
+			})
+
+			it('should throw error when subscription ID is missing from invoice.paid', async () => {
+				mockReq.billingEvent = {
+					type: 'invoice.paid',
+					data: {
+						object: {
+							customer_email: 'test@example.com',
+							customer: 'cus_123',
+							parent: {
+								subscription_details: {
+									subscription: null
+								}
+							},
+							lines: {
+								data: [
+									{
+										pricing: { price_details: { price: 'price_123' } },
+										period: { start: 0, end: MOCK_INVOICE_PERIOD_END }
+									}
+								]
+							}
+						}
+					}
+				}
+
 				await expect(processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)).rejects.toThrow(
-					'Product with external ID "prod_nonexistent" not found'
+					'invoice.paid: Subscription missing from invoice'
+				)
+			})
+
+			it('should throw error when price ID is missing from invoice line item', async () => {
+				mockReq.billingEvent = {
+					type: 'invoice.paid',
+					data: {
+						object: {
+							customer_email: 'test@example.com',
+							customer: 'cus_123',
+							parent: {
+								subscription_details: {
+									subscription: 'sub_123'
+								}
+							},
+							lines: {
+								data: [
+									{
+										pricing: { price_details: { price: null } },
+										period: { start: 0, end: MOCK_INVOICE_PERIOD_END }
+									}
+								]
+							}
+						}
+					}
+				}
+
+				await expect(processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)).rejects.toThrow(
+					'invoice.paid: Price ID missing from invoice line item'
+				)
+			})
+
+			it('should throw error when period end is missing from invoice line item', async () => {
+				const mockProduct = { id: 'product-123', externalPriceId: 'price_123' }
+
+				mockReq.billingEvent = {
+					type: 'invoice.paid',
+					data: {
+						object: {
+							customer_email: 'test@example.com',
+							customer: 'cus_123',
+							parent: {
+								subscription_details: {
+									subscription: 'sub_123'
+								}
+							},
+							lines: {
+								data: [
+									{
+										pricing: { price_details: { price: 'price_123' } },
+										period: { start: 0, end: 0 }
+									}
+								]
+							}
+						}
+					}
+				}
+
+				mockProductRepository.getProductByExternalPriceId.mockResolvedValue(mockProduct)
+
+				await expect(processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)).rejects.toThrow(
+					'invoice.paid: Period end missing from invoice line item'
 				)
 			})
 
@@ -140,14 +285,14 @@ describe('Billing Controller', () => {
 							}
 						}
 					}
-				} as any
+				}
 
 				await processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)
 
 				expect(mockProductRepository.getProductByExternalPriceId).not.toHaveBeenCalled()
 				expect(mockBillingService.registerUserBilling).not.toHaveBeenCalled()
 				expect(mockRes.status).toHaveBeenCalledWith(EStatusCodes.OK)
-				expect(mockRes.send).toHaveBeenCalledWith('Webhook processed successfully')
+				expect(mockRes.json).toHaveBeenCalledWith({ received: true })
 			})
 		})
 
@@ -169,15 +314,15 @@ describe('Billing Controller', () => {
 							}
 						}
 					}
-				} as any
+				}
 
 				mockBillingService.updateBillingOnPaymentFailed.mockResolvedValue(undefined)
 
 				await processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)
 
-				expect(mockBillingService.updateBillingOnPaymentFailed).toHaveBeenCalledWith('sub_123')
+				expect(mockBillingService.updateBillingOnPaymentFailed).toHaveBeenCalledWith({ externalSubscriptionId: 'sub_123' })
 				expect(mockRes.status).toHaveBeenCalledWith(EStatusCodes.OK)
-				expect(mockRes.send).toHaveBeenCalledWith('Webhook processed successfully')
+				expect(mockRes.json).toHaveBeenCalledWith({ received: true })
 			})
 
 			it('should throw error when subscription ID is missing', async () => {
@@ -197,16 +342,18 @@ describe('Billing Controller', () => {
 							}
 						}
 					}
-				} as any
+				}
 
 				await expect(processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)).rejects.toThrow(
-					'Subscription missing from invoice line item'
+					'invoice.payment_failed: Subscription missing from invoice line item'
 				)
 			})
 		})
 
 		describe('customer.subscription.updated event', () => {
 			it('should process subscription updated with cancel_at_period_end', async () => {
+				const mockProduct = { id: 'product-123', name: 'Test Product' }
+
 				mockReq.billingEvent = {
 					type: 'customer.subscription.updated',
 					data: {
@@ -218,27 +365,34 @@ describe('Billing Controller', () => {
 							items: {
 								data: [
 									{
-										current_period_end: MOCK_SUBSCRIPTION_CURRENT_PERIOD_END
+										current_period_end: MOCK_SUBSCRIPTION_CURRENT_PERIOD_END,
+										price: { id: 'price_123' }
 									}
 								]
 							}
 						}
 					}
-				} as any
+				}
 
+				mockProductRepository.getProductByExternalPriceId.mockResolvedValue(mockProduct)
 				mockBillingService.updateBillingOnSubscriptionUpdated.mockResolvedValue(undefined)
 
 				await processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)
 
+				expect(mockProductRepository.getProductByExternalPriceId).toHaveBeenCalledWith({ priceId: 'price_123' })
 				expect(mockBillingService.updateBillingOnSubscriptionUpdated).toHaveBeenCalledWith({
 					externalSubscriptionId: 'sub_123',
+					productId: 'product-123',
 					status: 'active',
 					currentPeriodEnd: unixTimestampToDate(MOCK_INVOICE_PERIOD_END)
 				})
 				expect(mockRes.status).toHaveBeenCalledWith(EStatusCodes.OK)
+				expect(mockRes.json).toHaveBeenCalledWith({ received: true })
 			})
 
 			it('should process subscription updated without cancel_at_period_end', async () => {
+				const mockProduct = { id: 'product-123', name: 'Test Product' }
+
 				mockReq.billingEvent = {
 					type: 'customer.subscription.updated',
 					data: {
@@ -249,24 +403,63 @@ describe('Billing Controller', () => {
 							items: {
 								data: [
 									{
-										current_period_end: MOCK_SUBSCRIPTION_CURRENT_PERIOD_END
+										current_period_end: MOCK_SUBSCRIPTION_CURRENT_PERIOD_END,
+										price: { id: 'price_123' }
 									}
 								]
 							}
 						}
 					}
-				} as any
+				}
 
+				mockProductRepository.getProductByExternalPriceId.mockResolvedValue(mockProduct)
 				mockBillingService.updateBillingOnSubscriptionUpdated.mockResolvedValue(undefined)
 
 				await processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)
 
 				expect(mockBillingService.updateBillingOnSubscriptionUpdated).toHaveBeenCalledWith({
 					externalSubscriptionId: 'sub_123',
+					productId: 'product-123',
 					status: 'active',
 					currentPeriodEnd: unixTimestampToDate(MOCK_SUBSCRIPTION_CURRENT_PERIOD_END)
 				})
 				expect(mockRes.status).toHaveBeenCalledWith(EStatusCodes.OK)
+				expect(mockRes.json).toHaveBeenCalledWith({ received: true })
+			})
+
+			it('should process subscription updated with unknown price ID', async () => {
+				mockReq.billingEvent = {
+					type: 'customer.subscription.updated',
+					data: {
+						object: {
+							id: 'sub_123',
+							status: 'active',
+							cancel_at_period_end: false,
+							items: {
+								data: [
+									{
+										current_period_end: MOCK_SUBSCRIPTION_CURRENT_PERIOD_END,
+										price: { id: 'price_unknown' }
+									}
+								]
+							}
+						}
+					}
+				}
+
+				mockProductRepository.getProductByExternalPriceId.mockResolvedValue(null)
+				mockBillingService.updateBillingOnSubscriptionUpdated.mockResolvedValue(undefined)
+
+				await processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)
+
+				expect(mockBillingService.updateBillingOnSubscriptionUpdated).toHaveBeenCalledWith({
+					externalSubscriptionId: 'sub_123',
+					productId: undefined,
+					status: 'active',
+					currentPeriodEnd: unixTimestampToDate(MOCK_SUBSCRIPTION_CURRENT_PERIOD_END)
+				})
+				expect(mockRes.status).toHaveBeenCalledWith(EStatusCodes.OK)
+				expect(mockRes.json).toHaveBeenCalledWith({ received: true })
 			})
 
 			it('should throw error when subscription items missing current_period_end', async () => {
@@ -282,10 +475,10 @@ describe('Billing Controller', () => {
 							}
 						}
 					}
-				} as any
+				}
 
 				await expect(processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)).rejects.toThrow(
-					'Subscription item missing current_period_end'
+					'subscription.updated: Subscription item missing current_period_end'
 				)
 			})
 		})
@@ -300,15 +493,15 @@ describe('Billing Controller', () => {
 							customer: 'cus_123'
 						}
 					}
-				} as any
+				}
 
 				mockBillingService.updateBillingOnSubscriptionDeleted.mockResolvedValue(undefined)
 
 				await processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)
 
-				expect(mockBillingService.updateBillingOnSubscriptionDeleted).toHaveBeenCalledWith('sub_123')
+				expect(mockBillingService.updateBillingOnSubscriptionDeleted).toHaveBeenCalledWith({ externalSubscriptionId: 'sub_123' })
 				expect(mockRes.status).toHaveBeenCalledWith(EStatusCodes.OK)
-				expect(mockRes.send).toHaveBeenCalledWith('Webhook processed successfully')
+				expect(mockRes.json).toHaveBeenCalledWith({ received: true })
 			})
 		})
 
@@ -318,12 +511,12 @@ describe('Billing Controller', () => {
 				data: {
 					object: {}
 				}
-			} as any
+			}
 
 			await processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)
 
 			expect(mockRes.status).toHaveBeenCalledWith(EStatusCodes.OK)
-			expect(mockRes.send).toHaveBeenCalledWith('Webhook processed successfully')
+			expect(mockRes.json).toHaveBeenCalledWith({ received: true })
 		})
 	})
 })

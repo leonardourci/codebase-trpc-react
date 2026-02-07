@@ -1,5 +1,12 @@
 import { TRPCError } from '@trpc/server'
-import { authMiddleware, billingMiddleware, protectedProcedure, billingProtectedProcedure } from '../../../src/trpc/middleware/auth.middleware'
+import {
+	authMiddleware,
+	billingMiddleware,
+	verifiedEmailMiddleware,
+	protectedProcedure,
+	billingProtectedProcedure,
+	verifiedEmailProcedure
+} from '../../../src/trpc/middlewares/auth.middleware'
 import * as jwt from '../../../src/utils/jwt'
 import * as userRepository from '../../../src/database/repositories/user.repository'
 import * as billingRepository from '../../../src/database/repositories/billing.repository'
@@ -12,465 +19,256 @@ const mockJwt = jwt as jest.Mocked<typeof jwt>
 const mockUserRepository = userRepository as jest.Mocked<typeof userRepository>
 const mockBillingRepository = billingRepository as jest.Mocked<typeof billingRepository>
 
-const testAuthMiddleware = async (ctx: any, next: any) => {
-    const token = ctx.req.headers['authorization']
-
-    if (!token) {
-        throw new TRPCError({
-            code: 'UNAUTHORIZED',
-            message: 'No authorization token provided'
-        })
-    }
-
-    try {
-        jwt.verifyJwtToken({ token })
-        const { userId } = jwt.decodeJwtToken({ token })
-        const user = await userRepository.getUserById({ id: userId })
-
-        if (!user) {
-            throw new TRPCError({
-                code: 'UNAUTHORIZED',
-                message: 'User not found'
-            })
-        }
-
-        return next({
-            ctx: {
-                ...ctx,
-                user
-            }
-        })
-    } catch (error: any) {
-        throw new TRPCError({
-            code: 'UNAUTHORIZED',
-            message: error.message || 'Invalid token'
-        })
-    }
-}
-
-const testBillingMiddleware = async (ctx: any, next: any) => {
-    if (!ctx.user) {
-        throw new TRPCError({
-            code: 'UNAUTHORIZED',
-            message: 'Authentication required'
-        })
-    }
-
-    try {
-        const userBilling = await billingRepository.getBillingByUserId({ userId: ctx.user.id })
-
-        if (!userBilling) {
-            throw new TRPCError({
-                code: 'NOT_FOUND',
-                message: 'User billing not found'
-            })
-        }
-
-        if (userBilling.expiresAt < new Date()) {
-            throw new TRPCError({
-                code: 'PAYMENT_REQUIRED',
-                message: 'User billing has expired'
-            })
-        }
-
-        return next()
-    } catch (error: any) {
-        if (error instanceof TRPCError) {
-            throw error
-        }
-
-        throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: error.message || 'Billing verification failed'
-        })
-    }
+// Helper to invoke a tRPC MiddlewareBuilder's internal function
+function callMiddleware(mw: any, opts: { ctx: any; next: any }) {
+	// MiddlewareBuilder stores the fn as _middlewares[0] or directly as a callable
+	const fn = mw._middlewares?.[0] ?? mw
+	return fn({ ctx: opts.ctx, next: opts.next, type: 'mutation', path: 'test', input: undefined, rawInput: undefined, meta: undefined })
 }
 
 describe('tRPC Auth Middleware', () => {
-    beforeEach(() => {
-        jest.clearAllMocks()
-    })
-
-    describe('authMiddleware logic', () => {
-        it('should throw UNAUTHORIZED when no token is provided', async () => {
-            const ctx = {
-                req: {
-                    headers: {}
-                }
-            }
-            const next = jest.fn()
-
-            await expect(testAuthMiddleware(ctx, next)).rejects.toThrow(
-                new TRPCError({
-                    code: 'UNAUTHORIZED',
-                    message: 'No authorization token provided'
-                })
-            )
-
-            expect(next).not.toHaveBeenCalled()
-        })
-
-        it('should throw UNAUTHORIZED when authorization header is empty', async () => {
-            const ctx = {
-                req: {
-                    headers: {
-                        authorization: ''
-                    }
-                }
-            }
-            const next = jest.fn()
-
-            await expect(testAuthMiddleware(ctx, next)).rejects.toThrow(
-                new TRPCError({
-                    code: 'UNAUTHORIZED',
-                    message: 'No authorization token provided'
-                })
-            )
-
-            expect(next).not.toHaveBeenCalled()
-        })
-
-        it('should successfully authenticate user with valid token', async () => {
-            const token = 'Bearer valid-token'
-            const userId = 'user-123'
-            const mockUser = {
-                id: userId,
-                email: 'test@example.com',
-                fullName: 'Test User'
-            }
-
-            const ctx = {
-                req: {
-                    headers: {
-                        authorization: token
-                    }
-                }
-            }
-            const next = jest.fn().mockResolvedValue({ ctx: { ...ctx, user: mockUser } })
-
-            mockJwt.verifyJwtToken.mockReturnValue(undefined)
-            mockJwt.decodeJwtToken.mockReturnValue({ userId })
-            mockUserRepository.getUserById.mockResolvedValue(mockUser as any)
-
-            const result = await testAuthMiddleware(ctx, next)
-
-            expect(mockJwt.verifyJwtToken).toHaveBeenCalledWith({ token })
-            expect(mockJwt.decodeJwtToken).toHaveBeenCalledWith({ token })
-            expect(mockUserRepository.getUserById).toHaveBeenCalledWith({ id: userId })
-            expect(next).toHaveBeenCalledWith({
-                ctx: {
-                    ...ctx,
-                    user: mockUser
-                }
-            })
-            expect(result).toEqual({ ctx: { ...ctx, user: mockUser } })
-        })
-
-        it('should throw UNAUTHORIZED when token verification fails', async () => {
-            const token = 'Bearer invalid-token'
-            const ctx = {
-                req: {
-                    headers: {
-                        authorization: token
-                    }
-                }
-            }
-            const next = jest.fn()
-
-            mockJwt.verifyJwtToken.mockImplementation(() => {
-                throw new Error('Token expired')
-            })
-
-            await expect(testAuthMiddleware(ctx, next)).rejects.toThrow(
-                new TRPCError({
-                    code: 'UNAUTHORIZED',
-                    message: 'Token expired'
-                })
-            )
-
-            expect(mockJwt.verifyJwtToken).toHaveBeenCalledWith({ token })
-            expect(mockJwt.decodeJwtToken).not.toHaveBeenCalled()
-            expect(next).not.toHaveBeenCalled()
-        })
-
-        it('should throw UNAUTHORIZED when user is not found', async () => {
-            const token = 'Bearer valid-token'
-            const userId = 'user-nonexistent'
-            const ctx = {
-                req: {
-                    headers: {
-                        authorization: token
-                    }
-                }
-            }
-            const next = jest.fn()
-
-            mockJwt.verifyJwtToken.mockReturnValue(undefined)
-            mockJwt.decodeJwtToken.mockReturnValue({ userId })
-            mockUserRepository.getUserById.mockResolvedValue(null)
-
-            await expect(testAuthMiddleware(ctx, next)).rejects.toThrow(
-                new TRPCError({
-                    code: 'UNAUTHORIZED',
-                    message: 'User not found'
-                })
-            )
-
-            expect(mockJwt.verifyJwtToken).toHaveBeenCalledWith({ token })
-            expect(mockJwt.decodeJwtToken).toHaveBeenCalledWith({ token })
-            expect(mockUserRepository.getUserById).toHaveBeenCalledWith({ id: userId })
-            expect(next).not.toHaveBeenCalled()
-        })
-
-        it('should throw UNAUTHORIZED with generic message when error has no message', async () => {
-            const token = 'Bearer invalid-token'
-            const ctx = {
-                req: {
-                    headers: {
-                        authorization: token
-                    }
-                }
-            }
-            const next = jest.fn()
-
-            mockJwt.verifyJwtToken.mockImplementation(() => {
-                throw new Error()
-            })
-
-            await expect(testAuthMiddleware(ctx, next)).rejects.toThrow(
-                new TRPCError({
-                    code: 'UNAUTHORIZED',
-                    message: 'Invalid token'
-                })
-            )
-
-            expect(next).not.toHaveBeenCalled()
-        })
-    })
-
-    describe('billingMiddleware logic', () => {
-        it('should throw UNAUTHORIZED when user is not authenticated', async () => {
-            const ctx = {
-                req: {
-                    headers: {}
-                }
-            }
-            const next = jest.fn()
-
-            await expect(testBillingMiddleware(ctx, next)).rejects.toThrow(
-                new TRPCError({
-                    code: 'UNAUTHORIZED',
-                    message: 'Authentication required'
-                })
-            )
-
-            expect(next).not.toHaveBeenCalled()
-        })
-
-        it('should throw NOT_FOUND when user billing is not found', async () => {
-            const mockUser = {
-                id: 'user-123',
-                email: 'test@example.com',
-                fullName: 'Test User'
-            }
-
-            const ctx = {
-                user: mockUser,
-                req: {
-                    headers: {}
-                }
-            }
-            const next = jest.fn()
-
-            mockBillingRepository.getBillingByUserId.mockResolvedValue(null)
-
-            await expect(testBillingMiddleware(ctx, next)).rejects.toThrow(
-                new TRPCError({
-                    code: 'NOT_FOUND',
-                    message: 'User billing not found'
-                })
-            )
-
-            expect(mockBillingRepository.getBillingByUserId).toHaveBeenCalledWith({ userId: mockUser.id })
-            expect(next).not.toHaveBeenCalled()
-        })
-
-        it('should throw PAYMENT_REQUIRED when billing has expired', async () => {
-            const mockUser = {
-                id: 'user-123',
-                email: 'test@example.com',
-                fullName: 'Test User'
-            }
-
-            const expiredDate = new Date('2020-01-01')
-            const mockBilling = {
-                id: 'billing-123',
-                userId: mockUser.id,
-                status: 'active',
-                expiresAt: expiredDate
-            }
-
-            const ctx = {
-                user: mockUser,
-                req: {
-                    headers: {}
-                }
-            }
-            const next = jest.fn()
-
-            mockBillingRepository.getBillingByUserId.mockResolvedValue(mockBilling as any)
-
-            await expect(testBillingMiddleware(ctx, next)).rejects.toThrow(
-                new TRPCError({
-                    code: 'PAYMENT_REQUIRED',
-                    message: 'User billing has expired'
-                })
-            )
-
-            expect(mockBillingRepository.getBillingByUserId).toHaveBeenCalledWith({ userId: mockUser.id })
-            expect(next).not.toHaveBeenCalled()
-        })
-
-        it('should successfully proceed when billing is valid', async () => {
-            const mockUser = {
-                id: 'user-123',
-                email: 'test@example.com',
-                fullName: 'Test User'
-            }
-
-            const futureDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
-            const mockBilling = {
-                id: 'billing-123',
-                userId: mockUser.id,
-                status: 'active',
-                expiresAt: futureDate
-            }
-
-            const ctx = {
-                user: mockUser,
-                req: {
-                    headers: {}
-                }
-            }
-            const next = jest.fn().mockResolvedValue({ success: true })
-
-            mockBillingRepository.getBillingByUserId.mockResolvedValue(mockBilling as any)
-
-            const result = await testBillingMiddleware(ctx, next)
-
-            expect(mockBillingRepository.getBillingByUserId).toHaveBeenCalledWith({ userId: mockUser.id })
-            expect(next).toHaveBeenCalled()
-            expect(result).toEqual({ success: true })
-        })
-
-        it('should re-throw TRPCError when it occurs', async () => {
-            const mockUser = {
-                id: 'user-123',
-                email: 'test@example.com',
-                fullName: 'Test User'
-            }
-
-            const ctx = {
-                user: mockUser,
-                req: {
-                    headers: {}
-                }
-            }
-            const next = jest.fn()
-
-            const trpcError = new TRPCError({
-                code: 'NOT_FOUND',
-                message: 'Custom TRPC error'
-            })
-
-            mockBillingRepository.getBillingByUserId.mockRejectedValue(trpcError)
-
-            await expect(testBillingMiddleware(ctx, next)).rejects.toThrow(trpcError)
-
-            expect(next).not.toHaveBeenCalled()
-        })
-
-        it('should throw INTERNAL_SERVER_ERROR for non-TRPC errors', async () => {
-            const mockUser = {
-                id: 'user-123',
-                email: 'test@example.com',
-                fullName: 'Test User'
-            }
-
-            const ctx = {
-                user: mockUser,
-                req: {
-                    headers: {}
-                }
-            }
-            const next = jest.fn()
-
-            const genericError = new Error('Database connection failed')
-            mockBillingRepository.getBillingByUserId.mockRejectedValue(genericError)
-
-            await expect(testBillingMiddleware(ctx, next)).rejects.toThrow(
-                new TRPCError({
-                    code: 'INTERNAL_SERVER_ERROR',
-                    message: 'Database connection failed'
-                })
-            )
-
-            expect(next).not.toHaveBeenCalled()
-        })
-
-        it('should throw INTERNAL_SERVER_ERROR with generic message when error has no message', async () => {
-            const mockUser = {
-                id: 'user-123',
-                email: 'test@example.com',
-                fullName: 'Test User'
-            }
-
-            const ctx = {
-                user: mockUser,
-                req: {
-                    headers: {}
-                }
-            }
-            const next = jest.fn()
-
-            const errorWithoutMessage = new Error()
-            mockBillingRepository.getBillingByUserId.mockRejectedValue(errorWithoutMessage)
-
-            await expect(testBillingMiddleware(ctx, next)).rejects.toThrow(
-                new TRPCError({
-                    code: 'INTERNAL_SERVER_ERROR',
-                    message: 'Billing verification failed'
-                })
-            )
-
-            expect(next).not.toHaveBeenCalled()
-        })
-    })
-
-    describe('middleware exports', () => {
-        it('should export authMiddleware', () => {
-            expect(authMiddleware).toBeDefined()
-            expect(typeof authMiddleware).toBe('object')
-        })
-
-        it('should export billingMiddleware', () => {
-            expect(billingMiddleware).toBeDefined()
-            expect(typeof billingMiddleware).toBe('object')
-        })
-
-        it('should export protectedProcedure', () => {
-            expect(protectedProcedure).toBeDefined()
-            expect(protectedProcedure._def).toBeDefined()
-        })
-
-        it('should export billingProtectedProcedure', () => {
-            expect(billingProtectedProcedure).toBeDefined()
-            expect(billingProtectedProcedure._def).toBeDefined()
-        })
-
-        it('should have correct middleware chain for billingProtectedProcedure', () => {
-            expect(billingProtectedProcedure._def.middlewares).toBeDefined()
-            expect(billingProtectedProcedure._def.middlewares.length).toBeGreaterThan(0)
-        })
-    })
+	beforeEach(() => {
+		jest.clearAllMocks()
+	})
+
+	describe('authMiddleware', () => {
+		it('should throw UNAUTHORIZED when no authorization header', async () => {
+			const ctx = { req: { headers: {} } }
+			const next = jest.fn()
+
+			await expect(callMiddleware(authMiddleware, { ctx, next })).rejects.toThrow(TRPCError)
+			await expect(callMiddleware(authMiddleware, { ctx, next })).rejects.toMatchObject({
+				code: 'UNAUTHORIZED'
+			})
+			expect(next).not.toHaveBeenCalled()
+		})
+
+		it('should authenticate user with valid Bearer token', async () => {
+			const mockUser = { id: 'user-123', email: 'test@example.com' }
+			const ctx = { req: { headers: { authorization: 'Bearer valid-token' } } }
+			const next = jest.fn().mockResolvedValue('next-result')
+
+			mockJwt.verifyJwtToken.mockReturnValue(undefined)
+			mockJwt.decodeJwtToken.mockReturnValue({ userId: 'user-123' })
+			mockUserRepository.getUserById.mockResolvedValue(mockUser)
+
+			const result = await callMiddleware(authMiddleware, { ctx, next })
+
+			expect(mockJwt.verifyJwtToken).toHaveBeenCalledWith({ token: 'valid-token' })
+			expect(mockJwt.decodeJwtToken).toHaveBeenCalledWith({ token: 'valid-token' })
+			expect(mockUserRepository.getUserById).toHaveBeenCalledWith({ id: 'user-123' })
+			expect(next).toHaveBeenCalledWith({ ctx: expect.objectContaining({ user: mockUser }) })
+		})
+
+		it('should handle token without Bearer prefix', async () => {
+			const mockUser = { id: 'user-123', email: 'test@example.com' }
+			const ctx = { req: { headers: { authorization: 'raw-token' } } }
+			const next = jest.fn().mockResolvedValue('next-result')
+
+			mockJwt.verifyJwtToken.mockReturnValue(undefined)
+			mockJwt.decodeJwtToken.mockReturnValue({ userId: 'user-123' })
+			mockUserRepository.getUserById.mockResolvedValue(mockUser)
+
+			await callMiddleware(authMiddleware, { ctx, next })
+
+			expect(mockJwt.verifyJwtToken).toHaveBeenCalledWith({ token: 'raw-token' })
+		})
+
+		it('should throw UNAUTHORIZED when user not found', async () => {
+			const ctx = { req: { headers: { authorization: 'Bearer valid-token' } } }
+			const next = jest.fn()
+
+			mockJwt.verifyJwtToken.mockReturnValue(undefined)
+			mockJwt.decodeJwtToken.mockReturnValue({ userId: 'nonexistent' })
+			mockUserRepository.getUserById.mockResolvedValue(null)
+
+			await expect(callMiddleware(authMiddleware, { ctx, next })).rejects.toMatchObject({
+				code: 'UNAUTHORIZED',
+				message: 'User not found'
+			})
+		})
+
+		it('should throw UNAUTHORIZED when token verification fails', async () => {
+			const ctx = { req: { headers: { authorization: 'Bearer bad-token' } } }
+			const next = jest.fn()
+
+			mockJwt.verifyJwtToken.mockImplementation(() => {
+				throw new Error('Token expired')
+			})
+
+			await expect(callMiddleware(authMiddleware, { ctx, next })).rejects.toMatchObject({
+				code: 'UNAUTHORIZED',
+				message: 'Token expired'
+			})
+		})
+
+		it('should re-throw TRPCError as-is', async () => {
+			const ctx = { req: { headers: { authorization: 'Bearer valid-token' } } }
+			const next = jest.fn()
+
+			mockJwt.verifyJwtToken.mockReturnValue(undefined)
+			mockJwt.decodeJwtToken.mockReturnValue({ userId: 'user-123' })
+			mockUserRepository.getUserById.mockRejectedValue(new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'DB error' }))
+
+			await expect(callMiddleware(authMiddleware, { ctx, next })).rejects.toMatchObject({
+				code: 'INTERNAL_SERVER_ERROR',
+				message: 'DB error'
+			})
+		})
+
+		it('should use "Invalid token" message for non-Error throws', async () => {
+			const ctx = { req: { headers: { authorization: 'Bearer bad-token' } } }
+			const next = jest.fn()
+
+			mockJwt.verifyJwtToken.mockImplementation(() => {
+				throw 'string error'
+			})
+
+			await expect(callMiddleware(authMiddleware, { ctx, next })).rejects.toMatchObject({
+				code: 'UNAUTHORIZED',
+				message: 'Invalid token'
+			})
+		})
+	})
+
+	describe('billingMiddleware', () => {
+		it('should throw UNAUTHORIZED when no user in context', async () => {
+			const ctx = { req: { headers: {} } }
+			const next = jest.fn()
+
+			await expect(callMiddleware(billingMiddleware, { ctx, next })).rejects.toMatchObject({
+				code: 'UNAUTHORIZED',
+				message: 'Authentication required'
+			})
+		})
+
+		it('should proceed when billing is valid', async () => {
+			const ctx = { user: { id: 'user-123' }, req: { headers: {} } }
+			const next = jest.fn().mockResolvedValue('ok')
+			const futureBilling = {
+				id: 'billing-123',
+				userId: 'user-123',
+				expiresAt: new Date(Date.now() + 86400000)
+			}
+
+			mockBillingRepository.getBillingByUserId.mockResolvedValue(futureBilling)
+
+			await callMiddleware(billingMiddleware, { ctx, next })
+
+			expect(next).toHaveBeenCalled()
+		})
+
+		it('should throw NOT_FOUND when no billing exists', async () => {
+			const ctx = { user: { id: 'user-123' }, req: { headers: {} } }
+			const next = jest.fn()
+
+			mockBillingRepository.getBillingByUserId.mockResolvedValue(null)
+
+			await expect(callMiddleware(billingMiddleware, { ctx, next })).rejects.toMatchObject({
+				code: 'NOT_FOUND',
+				message: 'User billing not found'
+			})
+		})
+
+		it('should throw PAYMENT_REQUIRED when billing expired', async () => {
+			const ctx = { user: { id: 'user-123' }, req: { headers: {} } }
+			const next = jest.fn()
+			const expiredBilling = {
+				id: 'billing-123',
+				userId: 'user-123',
+				expiresAt: new Date('2020-01-01')
+			}
+
+			mockBillingRepository.getBillingByUserId.mockResolvedValue(expiredBilling)
+
+			await expect(callMiddleware(billingMiddleware, { ctx, next })).rejects.toMatchObject({
+				code: 'PAYMENT_REQUIRED',
+				message: 'User billing has expired'
+			})
+		})
+
+		it('should re-throw TRPCError as-is', async () => {
+			const ctx = { user: { id: 'user-123' }, req: { headers: {} } }
+			const next = jest.fn()
+
+			mockBillingRepository.getBillingByUserId.mockRejectedValue(new TRPCError({ code: 'NOT_FOUND', message: 'Custom error' }))
+
+			await expect(callMiddleware(billingMiddleware, { ctx, next })).rejects.toMatchObject({
+				code: 'NOT_FOUND',
+				message: 'Custom error'
+			})
+		})
+
+		it('should throw INTERNAL_SERVER_ERROR for non-TRPC errors', async () => {
+			const ctx = { user: { id: 'user-123' }, req: { headers: {} } }
+			const next = jest.fn()
+
+			mockBillingRepository.getBillingByUserId.mockRejectedValue(new Error('DB down'))
+
+			await expect(callMiddleware(billingMiddleware, { ctx, next })).rejects.toMatchObject({
+				code: 'INTERNAL_SERVER_ERROR',
+				message: 'DB down'
+			})
+		})
+
+		it('should use fallback message for non-Error throws', async () => {
+			const ctx = { user: { id: 'user-123' }, req: { headers: {} } }
+			const next = jest.fn()
+
+			mockBillingRepository.getBillingByUserId.mockRejectedValue('string error')
+
+			await expect(callMiddleware(billingMiddleware, { ctx, next })).rejects.toMatchObject({
+				code: 'INTERNAL_SERVER_ERROR',
+				message: 'Billing verification failed'
+			})
+		})
+	})
+
+	describe('verifiedEmailMiddleware', () => {
+		it('should throw UNAUTHORIZED when no user in context', async () => {
+			const ctx = { req: { headers: {} } }
+			const next = jest.fn()
+
+			await expect(callMiddleware(verifiedEmailMiddleware, { ctx, next })).rejects.toMatchObject({
+				code: 'UNAUTHORIZED',
+				message: 'Authentication required'
+			})
+		})
+
+		it('should throw FORBIDDEN when email not verified', async () => {
+			const ctx = { user: { id: 'user-123', emailVerified: false }, req: { headers: {} } }
+			const next = jest.fn()
+
+			await expect(callMiddleware(verifiedEmailMiddleware, { ctx, next })).rejects.toMatchObject({
+				code: 'FORBIDDEN',
+				message: 'Please verify your email before making a purchase'
+			})
+		})
+
+		it('should proceed when email is verified', async () => {
+			const ctx = { user: { id: 'user-123', emailVerified: true }, req: { headers: {} } }
+			const next = jest.fn().mockResolvedValue('ok')
+
+			await callMiddleware(verifiedEmailMiddleware, { ctx, next })
+
+			expect(next).toHaveBeenCalled()
+		})
+	})
+
+	describe('procedure exports', () => {
+		it('should export protectedProcedure', () => {
+			expect(protectedProcedure).toBeDefined()
+			expect(protectedProcedure._def).toBeDefined()
+		})
+
+		it('should export billingProtectedProcedure', () => {
+			expect(billingProtectedProcedure).toBeDefined()
+			expect(billingProtectedProcedure._def).toBeDefined()
+		})
+
+		it('should export verifiedEmailProcedure', () => {
+			expect(verifiedEmailProcedure).toBeDefined()
+			expect(verifiedEmailProcedure._def).toBeDefined()
+		})
+	})
 })

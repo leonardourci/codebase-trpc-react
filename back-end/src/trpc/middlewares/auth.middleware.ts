@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server'
-import { middleware, procedure } from '../trpc'
+import { middleware, procedure } from '..'
 import { verifyJwtToken, decodeJwtToken } from '../../utils/jwt'
 import { getUserById } from '../../database/repositories/user.repository'
 import { getBillingByUserId } from '../../database/repositories/billing.repository'

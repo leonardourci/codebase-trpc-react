@@ -28,7 +28,7 @@ export default async function globalSetup() {
 			connection: connectionString.replace(/\/[^\/]*$/, `/${testDbName}`),
 			migrations: {
 				tableName: 'knex_migrations',
-				directory: './src/db/migrations',
+				directory: './src/database/migrations',
 				extension: 'ts'
 			}
 		})

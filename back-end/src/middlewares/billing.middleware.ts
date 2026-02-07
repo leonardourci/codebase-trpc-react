@@ -2,7 +2,7 @@ import Stripe from 'stripe'
 import { NextFunction, Request, Response } from 'express'
 import stripe from '../utils/stripe'
 import globalConfig from '../utils/global-config'
-import Logger from 'src/utils/logger'
+import Logger from '../utils/logger'
 
 export interface IBillingRequest extends Request {
 	billingEvent?: Stripe.Event

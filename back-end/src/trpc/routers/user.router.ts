@@ -1,9 +1,9 @@
-import { router, procedure } from '../trpc'
-import { protectedProcedure } from '../middleware/auth.middleware'
+import { protectedProcedure } from '../middlewares/auth.middleware'
 import { updateUserSchema } from '../../utils/validations/user.schemas'
 import { getUserProfile, updateUserProfile } from '../../services/user.service'
 import { requestEmailChangeSchema, verifyEmailChangeSchema } from '../../utils/validations/email.schemas'
 import { requestEmailChange, verifyEmailChange } from '../../services/email.service'
+import { router } from '..'
 
 export const userRouter = router({
 	getUserById: protectedProcedure.query(async ({ ctx }) => {

@@ -1,13 +1,13 @@
-import { getUserByEmail, getUserById, updateUserById } from 'src/database/repositories/user.repository'
-import { IUser, IUserProfile } from 'src/types/user'
+import { getUserByEmail, getUserById, updateUserById } from '../database/repositories/user.repository'
+import { IUser, IUserProfile } from '../types/user'
 import {
 	EMAIL_CHANGE_COOLDOWN_MS,
 	EMAIL_CHANGE_TOKEN_EXPIRATION_MINUTES,
 	generateSixDigitsVerificationCode,
 	MAX_VERIFICATION_ATTEMPTS,
 	sendEmailChangeCode
-} from 'src/utils/email'
-import { MILLISECONDS_PER_SECOND } from 'src/utils/time'
+} from '../utils/email'
+import { MILLISECONDS_PER_SECOND } from '../utils/time'
 import { ETokenPurpose, TToken } from '../types/jwt'
 import { CustomError } from '../utils/errors'
 import { decodeJwtToken, generateJwtToken, verifyJwtToken } from '../utils/jwt'

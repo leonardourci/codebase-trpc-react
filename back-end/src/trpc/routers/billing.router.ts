@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server'
-import { router } from '../trpc'
-import { protectedProcedure, verifiedEmailProcedure } from '../middleware/auth.middleware'
+import { router } from '..'
+import { protectedProcedure, verifiedEmailProcedure } from '../middlewares/auth.middleware'
 import { createCheckoutSessionSchema, createPortalSessionSchema } from '../../utils/validations/billing.schemas'
 import { getProductByExternalPriceId, getProductById } from '../../database/repositories/product.repository'
 import { getBillingByUserId } from '../../database/repositories/billing.repository'

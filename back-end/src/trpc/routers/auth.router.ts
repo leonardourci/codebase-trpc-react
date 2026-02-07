@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
-import { router, procedure } from '../trpc'
-import { protectedProcedure } from '../middleware/auth.middleware'
+import { router, procedure } from '..'
+import { protectedProcedure } from '../middlewares/auth.middleware'
 import { loginSchema, signupSchema } from '../../utils/validations/auth.schemas'
 import { refreshTokenSchema } from '../../utils/validations/refresh-token.schemas'
 import {

@@ -14,7 +14,7 @@ import { getBillingByUserId } from '../database/repositories/billing.repository'
 import { getUserProfile } from './user.service'
 import { IUser, IUserProfile } from '../types/user'
 import globalConfig from '../utils/global-config'
-import { sendVerificationEmail, sendPasswordResetEmail } from 'src/utils/email'
+import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/email'
 
 const { HASH_SALT } = process.env
 

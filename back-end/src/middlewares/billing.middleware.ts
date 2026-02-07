@@ -8,7 +8,7 @@ export interface IBillingRequest extends Request {
 	billingEvent?: Stripe.Event
 }
 
-const logger = new Logger({ source: 'billing-middleware' })
+const logger = new Logger({ source: 'BILLING-MIDDLEWARE' })
 
 export const verifyStripeWebhookSignatureMiddleware = (req: Request, res: Response, next: NextFunction) => {
 	const signature = req.headers['stripe-signature']

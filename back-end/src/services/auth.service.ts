@@ -1,9 +1,9 @@
 import bcrypt from 'bcrypt'
 import crypto from 'crypto'
-import { OAuth2Client, TokenPayload } from 'google-auth-library'
+import { OAuth2Client } from 'google-auth-library'
 
 import { decodeJwtToken, generateJwtToken, verifyJwtToken } from '../utils/jwt'
-import { CustomError } from '../utils/errors'
+import { CustomError, ZodValidationError } from '../utils/errors'
 import { EStatusCodes } from '../utils/status-codes'
 import { TLoginInput, ILoginResponse, TSignupInput } from '../types/auth'
 import { TRefreshTokenInput, IRefreshTokenResponse } from '../types/refreshToken'
@@ -15,12 +15,16 @@ import { getUserProfile } from './user.service'
 import { IUser, IUserProfile } from '../types/user'
 import globalConfig from '../utils/global-config'
 import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/email'
+import { googleTokenPayloadSchema, TGoogleTokenPayload } from '../utils/validations/google-auth.schemas'
+import Logger from 'src/utils/logger'
 
 const { HASH_SALT } = process.env
 
-const client = new OAuth2Client(globalConfig.googleClientId)
+const logger = new Logger({ source: 'AUTH-SERVICE' })
 
-async function verifyGoogleCredential({ credential }: { credential: string }): Promise<TokenPayload> {
+async function verifyGoogleCredential({ credential }: { credential: string }): Promise<TGoogleTokenPayload> {
+	const client = new OAuth2Client(globalConfig.googleClientId)
+
 	try {
 		const ticket = await client.verifyIdToken({
 			idToken: credential,
@@ -28,12 +32,26 @@ async function verifyGoogleCredential({ credential }: { credential: string }): P
 		})
 		const payload = ticket.getPayload()
 
-		if (!payload || !payload.sub || !payload.email || !payload.name) {
-			throw new Error()
+		if (!payload) {
+			throw new CustomError('Empty token payload', EStatusCodes.UNAUTHORIZED)
 		}
 
-		return payload
-	} catch {
+		// Validate payload structure with Zod
+		const { data, error } = googleTokenPayloadSchema.safeParse(payload)
+
+		if (error) {
+			throw new ZodValidationError(error)
+		}
+
+		return data
+	} catch (error) {
+		logger.error('Google credential verification failed:', error)
+
+		if (error instanceof CustomError || error instanceof ZodValidationError) {
+			throw error
+		}
+
+		// Generic error for other cases (network issues, invalid signature, etc.)
 		throw new CustomError('Invalid Google token', EStatusCodes.UNAUTHORIZED)
 	}
 }

@@ -2,7 +2,7 @@ import knex from 'knex'
 import { DEFAULT_TEST_DB_CONNECTION } from '../../src/database/knexfile'
 import Logger from '../../src/utils/logger'
 
-const logger = new Logger({ source: 'global-setup' })
+const logger = new Logger({ source: 'GLOBAL-SETUP' })
 
 export default async function globalSetup() {
 	logger.info('🚀 Setting up test database...')

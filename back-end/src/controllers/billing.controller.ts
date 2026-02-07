@@ -12,7 +12,7 @@ import {
 import { EStatusCodes } from '../utils/status-codes'
 import { unixTimestampToDate } from '../utils/time'
 
-const logger = new Logger({ source: 'billing.controller' })
+const logger = new Logger({ source: 'BILLING-CONTROLLER' })
 
 export const processBillingWebhookHandler = async (req: IBillingRequest, res: Response): Promise<void> => {
 	if (!req.billingEvent) {

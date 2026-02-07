@@ -3,7 +3,7 @@ import { closeTestDb } from './test-db'
 import { DEFAULT_TEST_DB_CONNECTION } from '../../src/database/knexfile'
 import Logger from '../../src/utils/logger'
 
-const logger = new Logger({ source: 'global-teardown' })
+const logger = new Logger({ source: 'GLOBAL-TEARDOWN' })
 
 export default async function globalTeardown() {
 	logger.info('🧹 Tearing down test database...')

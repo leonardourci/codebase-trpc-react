@@ -25,3 +25,7 @@ yarn-debug.log*
 pnpm-debug.log*
 lerna-debug.log*
 *.local
+.claude
+.vscode
+.kiro
+.trae

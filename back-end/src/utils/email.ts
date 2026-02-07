@@ -1,4 +1,4 @@
-import { ISendPasswordResetEmailInput, ISendVerificationEmailInput } from 'src/services/email.service'
+import { ISendPasswordResetEmailInput, ISendVerificationEmailInput } from '../services/email.service'
 import { CustomError } from './errors'
 import globalConfig from './global-config'
 import { EStatusCodes } from './status-codes'

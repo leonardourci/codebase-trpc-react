@@ -3,7 +3,7 @@ import globalConfig from './utils/global-config'
 import Logger from './utils/logger'
 import { ENodeEnvs } from './types/envs'
 
-const logger = new Logger({ source: 'server' })
+const logger = new Logger({ source: 'SERVER' })
 
 app.listen(globalConfig.restPort, () => {
 	if (globalConfig.nodeEnv === ENodeEnvs.DEVELOPMENT) {

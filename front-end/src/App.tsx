@@ -39,7 +39,7 @@ function App() {
                 {
                     path: "/",
                     element: (
-                        <PublicRoute>
+                        <PublicRoute allowAuthenticated>
                             <LandingPage />
                         </PublicRoute>
                     ),
@@ -47,7 +47,7 @@ function App() {
                 {
                     path: "/pricing",
                     element: (
-                        <PublicRoute>
+                        <PublicRoute allowAuthenticated>
                             <PricingRoute />
                         </PublicRoute>
                     ),

@@ -1,23 +1,60 @@
 import bcrypt from 'bcrypt'
 import crypto from 'crypto'
-import { OAuth2Client, TokenPayload } from 'google-auth-library'
+import { OAuth2Client } from 'google-auth-library'
 
 import { decodeJwtToken, generateJwtToken, verifyJwtToken } from '../utils/jwt'
-import { CustomError } from '../utils/errors'
+import { CustomError, ZodValidationError } from '../utils/errors'
 import { EStatusCodes } from '../utils/status-codes'
 import { TLoginInput, ILoginResponse, TSignupInput } from '../types/auth'
 import { TRefreshTokenInput, IRefreshTokenResponse } from '../types/refreshToken'
 import { ETokenPurpose } from '../types/jwt'
 import { createUser, getUserByEmail, getUserByGoogleId, getUserByRefreshToken, updateUserById, getUserById } from '../database/repositories/user.repository'
 import { getFreeTierProduct } from '../database/repositories/product.repository'
-import { removeUserSensitive } from './user.service'
+import { getBillingByUserId } from '../database/repositories/billing.repository'
+import { getUserProfile } from './user.service'
 import { IUser, IUserProfile } from '../types/user'
 import globalConfig from '../utils/global-config'
-import { sendVerificationEmail, sendPasswordResetEmail } from 'src/utils/email'
+import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/email'
+import { googleTokenPayloadSchema, TGoogleTokenPayload } from '../utils/validations/google-auth.schemas'
+import Logger from 'src/utils/logger'
 
 const { HASH_SALT } = process.env
 
-const client = new OAuth2Client(globalConfig.googleClientId)
+const logger = new Logger({ source: 'AUTH-SERVICE' })
+
+async function verifyGoogleCredential({ credential }: { credential: string }): Promise<TGoogleTokenPayload> {
+	const client = new OAuth2Client(globalConfig.googleClientId)
+
+	try {
+		const ticket = await client.verifyIdToken({
+			idToken: credential,
+			audience: globalConfig.googleClientId
+		})
+		const payload = ticket.getPayload()
+
+		if (!payload) {
+			throw new CustomError('Empty token payload', EStatusCodes.UNAUTHORIZED)
+		}
+
+		// Validate payload structure with Zod
+		const { data, error } = googleTokenPayloadSchema.safeParse(payload)
+
+		if (error) {
+			throw new ZodValidationError(error)
+		}
+
+		return data
+	} catch (error) {
+		logger.error('Google credential verification failed:', error)
+
+		if (error instanceof CustomError || error instanceof ZodValidationError) {
+			throw error
+		}
+
+		// Generic error for other cases (network issues, invalid signature, etc.)
+		throw new CustomError('Invalid Google token', EStatusCodes.UNAUTHORIZED)
+	}
+}
 
 export interface IGoogleAuthInput {
 	credential: string
@@ -28,27 +65,30 @@ const generateTokens = ({ userId }: { userId: IUser['id'] }): { accessToken: str
 	refreshToken: generateJwtToken({ userId }, { expiresIn: '7d' })
 })
 
+async function hasExpiredSubscription(userId: string): Promise<boolean> {
+	const billing = await getBillingByUserId({ userId })
+
+	if (!billing || !billing.expiresAt) {
+		return false
+	}
+
+	return new Date(billing.expiresAt).getTime() < new Date().getTime()
+}
+
+async function downgradeToFreeTier(userId: string): Promise<void> {
+	const defaultProduct = await getFreeTierProduct()
+	await updateUserById({ id: userId, updates: { productId: defaultProduct.id } })
+}
+
 export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<ILoginResponse> {
 	const { credential } = input
 
-	let payload: TokenPayload | undefined
-	try {
-		const ticket = await client.verifyIdToken({
-			idToken: credential,
-			audience: globalConfig.googleClientId
-		})
-		payload = ticket.getPayload()
-	} catch {
-		throw new CustomError('Invalid Google token', EStatusCodes.UNAUTHORIZED)
-	}
+	const payload = await verifyGoogleCredential({ credential })
 
-	if (!payload || !payload.sub || !payload.email) {
-		throw new CustomError('Invalid Google token payload', EStatusCodes.UNAUTHORIZED)
-	}
-
-	const googleId = payload.sub
-	const email = payload.email
-	const fullName = payload.name || 'Google User'
+	// after validation within `verifyGoogleCredential`, the email, googleId and name can't be undefined
+	const googleId = payload.sub!
+	const email = payload.email!
+	const fullName = payload.name!
 
 	let userByGoogleId = await getUserByGoogleId({ googleId })
 
@@ -83,6 +123,10 @@ export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<I
 		}
 	}
 
+	if (await hasExpiredSubscription(userByGoogleId.id)) {
+		await downgradeToFreeTier(userByGoogleId.id)
+	}
+
 	const { accessToken, refreshToken } = generateTokens({ userId: userByGoogleId.id })
 
 	await updateUserById({ id: userByGoogleId.id, updates: { refreshToken } })
@@ -102,6 +146,10 @@ export async function authenticateUser(input: TLoginInput): Promise<ILoginRespon
 
 	if (!isValidPassword) throw new CustomError('Email or password is wrong', EStatusCodes.UNAUTHORIZED)
 
+	if (await hasExpiredSubscription(user.id)) {
+		await downgradeToFreeTier(user.id)
+	}
+
 	const { accessToken, refreshToken } = generateTokens({ userId: user.id })
 
 	await updateUserById({ id: user.id, updates: { refreshToken } })
@@ -118,8 +166,8 @@ export async function registerUser({ password, ...input }: TSignupInput): Promis
 	const defaultProduct = await getFreeTierProduct()
 
 	const user = await createUser({
-		...input,
 		passwordHash,
+		...input,
 		emailVerified: false,
 		productId: defaultProduct.id
 	})
@@ -142,12 +190,13 @@ export async function registerUser({ password, ...input }: TSignupInput): Promis
 		// Continue - because user can resend later
 	}
 
-	return removeUserSensitive({
-		user: {
-			...user,
-			product: defaultProduct
-		}
-	})
+	const userProfile = await getUserProfile({ userId: user.id })
+
+	if (!userProfile) {
+		throw new CustomError('Failed to retrieve user profile', EStatusCodes.INTERNAL_SERVER_ERROR)
+	}
+
+	return userProfile
 }
 
 export async function refreshAccessToken(input: TRefreshTokenInput): Promise<IRefreshTokenResponse> {
@@ -157,6 +206,10 @@ export async function refreshAccessToken(input: TRefreshTokenInput): Promise<IRe
 
 	if (!user) {
 		throw new CustomError('Invalid refresh token', EStatusCodes.UNAUTHORIZED)
+	}
+
+	if (await hasExpiredSubscription(user.id)) {
+		await downgradeToFreeTier(user.id)
 	}
 
 	const { accessToken, refreshToken } = generateTokens({ userId: user.id })
@@ -187,7 +240,7 @@ export async function verifyUserEmail({ token }: { token: string }): Promise<voi
 		throw new CustomError('Invalid verification token', EStatusCodes.BAD_REQUEST)
 	}
 
-	// Prevent token reuse after resend)
+	// Prevent token reuse after resend
 	if (user.emailVerificationToken !== token) {
 		throw new CustomError('Invalid or expired verification token', EStatusCodes.BAD_REQUEST)
 	}

@@ -1,22 +1,20 @@
 import { TRPCError } from '@trpc/server'
-import { router } from '../trpc'
-import { protectedProcedure, verifiedEmailProcedure } from '../middleware/auth.middleware'
+import { router } from '..'
+import { protectedProcedure, verifiedEmailProcedure } from '../middlewares/auth.middleware'
 import { createCheckoutSessionSchema, createPortalSessionSchema } from '../../utils/validations/billing.schemas'
-import { getProductById, getProductByExternalPriceId } from '../../database/repositories/product.repository'
+import { getProductByExternalPriceId, getProductById } from '../../database/repositories/product.repository'
 import { getBillingByUserId } from '../../database/repositories/billing.repository'
 import stripe from '../../utils/stripe'
 
 export const billingRouter = router({
 	getUserBilling: protectedProcedure.query(async ({ ctx }) => {
 		const billing = await getBillingByUserId({ userId: ctx.user.id })
-
-		// Get current product from user's productId (works for both free and paid)
-		const product = ctx.user.productId ? await getProductById({ id: ctx.user.productId }) : null
+		const product = billing?.productId ? await getProductById({ id: billing.productId }) : null
 
 		return {
 			hasSubscription: !!billing && billing.status === 'active',
 			billing,
-			product
+			externalPriceId: product?.externalPriceId ?? null
 		}
 	}),
 
@@ -36,10 +34,13 @@ export const billingRouter = router({
 			})
 		}
 
+		// Reuse the customer to avoid creating duplicates on resubscription
+		const billing = await getBillingByUserId({ userId: ctx.user.id })
+
 		const session = await stripe.checkout.sessions.create({
 			mode: 'subscription',
-			customer_email: ctx.user.email,
-			line_items: [{ price: input.priceId, quantity: 1 }],
+			...(billing?.externalCustomerId ? { customer: billing.externalCustomerId } : { customer_email: ctx.user.email }),
+			line_items: [{ price: product.externalPriceId, quantity: 1 }],
 			success_url: input.successUrl,
 			cancel_url: input.cancelUrl,
 			metadata: { productId: product.id },

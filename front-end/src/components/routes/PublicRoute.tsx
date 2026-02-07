@@ -3,12 +3,13 @@ import { useAuth } from '@/hooks/useAuth'
 
 interface PublicRouteProps {
     children: React.ReactNode
+    allowAuthenticated?: boolean
 }
 
-export function PublicRoute({ children }: PublicRouteProps) {
+export function PublicRoute({ children, allowAuthenticated = false }: PublicRouteProps) {
     const { isAuthenticated } = useAuth()
 
-    if (isAuthenticated) {
+    if (isAuthenticated && !allowAuthenticated) {
         return <Navigate to="/dashboard" replace />
     }
 

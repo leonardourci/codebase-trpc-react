@@ -1,15 +1,17 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { SubscriptionPricingGrid } from '@/components/billing/SubscriptionPricingGrid'
 import { Header } from '@/components/layout/Header'
 import { PRICING_PLANS } from '@shared/config/pricing.config'
 import { useAuth } from '@/hooks/useAuth'
 import { useAuthModal } from '@/contexts/AuthModalContext'
 import { BillingPeriodToggle } from '@/components/billing/BillingPeriodToggle'
-import { EBillingPeriod } from '@shared/types/pricing.types'
+import { EBillingPeriod, type IPricingPlan } from '@shared/types/pricing.types'
 
 export function PricingView() {
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated } = useAuth()
   const { openAuth } = useAuthModal()
+  const navigate = useNavigate()
 
   const [selectedPeriod, setSelectedPeriod] = useState<EBillingPeriod>(
     EBillingPeriod.YEARLY
@@ -19,14 +21,27 @@ export function PricingView() {
     plan => plan.isFreeTier || plan.billingPeriod === selectedPeriod
   )
 
-  const handleButtonClick = () => {
+  const getButtonText = (plan: IPricingPlan): string => {
+    if (!isAuthenticated) return 'Get Started'
+    return 'Manage Plan'
+  }
+
+  const handleFreeTierClick = () => {
     if (!isAuthenticated) {
-      // Open signup modal for unauthenticated users
       openAuth('signup')
-    } else {
-      // Redirect authenticated users to billing page
-      window.location.href = '/billing'
+      return
     }
+
+    navigate('/billing')
+  }
+
+  const handleButtonClick = async (_priceId: string) => {
+    if (!isAuthenticated) {
+      openAuth('signup')
+      return
+    }
+
+    navigate('/billing')
   }
 
   return (
@@ -48,13 +63,10 @@ export function PricingView() {
           />
           <SubscriptionPricingGrid
             plans={displayedPlans}
-            buttonText="Get Started"
+            allPlans={PRICING_PLANS}
+            buttonText={getButtonText}
             onSubscribe={handleButtonClick}
-            currentPlanExternalPriceId={
-              isAuthenticated
-                ? user?.currentProduct?.externalPriceId
-                : undefined
-            }
+            onFreeTierClick={handleFreeTierClick}
           />
         </div>
       </main>

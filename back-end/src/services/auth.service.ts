@@ -36,7 +36,6 @@ async function verifyGoogleCredential({ credential }: { credential: string }): P
 			throw new CustomError('Empty token payload', EStatusCodes.UNAUTHORIZED)
 		}
 
-		// Validate payload structure with Zod
 		const { data, error } = googleTokenPayloadSchema.safeParse(payload)
 
 		if (error) {

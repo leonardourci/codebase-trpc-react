@@ -3,7 +3,7 @@
 module.exports = {
   apps: [
     {
-      name: 'api',
+      name: 'api-codebase-express-react',
       script: 'dist/server.js',
       cwd: './back-end',
       instances: 1,

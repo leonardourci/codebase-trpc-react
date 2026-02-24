@@ -43,7 +43,7 @@ npm run build
 # Restart
 echo ""
 echo "[4/4] Restarting API..."
-pm2 restart api
+pm2 restart api-codebase-express-react
 
 echo ""
 echo " Update complete! App is running."

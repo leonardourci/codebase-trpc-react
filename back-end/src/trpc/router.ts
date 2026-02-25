@@ -11,5 +11,4 @@ export const appRouter = router({
   user: userRouter
 })
 
-// Export the router type for client-side usage
 export type AppRouter = typeof appRouter

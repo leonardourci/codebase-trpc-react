@@ -21,7 +21,9 @@ import { getFreeTierProduct } from '../database/repositories/product.repository'
 import { removeUserSensitive } from './user.service'
 import { IUser, IUserProfile } from '../types/user'
 import globalConfig from '../utils/global-config'
+import Logger from '../utils/logger'
 
+const logger = new Logger({ source: 'auth.service' })
 const { HASH_SALT } = process.env
 
 const client = new OAuth2Client(globalConfig.googleClientId)
@@ -63,13 +65,11 @@ export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<I
 		const existingUser = await getUserByEmail({ email })
 
 		if (existingUser) {
-			// Link Google account to existing user
 			user = await updateUserById({
 				id: existingUser.id,
 				updates: { googleId, emailVerified: true }
 			})
 		} else {
-			// Create new user with random password hash
 			const randomPassword = crypto.randomUUID()
 			const passwordHash = bcrypt.hashSync(randomPassword, Number(globalConfig.hashSalt))
 
@@ -84,7 +84,7 @@ export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<I
 				googleId,
 				currentProductId: defaultProduct.id,
 
-				// If the user is loggin in with Google, we assume that the email is correct.
+				// Google login means email is verified by Google.
 				emailVerified: true
 			})
 		}
@@ -148,8 +148,8 @@ export async function registerUser({ password, ...input }: TSignupInput): Promis
 			verificationToken
 		})
 	} catch (error) {
-		console.error('Failed to send verification email:', error)
-		// Continue - because user can resend later
+		logger.error('Failed to send verification email', { error })
+		// Continue - user can resend via the resend endpoint
 	}
 
 	return removeUserSensitive({ user })
@@ -179,7 +179,6 @@ export async function revokeUserRefreshToken({ userId }: { userId: string }): Pr
 }
 
 export async function verifyUserEmail({ token }: { token: string }): Promise<void> {
-	// Verify and decode token
 	const decoded = verifyJwtTokenSimple({ token })
 
 	if (decoded.purpose !== ETokenPurpose.EMAIL_VERIFICATION) {
@@ -197,12 +196,10 @@ export async function verifyUserEmail({ token }: { token: string }): Promise<voi
 		throw new CustomError('Invalid or expired verification token', EStatusCodes.BAD_REQUEST)
 	}
 
-	// Check if already verified
 	if (user.emailVerified) {
-		return // Already verified, return success
+		return
 	}
 
-	// Mark as verified
 	await updateUserById({
 		id: user.id,
 		updates: {

@@ -60,7 +60,6 @@ export const protectedProcedure = procedure.use(authMiddleware)
  * Reuses existing billing verification logic from Express middleware
  */
 export const billingMiddleware = middleware(async ({ ctx, next }) => {
-    // Ensure user is authenticated first
     if (!ctx.user) {
         throw new TRPCError({
             code: 'UNAUTHORIZED',
@@ -102,7 +101,6 @@ export const billingMiddleware = middleware(async ({ ctx, next }) => {
 export const billingProtectedProcedure = procedure.use(authMiddleware).use(billingMiddleware)
 
 export const verifiedEmailMiddleware = middleware(async ({ ctx, next }) => {
-    // Ensure user is authenticated first
     if (!ctx.user) {
         throw new TRPCError({
             code: 'UNAUTHORIZED',

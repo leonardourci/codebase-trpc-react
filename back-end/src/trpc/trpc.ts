@@ -86,7 +86,6 @@ export const createTRPCContext = (opts: { req: Request; res: Response }): ITRPCC
   }
 }
 
-// Initialize tRPC instance
 const t = initTRPC.context<ITRPCContext>().create({
   errorFormatter({ shape, error }) {
     const isProduction = globalConfig.nodeEnv === ENodeEnvs.PRODUCTION
@@ -126,10 +125,7 @@ const t = initTRPC.context<ITRPCContext>().create({
   }
 })
 
-// Export tRPC utilities
 export const router = t.router
 export const procedure = t.procedure
 export const middleware = t.middleware
-
-// Export the tRPC instance for advanced usage
 export { t }

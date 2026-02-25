@@ -1,5 +1,5 @@
 import { getTestDb, cleanTestData, closeTestDb } from '../../setup/test-db'
-import { getProductById, getProductByExternalProductId, getAllProducts, getFreeTierProduct } from '../../../src/database/repositories/product.repository'
+import { getProductById, getProductByExternalPriceId, getAllProducts, getFreeTierProduct } from '../../../src/database/repositories/product.repository'
 import { Product, ProductDbRow } from '../../../src/types/product'
 import { keysToSnakeCase } from '../../../src/utils/case-conversion'
 
@@ -53,8 +53,8 @@ describe('Product Repository', () => {
         })
     })
 
-    describe('getProductByExternalProductId', () => {
-        it('should retrieve product by external product ID', async () => {
+    describe('getProductByExternalPriceId', () => {
+        it('should retrieve product by external price ID', async () => {
             const productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> = {
                 name: 'External Test Product',
                 description: 'A test product with external ID',
@@ -69,16 +69,16 @@ describe('Product Repository', () => {
             const dbData = keysToSnakeCase<typeof productData, Partial<ProductDbRow>>(productData)
             const [insertedRow] = await db('products').insert(dbData).returning('*')
 
-            const result = await getProductByExternalProductId({ id: productData.externalProductId! })
+            const result = await getProductByExternalPriceId({ id: productData.externalPriceId! })
 
             expect(result).toBeDefined()
             expect(result!.id).toBe(insertedRow.id)
             expect(result!.name).toBe(productData.name)
-            expect(result!.externalProductId).toBe(productData.externalProductId)
+            expect(result!.externalPriceId).toBe(productData.externalPriceId)
         })
 
-        it('should return null for non-existent external product ID', async () => {
-            const result = await getProductByExternalProductId({ id: 'non-existent-external-id' })
+        it('should return null for non-existent external price ID', async () => {
+            const result = await getProductByExternalPriceId({ id: 'non-existent-external-id' })
             expect(result).toBeNull()
         })
     })

@@ -338,8 +338,7 @@ describe('Database Integration Tests', () => {
 
             const updatedBilling = await updateBillingById({
                 id: createdBilling.id,
-                status: 'cancelled',
-                expiresAt: newExpiresAt
+                updates: { status: 'cancelled', expiresAt: newExpiresAt }
             })
 
             expect(updatedBilling.status).toBe('cancelled')

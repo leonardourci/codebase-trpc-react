@@ -55,8 +55,8 @@ import { createTRPCContext } from '../../../src/trpc'
 // Create a caller for the auth router
 const createCaller = () => {
 	const ctx = createTRPCContext({
-		req: { headers: { authorization: 'Bearer test-token' } },
-		res: { status: jest.fn().mockReturnThis(), json: jest.fn() }
+		req: { headers: { authorization: 'Bearer test-token' } } as any,
+		res: { status: jest.fn().mockReturnThis(), json: jest.fn() } as any
 	})
 	return authRouter.createCaller(ctx)
 }

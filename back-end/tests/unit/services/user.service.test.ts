@@ -1,12 +1,12 @@
 const mockGetUserById = jest.fn()
 const mockUpdateUserById = jest.fn()
 
-jest.mock('../../src/database/repositories/user.repository', () => ({
+jest.mock('../../../src/database/repositories/user.repository', () => ({
 	getUserById: (...args: any[]) => mockGetUserById(...args),
 	updateUserById: (...args: any[]) => mockUpdateUserById(...args)
 }))
 
-import { getUserProfile, updateUserProfile, removeUserSensitive } from '../../src/services/user.service'
+import { getUserProfile, updateUserProfile, removeUserSensitive } from '../../../src/services/user.service'
 
 describe('User Service', () => {
 	beforeEach(() => {
@@ -24,7 +24,7 @@ describe('User Service', () => {
 		refreshToken: 'refresh-token',
 		googleId: 'google-123',
 		emailVerificationToken: null,
-		productId: 'prod-1',
+		currentProductId: null,
 		createdAt: new Date(),
 		updatedAt: new Date()
 	}
@@ -41,9 +41,9 @@ describe('User Service', () => {
 				phone: '1234567890',
 				emailVerified: true
 			})
-			expect(profile.passwordHash).toBeUndefined()
-			expect(profile.refreshToken).toBeUndefined()
-			expect(profile.googleId).toBeUndefined()
+			expect((profile as any).passwordHash).toBeUndefined()
+			expect((profile as any).refreshToken).toBeUndefined()
+			expect((profile as any).googleId).toBeUndefined()
 		})
 	})
 

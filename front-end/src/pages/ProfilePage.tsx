@@ -14,7 +14,7 @@ import { ErrorMessage } from '@/components/ui/error-message'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { useUser } from '@/hooks/useUser'
 import { useFormValidation } from '@/hooks/useFormValidation'
-import type { IUserProfile, TUpdateUserInput } from '@/types/user'
+import type { UserProfile, UpdateUserInput as TUpdateUserInput } from '@/lib/trpc-types'
 import { User, Save, Edit, X, Mail } from 'lucide-react'
 import { updateUserSchema } from '@/validations/user.schemas'
 import { trpc } from '@/lib/trpc'
@@ -24,7 +24,7 @@ type EditMode = 'view' | 'edit'
 
 export function ProfilePage() {
   const { isLoading, error, getProfile, updateProfile } = useUser()
-  const [profile, setProfile] = useState<IUserProfile | null>(null)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
   const [mode, setMode] = useState<EditMode>('view')
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false)

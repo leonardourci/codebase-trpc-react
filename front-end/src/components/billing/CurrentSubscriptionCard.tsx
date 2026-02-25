@@ -2,12 +2,12 @@ import { Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { cn } from '@/lib/utils'
-import type { IBilling } from '@/types'
 import type { IPricingPlan } from '@shared/types/pricing.types'
-import { formatPrice } from '@/utils/pricing'
+import type { Billing } from '@/lib/trpc-types'
+import { formatPrice } from '@shared/utils/pricing.utils'
 
 interface CurrentSubscriptionCardProps {
-  billing: IBilling
+  billing: Billing
   plan: IPricingPlan
   onManageSubscription: () => void
   isLoading: boolean

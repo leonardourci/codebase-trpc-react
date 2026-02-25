@@ -180,7 +180,7 @@ describe('Billing Repository', () => {
         it('should update billing status only', async () => {
             const result = await updateBillingById({
                 id: testBilling.id,
-                status: 'past_due'
+                updates: { status: 'past_due' }
             })
 
             expect(result).toBeDefined()
@@ -195,7 +195,7 @@ describe('Billing Repository', () => {
 
             const result = await updateBillingById({
                 id: testBilling.id,
-                expiresAt: newExpirationDate
+                updates: { expiresAt: newExpirationDate }
             })
 
             expect(result).toBeDefined()
@@ -210,8 +210,7 @@ describe('Billing Repository', () => {
 
             const result = await updateBillingById({
                 id: testBilling.id,
-                status: 'canceled',
-                expiresAt: newExpirationDate
+                updates: { status: 'canceled', expiresAt: newExpirationDate }
             })
 
             expect(result).toBeDefined()
@@ -223,7 +222,8 @@ describe('Billing Repository', () => {
 
         it('should update only updatedAt when no status or expiration provided', async () => {
             const result = await updateBillingById({
-                id: testBilling.id
+                id: testBilling.id,
+                updates: {}
             })
 
             expect(result).toBeDefined()

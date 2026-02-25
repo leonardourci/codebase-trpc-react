@@ -64,7 +64,9 @@ describe('Error Handling Integration Tests', () => {
             priceInCents: 2999,
             externalProductId: 'prod_test123',
             externalPriceId: 'price_test123',
-            active: true
+            active: true,
+            isFreeTier: false,
+            maxProjects: null
         }
 
         const dbData = keysToSnakeCase<typeof productData, Partial<ProductDbRow>>(productData)
@@ -173,10 +175,9 @@ describe('Error Handling Integration Tests', () => {
         describe('Billing Validation Errors', () => {
             it('should return validation error for invalid checkout session URLs', async () => {
                 const invalidCheckoutData: CreateCheckoutSessionInput = {
-                    productId: testProduct.id,
+                    priceId: testProduct.externalPriceId,
                     successUrl: 'not-a-valid-url',
                     cancelUrl: 'also-not-valid',
-                    token: `Bearer ${validToken}`
                 }
 
                 try {
@@ -188,19 +189,18 @@ describe('Error Handling Integration Tests', () => {
                 }
             })
 
-            it('should return validation error for empty product ID in checkout', async () => {
+            it('should return validation error for empty price ID in checkout', async () => {
                 const invalidCheckoutData: CreateCheckoutSessionInput = {
-                    productId: '',
+                    priceId: '',
                     successUrl: 'https://example.com/success',
                     cancelUrl: 'https://example.com/cancel',
-                    token: `Bearer ${validToken}`
                 }
 
                 try {
                     await authenticatedClient.billing.createCheckoutSession.mutate(invalidCheckoutData)
                     expect(true).toBe(false) // Should not reach here
                 } catch (error: any) {
-                    expect(error.message).toContain('Product ID is required')
+                    expect(error.message).toContain('Price ID is required')
                     expect(error.data?.code).toBe('BAD_REQUEST')
                 }
             })
@@ -208,7 +208,6 @@ describe('Error Handling Integration Tests', () => {
             it('should return validation error for invalid portal session return URL', async () => {
                 const invalidPortalData: CreatePortalSessionInput = {
                     returnUrl: 'invalid-url-format',
-                    token: `Bearer ${validToken}`
                 }
 
                 try {
@@ -334,12 +333,11 @@ describe('Error Handling Integration Tests', () => {
         })
 
         it('should return not found error for non-existent product in checkout session', async () => {
-            const nonExistentProductId = '550e8400-e29b-41d4-a716-446655440000'
+            const nonExistentPriceId = 'price_nonexistent_000'
             const checkoutData: CreateCheckoutSessionInput = {
-                productId: nonExistentProductId,
+                priceId: nonExistentPriceId,
                 successUrl: 'https://example.com/success',
                 cancelUrl: 'https://example.com/cancel',
-                token: `Bearer ${validToken}`
             }
 
             try {
@@ -443,10 +441,9 @@ describe('Error Handling Integration Tests', () => {
             )
 
             const checkoutData: CreateCheckoutSessionInput = {
-                productId: testProduct.id,
+                priceId: testProduct.externalPriceId,
                 successUrl: 'https://example.com/success',
                 cancelUrl: 'https://example.com/cancel',
-                token: `Bearer ${validToken}`
             }
 
             try {
@@ -505,12 +502,11 @@ describe('Error Handling Integration Tests', () => {
         })
 
         it('should provide appropriate error messages for resource not found', async () => {
-            const nonExistentProductId = '550e8400-e29b-41d4-a716-446655440000'
+            const nonExistentPriceId = 'price_nonexistent_000'
             const checkoutData: CreateCheckoutSessionInput = {
-                productId: nonExistentProductId,
+                priceId: nonExistentPriceId,
                 successUrl: 'https://example.com/success',
                 cancelUrl: 'https://example.com/cancel',
-                token: `Bearer ${validToken}`
             }
 
             try {
@@ -533,7 +529,7 @@ describe('Error Handling Integration Tests', () => {
             )
 
             const checkoutData: CreateCheckoutSessionInput = {
-                productId: testProduct.id,
+                priceId: testProduct.externalPriceId,
                 successUrl: 'https://example.com/success',
                 cancelUrl: 'https://example.com/cancel',
             }

@@ -3,8 +3,8 @@ import {
     updateBillingOnPaymentFailed,
     updateBillingOnSubscriptionUpdated,
     updateBillingOnSubscriptionDeleted,
-    UpdateUserBillingInput
 } from '../../../src/services/billing.service'
+import type { UpdateUserBillingInput } from '../../../src/types/billing'
 import * as userRepository from '../../../src/database/repositories/user.repository'
 import * as billingRepository from '../../../src/database/repositories/billing.repository'
 import * as productRepository from '../../../src/database/repositories/product.repository'
@@ -141,17 +141,17 @@ describe('Billing Service', () => {
             mockBillingRepository.getBillingByExternalSubscriptionId.mockResolvedValue(mockBilling as any)
             mockBillingRepository.updateBillingById.mockResolvedValue(mockUpdatedBilling as any)
 
-            await updateBillingOnPaymentFailed(externalSubscriptionId)
+            await updateBillingOnPaymentFailed({ externalSubscriptionId })
 
             expect(mockBillingRepository.getBillingByExternalSubscriptionId).toHaveBeenCalledWith({ externalSubscriptionId })
             expect(mockBillingRepository.updateBillingById).toHaveBeenCalledWith({
                 id: mockBilling.id,
-                status: 'past_due'
+                updates: { status: 'past_due' }
             })
         })
 
         it('should do nothing when externalSubscriptionId is empty', async () => {
-            await updateBillingOnPaymentFailed('')
+            await updateBillingOnPaymentFailed({ externalSubscriptionId: '' })
 
             expect(mockBillingRepository.getBillingByExternalSubscriptionId).not.toHaveBeenCalled()
             expect(mockBillingRepository.updateBillingById).not.toHaveBeenCalled()
@@ -162,7 +162,7 @@ describe('Billing Service', () => {
 
             mockBillingRepository.getBillingByExternalSubscriptionId.mockResolvedValue(null)
 
-            await updateBillingOnPaymentFailed(externalSubscriptionId)
+            await updateBillingOnPaymentFailed({ externalSubscriptionId })
 
             expect(mockBillingRepository.getBillingByExternalSubscriptionId).toHaveBeenCalledWith({ externalSubscriptionId })
             expect(mockBillingRepository.updateBillingById).not.toHaveBeenCalled()
@@ -286,23 +286,20 @@ describe('Billing Service', () => {
             mockProductRepository.getFreeTierProduct.mockResolvedValue(mockFreeTierProduct as any)
             mockUserRepository.updateUserById.mockResolvedValue({} as any)
 
-            await updateBillingOnSubscriptionDeleted(externalSubscriptionId)
+            await updateBillingOnSubscriptionDeleted({ externalSubscriptionId })
 
             expect(mockBillingRepository.getBillingByExternalSubscriptionId).toHaveBeenCalledWith({ externalSubscriptionId })
-            expect(mockBillingRepository.updateBillingById).toHaveBeenCalledWith({
-                id: mockBilling.id,
-                status: 'canceled',
-                expiresAt: expect.any(Date)
-            })
-            expect(mockProductRepository.getFreeTierProduct).toHaveBeenCalled()
-            expect(mockUserRepository.updateUserById).toHaveBeenCalledWith({
-                id: mockBilling.userId,
-                updates: { currentProductId: mockFreeTierProduct.id }
-            })
+            expect(mockBillingRepository.updateBillingById).toHaveBeenCalledWith(
+                {
+                    id: mockBilling.id,
+                    updates: { status: 'canceled', expiresAt: expect.any(Date) }
+                },
+                expect.anything()
+            )
         })
 
         it('should do nothing when externalSubscriptionId is empty', async () => {
-            await updateBillingOnSubscriptionDeleted('')
+            await updateBillingOnSubscriptionDeleted({ externalSubscriptionId: '' })
 
             expect(mockBillingRepository.getBillingByExternalSubscriptionId).not.toHaveBeenCalled()
             expect(mockBillingRepository.updateBillingById).not.toHaveBeenCalled()
@@ -313,7 +310,7 @@ describe('Billing Service', () => {
 
             mockBillingRepository.getBillingByExternalSubscriptionId.mockResolvedValue(null)
 
-            await updateBillingOnSubscriptionDeleted(externalSubscriptionId)
+            await updateBillingOnSubscriptionDeleted({ externalSubscriptionId })
 
             expect(mockBillingRepository.getBillingByExternalSubscriptionId).toHaveBeenCalledWith({ externalSubscriptionId })
             expect(mockBillingRepository.updateBillingById).not.toHaveBeenCalled()

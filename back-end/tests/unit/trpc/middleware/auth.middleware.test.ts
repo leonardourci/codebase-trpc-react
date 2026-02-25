@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server'
-import { authMiddleware, billingMiddleware, protectedProcedure, billingProtectedProcedure } from '../../../../src/trpc/middleware/auth.middleware'
+import { authMiddleware, billingMiddleware, protectedProcedure, billingProtectedProcedure } from '../../../../src/trpc/middlewares/auth.middleware'
 import * as jwt from '../../../../src/utils/jwt'
 import * as userRepository from '../../../../src/database/repositories/user.repository'
 import * as billingRepository from '../../../../src/database/repositories/billing.repository'

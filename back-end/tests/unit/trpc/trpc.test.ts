@@ -1,192 +1,7 @@
-import { TRPCError } from '@trpc/server'
 import { Request, Response } from 'express'
-import { transformErrorToTRPC, createTRPCContext } from '../../../src/trpc/trpc'
-import { CustomError, ZodValidationError } from '../../../src/utils/errors'
-import { StatusCodes } from '../../../src/utils/status-codes'
-import { ZodError } from 'zod'
+import { createTRPCContext } from '../../../src/trpc/index'
 
 describe('tRPC Utilities', () => {
-	describe('transformErrorToTRPC', () => {
-		it('should transform ZodValidationError to TRPCError', () => {
-			const mockZodError = {
-				issues: [{ message: 'Field is required', path: ['field'], code: 'invalid_type' }]
-			} as ZodError
-
-			const zodError = new ZodValidationError(mockZodError)
-
-			const result = transformErrorToTRPC(zodError)
-
-			expect(result).toBeInstanceOf(TRPCError)
-			expect(result.code).toBe('UNPROCESSABLE_CONTENT')
-			expect(result.message).toBe('Validation failed')
-			expect(result.cause).toHaveProperty('messages', ['field: Field is required'])
-			expect(result.cause).toHaveProperty('statusCode', StatusCodes.UNPROCESSABLE)
-		})
-
-		it('should transform ZodValidationError with multiple issues', () => {
-			const mockZodError = {
-				issues: [
-					{ message: 'Field is required', path: ['field1'], code: 'invalid_type' },
-					{ message: 'Must be a string', path: ['field2'], code: 'invalid_type' }
-				]
-			} as ZodError
-
-			const zodError = new ZodValidationError(mockZodError)
-
-			const result = transformErrorToTRPC(zodError)
-
-			expect(result).toBeInstanceOf(TRPCError)
-			expect(result.code).toBe('UNPROCESSABLE_CONTENT')
-			expect(result.message).toBe('Validation failed')
-			expect(result.cause).toHaveProperty('messages', ['field1: Field is required', 'field2: Must be a string'])
-			expect(result.cause).toHaveProperty('statusCode', StatusCodes.UNPROCESSABLE)
-		})
-
-		it('should transform CustomError with UNAUTHORIZED status to TRPCError', () => {
-			const customError = new CustomError('Access denied', StatusCodes.UNAUTHORIZED)
-
-			const result = transformErrorToTRPC(customError)
-
-			expect(result).toBeInstanceOf(TRPCError)
-			expect(result.code).toBe('UNAUTHORIZED')
-			expect(result.message).toBe('Access denied')
-			expect(result.cause).toHaveProperty('statusCode', StatusCodes.UNAUTHORIZED)
-		})
-
-		it('should transform CustomError with NOT_FOUND status to TRPCError', () => {
-			const customError = new CustomError('Resource not found', StatusCodes.NOT_FOUND)
-
-			const result = transformErrorToTRPC(customError)
-
-			expect(result).toBeInstanceOf(TRPCError)
-			expect(result.code).toBe('NOT_FOUND')
-			expect(result.message).toBe('Resource not found')
-			expect(result.cause).toHaveProperty('statusCode', StatusCodes.NOT_FOUND)
-		})
-
-		it('should transform CustomError with CONFLICT status to TRPCError', () => {
-			const customError = new CustomError('Resource already exists', StatusCodes.CONFLICT)
-
-			const result = transformErrorToTRPC(customError)
-
-			expect(result).toBeInstanceOf(TRPCError)
-			expect(result.code).toBe('CONFLICT')
-			expect(result.message).toBe('Resource already exists')
-			expect(result.cause).toHaveProperty('statusCode', StatusCodes.CONFLICT)
-		})
-
-		it('should transform CustomError with PRECONDITION_FAILED status to TRPCError', () => {
-			const customError = new CustomError('Precondition failed', StatusCodes.PRECONDITION_FAILED)
-
-			const result = transformErrorToTRPC(customError)
-
-			expect(result).toBeInstanceOf(TRPCError)
-			expect(result.code).toBe('PRECONDITION_FAILED')
-			expect(result.message).toBe('Precondition failed')
-		})
-
-		it('should transform CustomError with NOT_ACCEPTABLE status to TRPCError', () => {
-			const customError = new CustomError('Not acceptable', StatusCodes.NOT_ACCEPTABLE)
-
-			const result = transformErrorToTRPC(customError)
-
-			expect(result).toBeInstanceOf(TRPCError)
-			expect(result.code).toBe('BAD_REQUEST')
-			expect(result.message).toBe('Not acceptable')
-		})
-
-		it('should transform CustomError with INTERNAL status to TRPCError', () => {
-			const customError = new CustomError('Internal server error', StatusCodes.INTERNAL_SERVER_ERROR)
-
-			const result = transformErrorToTRPC(customError)
-
-			expect(result).toBeInstanceOf(TRPCError)
-			expect(result.code).toBe('INTERNAL_SERVER_ERROR')
-			expect(result.message).toBe('Internal server error')
-			expect(result.cause).toHaveProperty('statusCode', StatusCodes.INTERNAL_SERVER_ERROR)
-		})
-
-		it('should transform CustomError with unknown status code to INTERNAL_SERVER_ERROR', () => {
-			const customError = new CustomError('Unknown error', 999 as any)
-
-			const result = transformErrorToTRPC(customError)
-
-			expect(result).toBeInstanceOf(TRPCError)
-			expect(result.code).toBe('INTERNAL_SERVER_ERROR')
-			expect(result.message).toBe('Unknown error')
-		})
-
-		it('should transform generic Error to TRPCError', () => {
-			const genericError = new Error('Something went wrong')
-
-			const result = transformErrorToTRPC(genericError)
-
-			expect(result).toBeInstanceOf(TRPCError)
-			expect(result.code).toBe('INTERNAL_SERVER_ERROR')
-			expect(result.message).toBe('Something went wrong')
-		})
-
-		it('should transform Error with empty message to TRPCError', () => {
-			const genericError = new Error('')
-
-			const result = transformErrorToTRPC(genericError)
-
-			expect(result).toBeInstanceOf(TRPCError)
-			expect(result.code).toBe('INTERNAL_SERVER_ERROR')
-			expect(result.message).toBe('')
-		})
-
-		it('should transform unknown error to TRPCError', () => {
-			const unknownError = 'string error'
-
-			const result = transformErrorToTRPC(unknownError)
-
-			expect(result).toBeInstanceOf(TRPCError)
-			expect(result.code).toBe('INTERNAL_SERVER_ERROR')
-			expect(result.message).toBe('An unexpected error occurred')
-		})
-
-		it('should transform null error to TRPCError', () => {
-			const result = transformErrorToTRPC(null)
-
-			expect(result).toBeInstanceOf(TRPCError)
-			expect(result.code).toBe('INTERNAL_SERVER_ERROR')
-			expect(result.message).toBe('An unexpected error occurred')
-		})
-
-		it('should transform undefined error to TRPCError', () => {
-			const result = transformErrorToTRPC(undefined)
-
-			expect(result).toBeInstanceOf(TRPCError)
-			expect(result.code).toBe('INTERNAL_SERVER_ERROR')
-			expect(result.message).toBe('An unexpected error occurred')
-		})
-
-		it('should transform number error to TRPCError', () => {
-			const result = transformErrorToTRPC(404)
-
-			expect(result).toBeInstanceOf(TRPCError)
-			expect(result.code).toBe('INTERNAL_SERVER_ERROR')
-			expect(result.message).toBe('An unexpected error occurred')
-		})
-
-		it('should transform boolean error to TRPCError', () => {
-			const result = transformErrorToTRPC(false)
-
-			expect(result).toBeInstanceOf(TRPCError)
-			expect(result.code).toBe('INTERNAL_SERVER_ERROR')
-			expect(result.message).toBe('An unexpected error occurred')
-		})
-
-		it('should transform object error to TRPCError', () => {
-			const result = transformErrorToTRPC({ error: 'custom object' })
-
-			expect(result).toBeInstanceOf(TRPCError)
-			expect(result.code).toBe('INTERNAL_SERVER_ERROR')
-			expect(result.message).toBe('An unexpected error occurred')
-		})
-	})
-
 	describe('createTRPCContext', () => {
 		it('should create tRPC context with request and response', () => {
 			const mockReq = {
@@ -269,24 +84,24 @@ describe('tRPC Utilities', () => {
 
 	describe('tRPC instance configuration', () => {
 		it('should export router function', () => {
-			const { router } = require('../../../src/trpc/trpc')
+			const { router } = require('../../../src/trpc/index')
 			expect(typeof router).toBe('function')
 		})
 
 		it('should export procedure object', () => {
-			const { procedure } = require('../../../src/trpc/trpc')
+			const { procedure } = require('../../../src/trpc/index')
 			expect(typeof procedure).toBe('object')
 			expect(procedure.query).toBeDefined()
 			expect(procedure.mutation).toBeDefined()
 		})
 
 		it('should export middleware function', () => {
-			const { middleware } = require('../../../src/trpc/trpc')
+			const { middleware } = require('../../../src/trpc/index')
 			expect(typeof middleware).toBe('function')
 		})
 
 		it('should export t instance', () => {
-			const { t } = require('../../../src/trpc/trpc')
+			const { t } = require('../../../src/trpc/index')
 			expect(t).toBeDefined()
 			expect(t.router).toBeDefined()
 			expect(t.procedure).toBeDefined()
@@ -294,12 +109,12 @@ describe('tRPC Utilities', () => {
 		})
 
 		it('should have error formatter configured', () => {
-			const { t } = require('../../../src/trpc/trpc')
+			const { t } = require('../../../src/trpc/index')
 			expect(t._config.errorFormatter).toBeDefined()
 		})
 
 		it('should format errors with custom details', () => {
-			const { t } = require('../../../src/trpc/trpc')
+			const { t } = require('../../../src/trpc/index')
 
 			const mockShape = {
 				data: { code: 'INTERNAL_SERVER_ERROR' },
@@ -316,7 +131,7 @@ describe('tRPC Utilities', () => {
 		})
 
 		it('should format errors without cause as undefined details', () => {
-			const { t } = require('../../../src/trpc/trpc')
+			const { t } = require('../../../src/trpc/index')
 
 			const mockShape = {
 				data: { code: 'INTERNAL_SERVER_ERROR' },

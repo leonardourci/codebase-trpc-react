@@ -1,11 +1,11 @@
 // Unmock the module so we test the real implementation
-jest.unmock('../../src/utils/email')
+jest.unmock('../../../src/utils/email')
 
 // Mock fetch globally
 const mockFetch = jest.fn()
 global.fetch = mockFetch
 
-jest.mock('../../src/utils/global-config', () => ({
+jest.mock('../../../src/utils/global-config', () => ({
 	__esModule: true,
 	default: {
 		resendApiKey: 're_test_fake_api_key',
@@ -22,7 +22,7 @@ import {
 	sendEmailChangeCode,
 	VERIFICATION_CODE_MIN,
 	VERIFICATION_CODE_MAX
-} from '../../src/utils/email'
+} from '../../../src/utils/email'
 
 describe('Email Utils', () => {
 	beforeEach(() => {

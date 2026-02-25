@@ -73,12 +73,12 @@ describe('Billing Controller', () => {
                     }
                 } as any
 
-                mockProductRepository.getProductByExternalProductId.mockResolvedValue(mockProduct as any)
+                mockProductRepository.getProductByExternalPriceId.mockResolvedValue(mockProduct as any)
                 mockBillingService.registerUserBilling.mockResolvedValue(undefined)
 
                 await processBillingWebhookHandler(mockReq as BillingRequest, mockRes as Response)
 
-                expect(mockProductRepository.getProductByExternalProductId).toHaveBeenCalledWith({
+                expect(mockProductRepository.getProductByExternalPriceId).toHaveBeenCalledWith({
                     id: 'prod_external_123'
                 })
                 expect(mockBillingService.registerUserBilling).toHaveBeenCalledWith({
@@ -116,7 +116,7 @@ describe('Billing Controller', () => {
                     }
                 } as any
 
-                mockProductRepository.getProductByExternalProductId.mockResolvedValue(null)
+                mockProductRepository.getProductByExternalPriceId.mockResolvedValue(null)
 
                 await expect(processBillingWebhookHandler(mockReq as BillingRequest, mockRes as Response))
                     .rejects.toThrow('Product with external ID "prod_nonexistent" not found')
@@ -138,7 +138,7 @@ describe('Billing Controller', () => {
 
                 await processBillingWebhookHandler(mockReq as BillingRequest, mockRes as Response)
 
-                expect(mockProductRepository.getProductByExternalProductId).not.toHaveBeenCalled()
+                expect(mockProductRepository.getProductByExternalPriceId).not.toHaveBeenCalled()
                 expect(mockBillingService.registerUserBilling).not.toHaveBeenCalled()
                 expect(mockRes.status).toHaveBeenCalledWith(StatusCodes.OK)
                 expect(mockRes.send).toHaveBeenCalledWith('Webhook processed successfully')

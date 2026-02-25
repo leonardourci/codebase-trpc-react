@@ -1,5 +1,5 @@
 // Unmock the module so we test the real implementation
-jest.unmock('../../src/services/email.service')
+jest.unmock('../../../src/services/email.service')
 
 const mockGetUserById = jest.fn()
 const mockGetUserByEmail = jest.fn()
@@ -11,23 +11,23 @@ const mockGenerateJwtToken = jest.fn()
 const mockSendEmailChangeCode = jest.fn()
 const mockGenerateSixDigitsVerificationCode = jest.fn()
 
-jest.mock('../../src/database/repositories/user.repository', () => ({
+jest.mock('../../../src/database/repositories/user.repository', () => ({
 	getUserById: (...args: any[]) => mockGetUserById(...args),
 	getUserByEmail: (...args: any[]) => mockGetUserByEmail(...args),
 	updateUserById: (...args: any[]) => mockUpdateUserById(...args)
 }))
 
-jest.mock('../../src/services/user.service', () => ({
+jest.mock('../../../src/services/user.service', () => ({
 	getUserProfile: (...args: any[]) => mockGetUserProfile(...args)
 }))
 
-jest.mock('../../src/utils/jwt', () => ({
+jest.mock('../../../src/utils/jwt', () => ({
 	verifyJwtToken: (...args: any[]) => mockVerifyJwtToken(...args),
 	decodeJwtToken: (...args: any[]) => mockDecodeJwtToken(...args),
 	generateJwtToken: (...args: any[]) => mockGenerateJwtToken(...args)
 }))
 
-jest.mock('../../src/utils/email', () => ({
+jest.mock('../../../src/utils/email', () => ({
 	EMAIL_CHANGE_COOLDOWN_MS: 60000,
 	EMAIL_CHANGE_TOKEN_EXPIRATION_MINUTES: 15,
 	MAX_VERIFICATION_ATTEMPTS: 5,
@@ -37,8 +37,8 @@ jest.mock('../../src/utils/email', () => ({
 	sendEmailChangeCode: (...args: any[]) => mockSendEmailChangeCode(...args)
 }))
 
-import { requestEmailChange, verifyEmailChange } from '../../src/services/email.service'
-import { ETokenPurpose } from '../../src/types/jwt'
+import { requestEmailChange, verifyEmailChange } from '../../../src/services/email.service'
+import { TokenPurpose } from '../../../src/types/jwt'
 
 describe('Email Service', () => {
 	const mockUser = {
@@ -111,7 +111,7 @@ describe('Email Service', () => {
 			mockDecodeJwtToken.mockReturnValue({
 				userId: 'user-123',
 				iat: issuedAt,
-				purpose: ETokenPurpose.EMAIL_CHANGE
+				purpose: TokenPurpose.EMAIL_CHANGE
 			})
 			mockGenerateSixDigitsVerificationCode.mockReturnValue('123456')
 			mockGenerateJwtToken.mockReturnValue('new-token')
@@ -135,7 +135,7 @@ describe('Email Service', () => {
 			mockDecodeJwtToken.mockReturnValue({
 				userId: 'user-123',
 				iat: issuedAt,
-				purpose: ETokenPurpose.EMAIL_CHANGE
+				purpose: TokenPurpose.EMAIL_CHANGE
 			})
 			mockGenerateSixDigitsVerificationCode.mockReturnValue('654321')
 			mockGenerateJwtToken.mockReturnValue('new-token')
@@ -170,7 +170,7 @@ describe('Email Service', () => {
 	describe('verifyEmailChange', () => {
 		const validTokenData = {
 			userId: 'user-123',
-			purpose: ETokenPurpose.EMAIL_CHANGE,
+			purpose: TokenPurpose.EMAIL_CHANGE,
 			code: '123456',
 			newEmail: 'new@example.com',
 			attempts: 0,
@@ -219,7 +219,7 @@ describe('Email Service', () => {
 			mockVerifyJwtToken.mockReturnValue(undefined)
 			mockDecodeJwtToken.mockReturnValue({
 				...validTokenData,
-				purpose: ETokenPurpose.PASSWORD_RESET
+				purpose: TokenPurpose.PASSWORD_RESET
 			})
 
 			await expect(verifyEmailChange({ userId: 'user-123', code: '123456' })).rejects.toThrow('Invalid token purpose')
@@ -230,7 +230,7 @@ describe('Email Service', () => {
 			mockVerifyJwtToken.mockReturnValue(undefined)
 			mockDecodeJwtToken.mockReturnValue({
 				userId: 'user-123',
-				purpose: ETokenPurpose.EMAIL_CHANGE
+				purpose: TokenPurpose.EMAIL_CHANGE
 				// missing code, newEmail, attempts
 			})
 

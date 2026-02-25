@@ -4,11 +4,11 @@ import { SubscriptionPricingGrid } from '@/components/billing/SubscriptionPricin
 import { Header } from '@/components/layout/Header'
 import { PRICING_PLANS } from '@shared/config/pricing.config'
 import { useAuth } from '@/hooks/useAuth'
-import { useAuthModal } from '@/contexts/AuthModalContext'
+import { useAuthModal } from '@/providers/AuthModalContext'
 import { BillingPeriodToggle } from '@/components/billing/BillingPeriodToggle'
 import { EBillingPeriod, type IPricingPlan } from '@shared/types/pricing.types'
 
-export function PricingView() {
+export function PricingPage() {
   const { isAuthenticated } = useAuth()
   const { openAuth } = useAuthModal()
   const navigate = useNavigate()
@@ -21,7 +21,7 @@ export function PricingView() {
     plan => plan.isFreeTier || plan.billingPeriod === selectedPeriod
   )
 
-  const getButtonText = (plan: IPricingPlan): string => {
+  const getButtonText = (_plan: IPricingPlan): string => {
     if (!isAuthenticated) return 'Get Started'
     return 'Manage Plan'
   }
@@ -75,5 +75,5 @@ export function PricingView() {
 }
 
 export function PricingRoute() {
-  return <PricingView />
+  return <PricingPage />
 }

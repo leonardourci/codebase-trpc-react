@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { userService } from '@/services/user.service'
+import { trpc } from '@/lib/trpc'
 import { useResendTimer } from '@/hooks/useResendTimer'
 import { Mail, CheckCircle } from 'lucide-react'
 
@@ -27,6 +27,9 @@ export function ChangeEmailDialog({
   onSuccess,
   currentEmail,
 }: ChangeEmailDialogProps) {
+  const requestEmailChangeMutation = trpc.user.requestEmailChange.useMutation()
+  const verifyEmailChangeMutation = trpc.user.verifyEmailChange.useMutation()
+
   const [newEmail, setNewEmail] = useState('')
   const [verificationCode, setVerificationCode] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -70,7 +73,7 @@ export function ChangeEmailDialog({
     setIsLoading(true)
 
     try {
-      await userService.requestEmailChange(newEmail)
+      await requestEmailChangeMutation.mutateAsync({ newEmail })
       setShowCodeInput(true)
       resetTimer()
     } catch (err) {
@@ -93,7 +96,7 @@ export function ChangeEmailDialog({
     setIsLoading(true)
 
     try {
-      await userService.verifyEmailChange(verificationCode)
+      await verifyEmailChangeMutation.mutateAsync({ code: verificationCode })
       setShowSuccess(true)
       setTimeout(() => {
         handleClose()
@@ -111,7 +114,7 @@ export function ChangeEmailDialog({
     setIsLoading(true)
 
     try {
-      await userService.requestEmailChange(newEmail)
+      await requestEmailChangeMutation.mutateAsync({ newEmail })
       resetTimer()
       setVerificationCode('')
     } catch (err) {

@@ -1,11 +1,11 @@
 import { createTestClient, createAuthenticatedTestClient } from '../setup/test-client'
 import { startTestServer, stopTestServer } from '../setup/test-server'
 import { cleanTestData, closeTestDb, getTestDb, seedFreeTierProduct } from '../setup/test-db'
-import type { TSignupInput } from '../../src/types/auth'
-import type { TCreateCheckoutSessionInput, TCreatePortalSessionInput } from '../../src/types/billing'
+import type { SignupInput } from '../../src/types/auth'
+import type { CreateCheckoutSessionInput, CreatePortalSessionInput } from '../../src/types/billing'
 import { createBilling, getBillingByUserId } from '../../src/database/repositories/billing.repository'
 import { createUser } from '../../src/database/repositories/user.repository'
-import { IProduct, IProductDbRow } from '../../src/types/product'
+import { Product, ProductDbRow } from '../../src/types/product'
 import { keysToSnakeCase, keysToCamelCase } from '../../src/utils/case-conversion'
 import { mockStripe, setupStripeMocks, resetStripeMocks } from '../mocks/stripe.mock'
 
@@ -38,7 +38,7 @@ describe('Billing Integration Tests', () => {
 
         setupStripeMocks()
 
-        const userData: TSignupInput = {
+        const userData: SignupInput = {
             fullName: 'Test User',
             email: 'test@example.com',
             phone: '+1234567890',
@@ -60,7 +60,7 @@ describe('Billing Integration Tests', () => {
         validToken = loginResponse.accessToken
         authenticatedClient = createAuthenticatedTestClient(baseUrl, validToken)
 
-        const productData: Omit<IProduct, 'id' | 'createdAt' | 'updatedAt'> = {
+        const productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> = {
             name: 'Test Product',
             description: 'A test product for billing tests',
             priceInCents: 2999,
@@ -69,12 +69,12 @@ describe('Billing Integration Tests', () => {
             active: true
         }
 
-        const dbData = keysToSnakeCase<typeof productData, Partial<IProductDbRow>>(productData)
+        const dbData = keysToSnakeCase<typeof productData, Partial<ProductDbRow>>(productData)
         const [insertedRow] = await db('products')
             .insert(dbData)
             .returning('*')
 
-        testProduct = keysToCamelCase<IProductDbRow, IProduct>(insertedRow)
+        testProduct = keysToCamelCase<ProductDbRow, Product>(insertedRow)
     })
 
     afterEach(async () => {
@@ -83,7 +83,7 @@ describe('Billing Integration Tests', () => {
 
     describe('Checkout Session Creation', () => {
         it('should successfully create checkout session with valid product', async () => {
-            const checkoutData: TCreateCheckoutSessionInput = {
+            const checkoutData: CreateCheckoutSessionInput = {
                 productId: testProduct.id,
                 successUrl: 'https://example.com/success',
                 cancelUrl: 'https://example.com/cancel',
@@ -98,7 +98,7 @@ describe('Billing Integration Tests', () => {
         })
 
         it('should reject checkout session creation with non-existent product', async () => {
-            const checkoutData: TCreateCheckoutSessionInput = {
+            const checkoutData: CreateCheckoutSessionInput = {
                 productId: 'non-existent-product-id',
                 successUrl: 'https://example.com/success',
                 cancelUrl: 'https://example.com/cancel',
@@ -109,7 +109,7 @@ describe('Billing Integration Tests', () => {
         })
 
         it('should reject checkout session creation with invalid URLs', async () => {
-            const checkoutData: TCreateCheckoutSessionInput = {
+            const checkoutData: CreateCheckoutSessionInput = {
                 productId: testProduct.id,
                 successUrl: 'invalid-url',
                 cancelUrl: 'invalid-url',
@@ -120,7 +120,7 @@ describe('Billing Integration Tests', () => {
         })
 
         it('should reject checkout session creation without authentication', async () => {
-            const checkoutData: TCreateCheckoutSessionInput = {
+            const checkoutData: CreateCheckoutSessionInput = {
                 productId: testProduct.id,
                 successUrl: 'https://example.com/success',
                 cancelUrl: 'https://example.com/cancel',
@@ -144,7 +144,7 @@ describe('Billing Integration Tests', () => {
         })
 
         it('should successfully create customer portal session for user with billing', async () => {
-            const portalData: TCreatePortalSessionInput = {
+            const portalData: CreatePortalSessionInput = {
                 returnUrl: 'https://example.com/dashboard',
             }
 
@@ -160,7 +160,7 @@ describe('Billing Integration Tests', () => {
             await seedFreeTierProduct()
 
             // Recreate user and auth but no billing
-            const userData: TSignupInput = {
+            const userData: SignupInput = {
                 fullName: 'Test User No Billing',
                 email: 'nobilling@example.com',
                 phone: '+1234567890',
@@ -175,7 +175,7 @@ describe('Billing Integration Tests', () => {
             })
             const noBillingClient = createAuthenticatedTestClient(baseUrl, loginResponse.accessToken)
 
-            const portalData: TCreatePortalSessionInput = {
+            const portalData: CreatePortalSessionInput = {
                 returnUrl: 'https://example.com/dashboard',
             }
 
@@ -184,7 +184,7 @@ describe('Billing Integration Tests', () => {
         })
 
         it('should reject portal session creation with invalid return URL', async () => {
-            const portalData: TCreatePortalSessionInput = {
+            const portalData: CreatePortalSessionInput = {
                 returnUrl: 'invalid-url',
             }
 
@@ -193,7 +193,7 @@ describe('Billing Integration Tests', () => {
         })
 
         it('should reject portal session creation without authentication', async () => {
-            const portalData: TCreatePortalSessionInput = {
+            const portalData: CreatePortalSessionInput = {
                 returnUrl: 'https://example.com/dashboard',
             }
 
@@ -258,7 +258,7 @@ describe('Billing Integration Tests', () => {
 
     describe('Billing Error Handling', () => {
         it('should handle missing product gracefully in checkout session', async () => {
-            const checkoutData: TCreateCheckoutSessionInput = {
+            const checkoutData: CreateCheckoutSessionInput = {
                 productId: '',
                 successUrl: 'https://example.com/success',
                 cancelUrl: 'https://example.com/cancel',
@@ -270,7 +270,7 @@ describe('Billing Integration Tests', () => {
 
         it('should handle invalid token in checkout session', async () => {
             const invalidClient = createAuthenticatedTestClient(baseUrl, 'invalid-token')
-            const checkoutData: TCreateCheckoutSessionInput = {
+            const checkoutData: CreateCheckoutSessionInput = {
                 productId: testProduct.id,
                 successUrl: 'https://example.com/success',
                 cancelUrl: 'https://example.com/cancel',
@@ -291,7 +291,7 @@ describe('Billing Integration Tests', () => {
                 expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
             })
 
-            const portalData: TCreatePortalSessionInput = {
+            const portalData: CreatePortalSessionInput = {
                 returnUrl: 'https://example.com/dashboard',
             }
 

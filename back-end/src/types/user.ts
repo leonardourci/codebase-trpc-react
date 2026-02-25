@@ -1,9 +1,9 @@
 import z from "zod"
 
-import { IBaseModel } from "./base"
+import { BaseModel } from "./base"
 import { updateUserSchema } from "../utils/validations/user.schemas"
 
-export interface IUser extends IBaseModel {
+export interface User extends BaseModel {
   email: string
   fullName: string
   phone: string
@@ -16,9 +16,9 @@ export interface IUser extends IBaseModel {
   currentProductId: string | null
 }
 
-export interface IUserProfile extends Pick<IUser, 'id' | 'age' | 'email' | 'fullName' | 'phone' | 'emailVerified'> { }
+export interface UserProfile extends Pick<User, 'id' | 'age' | 'email' | 'fullName' | 'phone' | 'emailVerified'> { }
 
-export interface ICreateUserInput {
+export interface CreateUserInput {
   fullName: string
   email: string
   passwordHash: string
@@ -30,7 +30,7 @@ export interface ICreateUserInput {
   currentProductId?: string
 }
 
-export enum EUserDbRowKeys {
+export enum UserDbRowKeys {
   id = 'id',
   email = 'email',
   fullName = 'full_name',
@@ -46,7 +46,7 @@ export enum EUserDbRowKeys {
   updatedAt = 'updated_at'
 }
 
-export interface IUserDbRow {
+export interface UserDbRow {
   id: string
   email: string
   full_name: string
@@ -62,7 +62,7 @@ export interface IUserDbRow {
   updated_at: Date | null
 }
 
-export interface IUserInfoByEmailResponse {
+export interface UserInfoByEmailResponse {
   id: string
   email: string
   fullName: string
@@ -71,4 +71,4 @@ export interface IUserInfoByEmailResponse {
   emailVerified: boolean
 }
 
-export type TUpdateUserInput = z.infer<typeof updateUserSchema>
+export type UpdateUserInput = z.infer<typeof updateUserSchema>

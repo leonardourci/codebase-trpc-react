@@ -1,16 +1,16 @@
 import { z } from 'zod'
 import { validateTokenSchema } from '../utils/validations/jwt.schemas'
 
-export enum ETokenPurpose {
+export enum TokenPurpose {
     EMAIL_VERIFICATION = 'email-verification',
     PASSWORD_RESET = 'password-reset'
 }
 
-export interface IToken {
+export interface Token {
     userId: string
-    purpose?: ETokenPurpose
+    purpose?: TokenPurpose
     iat?: number  // issued at
     exp?: number  // expiration time
 }
 
-export type TValidateTokenInput = z.infer<typeof validateTokenSchema>
+export type ValidateTokenInput = z.infer<typeof validateTokenSchema>

@@ -1,12 +1,12 @@
 import { Response } from 'express'
 
-import { IBillingRequest } from '../middlewares/billing.middleware'
+import { BillingRequest } from '../middlewares/billing.middleware'
 import { getProductByExternalProductId } from '../database/repositories/product.repository'
 import { registerUserBilling, updateBillingOnPaymentFailed, updateBillingOnSubscriptionUpdated, updateBillingOnSubscriptionDeleted } from '../services/billing.service'
-import { EStatusCodes } from '../utils/status-codes'
+import { StatusCodes } from '../utils/status-codes'
 import { unixTimestampToDate } from '../utils/time'
 
-export const processBillingWebhookHandler = async (req: IBillingRequest, res: Response): Promise<void> => {
+export const processBillingWebhookHandler = async (req: BillingRequest, res: Response): Promise<void> => {
 	if (!req.billingEvent) {
 		throw new Error('req.billingEvent is missing in processBillingWebhookHandler')
 	}
@@ -90,5 +90,5 @@ export const processBillingWebhookHandler = async (req: IBillingRequest, res: Re
 			break
 		}
 	}
-	res.status(EStatusCodes.OK).send('Webhook processed successfully')
+	res.status(StatusCodes.OK).send('Webhook processed successfully')
 }

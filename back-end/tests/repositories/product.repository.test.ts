@@ -1,6 +1,6 @@
 import { getTestDb, cleanTestData, closeTestDb } from '../setup/test-db'
 import { getProductById, getProductByExternalProductId, getAllProducts, getFreeTierProduct } from '../../src/database/repositories/product.repository'
-import { IProduct, IProductDbRow } from '../../src/types/product'
+import { Product, ProductDbRow } from '../../src/types/product'
 import { keysToSnakeCase } from '../../src/utils/case-conversion'
 
 describe('Product Repository', () => {
@@ -20,7 +20,7 @@ describe('Product Repository', () => {
 
     describe('getProductById', () => {
         it('should retrieve product by ID', async () => {
-            const productData: Omit<IProduct, 'id' | 'createdAt' | 'updatedAt'> = {
+            const productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> = {
                 name: 'Test Product',
                 description: 'A test product',
                 priceInCents: 1999,
@@ -31,7 +31,7 @@ describe('Product Repository', () => {
                 maxProjects: null
             }
 
-            const dbData = keysToSnakeCase<typeof productData, Partial<IProductDbRow>>(productData)
+            const dbData = keysToSnakeCase<typeof productData, Partial<ProductDbRow>>(productData)
             const [insertedRow] = await db('products').insert(dbData).returning('*')
 
             const result = await getProductById({ id: insertedRow.id })
@@ -55,7 +55,7 @@ describe('Product Repository', () => {
 
     describe('getProductByExternalProductId', () => {
         it('should retrieve product by external product ID', async () => {
-            const productData: Omit<IProduct, 'id' | 'createdAt' | 'updatedAt'> = {
+            const productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> = {
                 name: 'External Test Product',
                 description: 'A test product with external ID',
                 priceInCents: 2999,
@@ -66,7 +66,7 @@ describe('Product Repository', () => {
                 maxProjects: null
             }
 
-            const dbData = keysToSnakeCase<typeof productData, Partial<IProductDbRow>>(productData)
+            const dbData = keysToSnakeCase<typeof productData, Partial<ProductDbRow>>(productData)
             const [insertedRow] = await db('products').insert(dbData).returning('*')
 
             const result = await getProductByExternalProductId({ id: productData.externalProductId! })
@@ -90,7 +90,7 @@ describe('Product Repository', () => {
         })
 
         it('should return all active products', async () => {
-            const activeProduct: Omit<IProduct, 'id' | 'createdAt' | 'updatedAt'> = {
+            const activeProduct: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> = {
                 name: 'Active Product',
                 description: 'An active product',
                 priceInCents: 1500,
@@ -101,7 +101,7 @@ describe('Product Repository', () => {
                 maxProjects: null
             }
 
-            const inactiveProduct: Omit<IProduct, 'id' | 'createdAt' | 'updatedAt'> = {
+            const inactiveProduct: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> = {
                 name: 'Inactive Product',
                 description: 'An inactive product',
                 priceInCents: 2500,
@@ -112,8 +112,8 @@ describe('Product Repository', () => {
                 maxProjects: null
             }
 
-            const activeDbData = keysToSnakeCase<typeof activeProduct, Partial<IProductDbRow>>(activeProduct)
-            const inactiveDbData = keysToSnakeCase<typeof inactiveProduct, Partial<IProductDbRow>>(inactiveProduct)
+            const activeDbData = keysToSnakeCase<typeof activeProduct, Partial<ProductDbRow>>(activeProduct)
+            const inactiveDbData = keysToSnakeCase<typeof inactiveProduct, Partial<ProductDbRow>>(inactiveProduct)
 
             await db('products').insert([activeDbData, inactiveDbData])
 
@@ -125,7 +125,7 @@ describe('Product Repository', () => {
         })
 
         it('should return multiple active products', async () => {
-            const product1: Omit<IProduct, 'id' | 'createdAt' | 'updatedAt'> = {
+            const product1: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> = {
                 name: 'Product 1',
                 description: 'First product',
                 priceInCents: 1000,
@@ -136,7 +136,7 @@ describe('Product Repository', () => {
                 maxProjects: null
             }
 
-            const product2: Omit<IProduct, 'id' | 'createdAt' | 'updatedAt'> = {
+            const product2: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> = {
                 name: 'Product 2',
                 description: 'Second product',
                 priceInCents: 2000,
@@ -147,8 +147,8 @@ describe('Product Repository', () => {
                 maxProjects: null
             }
 
-            const dbData1 = keysToSnakeCase<typeof product1, Partial<IProductDbRow>>(product1)
-            const dbData2 = keysToSnakeCase<typeof product2, Partial<IProductDbRow>>(product2)
+            const dbData1 = keysToSnakeCase<typeof product1, Partial<ProductDbRow>>(product1)
+            const dbData2 = keysToSnakeCase<typeof product2, Partial<ProductDbRow>>(product2)
 
             await db('products').insert([dbData1, dbData2])
 
@@ -163,7 +163,7 @@ describe('Product Repository', () => {
 
     describe('getFreeTierProduct', () => {
         it('should retrieve the free tier product', async () => {
-            const freeTierProduct: Omit<IProduct, 'id' | 'createdAt' | 'updatedAt'> = {
+            const freeTierProduct: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> = {
                 name: 'Free Tier',
                 description: 'Free tier with basic features',
                 priceInCents: 0,
@@ -174,7 +174,7 @@ describe('Product Repository', () => {
                 maxProjects: 5
             }
 
-            const paidProduct: Omit<IProduct, 'id' | 'createdAt' | 'updatedAt'> = {
+            const paidProduct: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> = {
                 name: 'Paid Product',
                 description: 'A paid product',
                 priceInCents: 2999,
@@ -185,8 +185,8 @@ describe('Product Repository', () => {
                 maxProjects: null
             }
 
-            const freeTierDbData = keysToSnakeCase<typeof freeTierProduct, Partial<IProductDbRow>>(freeTierProduct)
-            const paidDbData = keysToSnakeCase<typeof paidProduct, Partial<IProductDbRow>>(paidProduct)
+            const freeTierDbData = keysToSnakeCase<typeof freeTierProduct, Partial<ProductDbRow>>(freeTierProduct)
+            const paidDbData = keysToSnakeCase<typeof paidProduct, Partial<ProductDbRow>>(paidProduct)
 
             await db('products').insert([freeTierDbData, paidDbData])
 
@@ -200,7 +200,7 @@ describe('Product Repository', () => {
         })
 
         it('should throw error when no free tier product exists', async () => {
-            const paidProduct: Omit<IProduct, 'id' | 'createdAt' | 'updatedAt'> = {
+            const paidProduct: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> = {
                 name: 'Paid Product',
                 description: 'A paid product',
                 priceInCents: 2999,
@@ -211,7 +211,7 @@ describe('Product Repository', () => {
                 maxProjects: null
             }
 
-            const paidDbData = keysToSnakeCase<typeof paidProduct, Partial<IProductDbRow>>(paidProduct)
+            const paidDbData = keysToSnakeCase<typeof paidProduct, Partial<ProductDbRow>>(paidProduct)
             await db('products').insert(paidDbData)
 
             await expect(getFreeTierProduct()).rejects.toThrow(

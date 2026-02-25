@@ -1,10 +1,10 @@
 import knex from '../knex'
-import { IProduct, IProductDbRow } from '../../types/product'
+import { Product, ProductDbRow } from '../../types/product'
 import { keysToCamelCase } from '../../utils/case-conversion'
 
 const PRODUCTS_TABLE = 'products'
 
-export const getProductById = async ({ id }: { id: string }): Promise<IProduct | null> => {
+export const getProductById = async ({ id }: { id: string }): Promise<Product | null> => {
     const [row] = await knex(PRODUCTS_TABLE)
         .where({ id })
         .select()
@@ -13,10 +13,10 @@ export const getProductById = async ({ id }: { id: string }): Promise<IProduct |
         return null
     }
 
-    return keysToCamelCase<IProductDbRow, IProduct>(row)
+    return keysToCamelCase<ProductDbRow, Product>(row)
 }
 
-export const getProductByExternalProductId = async ({ id }: { id: string }): Promise<IProduct | null> => {
+export const getProductByExternalProductId = async ({ id }: { id: string }): Promise<Product | null> => {
     const [row] = await knex(PRODUCTS_TABLE)
         .where({ external_product_id: id })
         .select()
@@ -25,15 +25,15 @@ export const getProductByExternalProductId = async ({ id }: { id: string }): Pro
         return null
     }
 
-    return keysToCamelCase<IProductDbRow, IProduct>(row)
+    return keysToCamelCase<ProductDbRow, Product>(row)
 }
 
-export const getAllProducts = async (): Promise<IProduct[]> => {
+export const getAllProducts = async (): Promise<Product[]> => {
     const rows = await knex(PRODUCTS_TABLE)
         .where({ active: true })
         .select()
 
-    return rows.map(row => keysToCamelCase<IProductDbRow, IProduct>(row))
+    return rows.map(row => keysToCamelCase<ProductDbRow, Product>(row))
 }
 
 /**
@@ -41,7 +41,7 @@ export const getAllProducts = async (): Promise<IProduct[]> => {
  * NOTE: This should always return a product. If it throws an error,
  * you need to update your database seed to mark one product with is_free_tier = true.
  */
-export const getFreeTierProduct = async (): Promise<IProduct> => {
+export const getFreeTierProduct = async (): Promise<Product> => {
     const [row] = await knex(PRODUCTS_TABLE)
         .where({ is_free_tier: true })
         .select()
@@ -53,5 +53,5 @@ export const getFreeTierProduct = async (): Promise<IProduct> => {
         )
     }
 
-    return keysToCamelCase<IProductDbRow, IProduct>(row)
+    return keysToCamelCase<ProductDbRow, Product>(row)
 }

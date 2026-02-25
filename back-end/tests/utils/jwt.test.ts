@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 import { generateJwtToken, verifyJwtToken, decodeJwtToken } from '../../src/utils/jwt'
 import { CustomError, ZodValidationError } from '../../src/utils/errors'
-import { EStatusCodes } from '../../src/utils/status-codes'
+import { StatusCodes } from '../../src/utils/status-codes'
 import globalConfig from '../../src/utils/global-config'
 
 jest.mock('../../src/utils/global-config', () => ({
@@ -97,7 +97,7 @@ describe('JWT Utilities', () => {
                 verifyJwtToken({ token: 'invalid-token' })
             } catch (error) {
                 expect(error).toBeInstanceOf(CustomError)
-                expect((error as CustomError).statusCode).toBe(EStatusCodes.UNAUTHORIZED)
+                expect((error as CustomError).statusCode).toBe(StatusCodes.UNAUTHORIZED)
             }
         })
     })

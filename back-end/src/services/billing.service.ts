@@ -8,26 +8,26 @@ import {
 } from '../database/repositories/billing.repository'
 import { getFreeTierProduct } from '../database/repositories/product.repository'
 import { CustomError } from '../utils/errors'
-import { EStatusCodes } from '../utils/status-codes'
+import { StatusCodes } from '../utils/status-codes'
 import { unixTimestampToDate } from '../utils/time'
-import { IUpdateUserBillingInput } from '../types/billing'
+import { UpdateUserBillingInput } from '../types/billing'
 
 async function hasUserVerifiedEmail({ userId }: { userId: string }): Promise<void> {
 	const user = await getUserById({ id: userId })
 
 	if (!user) {
-		throw new CustomError('User not found', EStatusCodes.UNAUTHORIZED)
+		throw new CustomError('User not found', StatusCodes.UNAUTHORIZED)
 	}
 
 	if (!user.emailVerified) {
 		throw new CustomError(
 			'Please verify your email before making a purchase',
-			EStatusCodes.FORBIDDEN
+			StatusCodes.FORBIDDEN
 		)
 	}
 }
 
-export const registerUserBilling = async (input: IUpdateUserBillingInput) => {
+export const registerUserBilling = async (input: UpdateUserBillingInput) => {
 	const user = await getUserByEmail({ email: input.userEmail })
 	if (!user) {
 		throw new Error(`User with email "${input.userEmail}" not found`)

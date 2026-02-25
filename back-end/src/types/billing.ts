@@ -1,8 +1,8 @@
 import { z } from 'zod'
 import { createCheckoutSessionSchema, createPortalSessionSchema } from '../utils/validations/billing.schemas'
-import { IBaseModel } from "./base"
+import { BaseModel } from "./base"
 
-export interface IBilling extends IBaseModel {
+export interface Billing extends BaseModel {
   userId: string
   productId: string
   externalSubscriptionId: string
@@ -11,7 +11,7 @@ export interface IBilling extends IBaseModel {
   expiresAt: Date
 }
 
-export interface ICreateBilling {
+export interface CreateBilling {
   userId: string
   productId: string
   externalSubscriptionId: string
@@ -20,7 +20,7 @@ export interface ICreateBilling {
   expiresAt: Date
 }
 
-export interface IBillingDbRow {
+export interface BillingDbRow {
   id: string
   user_id: string
   product_id: string
@@ -32,7 +32,7 @@ export interface IBillingDbRow {
   updated_at: Date | null
 }
 
-export interface IUpdateUserBillingInput {
+export interface UpdateUserBillingInput {
 	userEmail: string
 	productId: string
 	externalCustomerId: string
@@ -40,15 +40,15 @@ export interface IUpdateUserBillingInput {
 	expiresAt: number
 }
 
-export interface ICreateCheckoutSessionResponse {
+export interface CreateCheckoutSessionResponse {
   id: string
   url: string
 }
 
-export interface ICreatePortalSessionResponse {
+export interface CreatePortalSessionResponse {
   url: string
 }
 
-export type TCreateCheckoutSessionInput = z.infer<typeof createCheckoutSessionSchema>
+export type CreateCheckoutSessionInput = z.infer<typeof createCheckoutSessionSchema>
 
-export type TCreatePortalSessionInput = z.infer<typeof createPortalSessionSchema>
+export type CreatePortalSessionInput = z.infer<typeof createPortalSessionSchema>

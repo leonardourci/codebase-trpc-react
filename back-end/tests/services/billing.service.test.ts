@@ -3,7 +3,7 @@ import {
     updateBillingOnPaymentFailed,
     updateBillingOnSubscriptionUpdated,
     updateBillingOnSubscriptionDeleted,
-    IUpdateUserBillingInput
+    UpdateUserBillingInput
 } from '../../src/services/billing.service'
 import * as userRepository from '../../src/database/repositories/user.repository'
 import * as billingRepository from '../../src/database/repositories/billing.repository'
@@ -23,7 +23,7 @@ describe('Billing Service', () => {
     })
 
     describe('registerUserBilling', () => {
-        const billingInput: IUpdateUserBillingInput = {
+        const billingInput: UpdateUserBillingInput = {
             userEmail: 'test@example.com',
             productId: 'product-123',
             externalCustomerId: 'cus_123',

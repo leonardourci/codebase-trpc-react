@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { verifyStripeWebhookSignatureMiddleware, IBillingRequest } from '../../src/middlewares/billing.middleware'
+import { verifyStripeWebhookSignatureMiddleware, BillingRequest } from '../../src/middlewares/billing.middleware'
 
 jest.mock('../../src/utils/stripe', () => ({
     webhooks: {
@@ -70,7 +70,7 @@ describe('Billing Middleware', () => {
                 'valid-signature',
                 'whsec_test_secret'
             )
-            expect((mockReq as IBillingRequest).billingEvent).toEqual(mockEvent)
+            expect((mockReq as BillingRequest).billingEvent).toEqual(mockEvent)
             expect(mockNext).toHaveBeenCalled()
             expect(mockRes.sendStatus).not.toHaveBeenCalled()
         })

@@ -6,7 +6,7 @@ import Logger from '../utils/logger'
 
 const logger = new Logger({ source: 'billing.middleware' })
 
-export interface IBillingRequest extends Request {
+export interface BillingRequest extends Request {
 	billingEvent?: Stripe.Event
 }
 
@@ -18,7 +18,7 @@ export const verifyStripeWebhookSignatureMiddleware = (req: Request, res: Respon
 	}
 
 	try {
-		; (req as IBillingRequest).billingEvent = stripe.webhooks.constructEvent(req.body, signature, globalConfig.stripeWebhookSecret)
+		; (req as BillingRequest).billingEvent = stripe.webhooks.constructEvent(req.body, signature, globalConfig.stripeWebhookSecret)
 		return next()
 	} catch (err: unknown) {
 		const errorMessage = err instanceof Error ? err.message : 'Unknown error'

@@ -4,10 +4,10 @@ import * as userRepository from '../../src/database/repositories/user.repository
 import * as productRepository from '../../src/database/repositories/product.repository'
 import * as jwt from '../../src/utils/jwt'
 import { CustomError } from '../../src/utils/errors'
-import { EStatusCodes } from '../../src/utils/status-codes'
-import { TLoginInput, TSignupInput } from '../../src/types/auth'
-import { TRefreshTokenInput } from '../../src/types/refreshToken'
-import { IUser } from '../../src/types/user'
+import { StatusCodes } from '../../src/utils/status-codes'
+import { LoginInput, SignupInput } from '../../src/types/auth'
+import { RefreshTokenInput } from '../../src/types/refreshToken'
+import { User } from '../../src/types/user'
 
 jest.mock('bcrypt')
 jest.mock('../../src/database/repositories/user.repository')
@@ -31,7 +31,7 @@ afterAll(() => {
     process.env = originalEnv
 })
 
-const createMockUser = (overrides?: Partial<IUser>): IUser => ({
+const createMockUser = (overrides?: Partial<User>): User => ({
     id: 'user-123',
     email: 'test@example.com',
     fullName: 'Test User',
@@ -54,7 +54,7 @@ describe('Auth Service', () => {
     })
 
     describe('authenticateUser', () => {
-        const loginInput: TLoginInput = {
+        const loginInput: LoginInput = {
             email: 'test@example.com',
             password: 'testPassword123'
         }
@@ -97,7 +97,7 @@ describe('Auth Service', () => {
             mockUserRepository.getUserByEmail.mockResolvedValue(null)
 
             await expect(authenticateUser(loginInput)).rejects.toThrow(
-                new CustomError('Email or password is wrong', EStatusCodes.UNAUTHORIZED)
+                new CustomError('Email or password is wrong', StatusCodes.UNAUTHORIZED)
             )
 
             expect(mockUserRepository.getUserByEmail).toHaveBeenCalledWith({ email: loginInput.email })
@@ -116,7 +116,7 @@ describe('Auth Service', () => {
             mockBcrypt.compareSync.mockReturnValue(false)
 
             await expect(authenticateUser(loginInput)).rejects.toThrow(
-                new CustomError('Email or password is wrong', EStatusCodes.UNAUTHORIZED)
+                new CustomError('Email or password is wrong', StatusCodes.UNAUTHORIZED)
             )
 
             expect(mockUserRepository.getUserByEmail).toHaveBeenCalledWith({ email: loginInput.email })
@@ -126,7 +126,7 @@ describe('Auth Service', () => {
     })
 
     describe('registerUser', () => {
-        const signupInput: TSignupInput = {
+        const signupInput: SignupInput = {
             fullName: 'Test User',
             email: 'test@example.com',
             phone: '+1234567890',
@@ -170,7 +170,7 @@ describe('Auth Service', () => {
     })
 
     describe('refreshAccessToken', () => {
-        const refreshTokenInput: TRefreshTokenInput = {
+        const refreshTokenInput: RefreshTokenInput = {
             refreshToken: 'valid-refresh-token'
         }
 
@@ -223,7 +223,7 @@ describe('Auth Service', () => {
             mockUserRepository.getUserByRefreshToken.mockResolvedValue(null)
 
             await expect(refreshAccessToken(refreshTokenInput)).rejects.toThrow(
-                new CustomError('Invalid refresh token', EStatusCodes.UNAUTHORIZED)
+                new CustomError('Invalid refresh token', StatusCodes.UNAUTHORIZED)
             )
 
             expect(mockJwt.verifyJwtToken).toHaveBeenCalledWith({ token: refreshTokenInput.refreshToken })

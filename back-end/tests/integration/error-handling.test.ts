@@ -1,9 +1,9 @@
 import { createTestClient, createAuthenticatedTestClient } from '../setup/test-client'
 import { startTestServer, stopTestServer } from '../setup/test-server'
 import { cleanTestData, closeTestDb, getTestDb, seedFreeTierProduct } from '../setup/test-db'
-import type { TSignupInput, TLoginInput } from '../../src/types/auth'
-import type { TCreateCheckoutSessionInput, TCreatePortalSessionInput } from '../../src/types/billing'
-import { IProduct, IProductDbRow } from '../../src/types/product'
+import type { SignupInput, LoginInput } from '../../src/types/auth'
+import type { CreateCheckoutSessionInput, CreatePortalSessionInput } from '../../src/types/billing'
+import { Product, ProductDbRow } from '../../src/types/product'
 import { keysToSnakeCase, keysToCamelCase } from '../../src/utils/case-conversion'
 import { mockStripe, setupStripeMocks, resetStripeMocks } from '../mocks/stripe.mock'
 
@@ -36,7 +36,7 @@ describe('Error Handling Integration Tests', () => {
         setupStripeMocks()
 
         // Create test user and product for authenticated tests
-        const userData: TSignupInput = {
+        const userData: SignupInput = {
             fullName: 'Test User',
             email: 'test@example.com',
             phone: '+1234567890',
@@ -58,7 +58,7 @@ describe('Error Handling Integration Tests', () => {
         validToken = loginResponse.accessToken
         authenticatedClient = createAuthenticatedTestClient(baseUrl, validToken)
 
-        const productData: Omit<IProduct, 'id' | 'createdAt' | 'updatedAt'> = {
+        const productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> = {
             name: 'Test Product',
             description: 'A test product for error testing',
             priceInCents: 2999,
@@ -67,12 +67,12 @@ describe('Error Handling Integration Tests', () => {
             active: true
         }
 
-        const dbData = keysToSnakeCase<typeof productData, Partial<IProductDbRow>>(productData)
+        const dbData = keysToSnakeCase<typeof productData, Partial<ProductDbRow>>(productData)
         const [insertedRow] = await db('products')
             .insert(dbData)
             .returning('*')
 
-        testProduct = keysToCamelCase<IProductDbRow, IProduct>(insertedRow)
+        testProduct = keysToCamelCase<ProductDbRow, Product>(insertedRow)
     })
 
     afterEach(async () => {
@@ -88,7 +88,7 @@ describe('Error Handling Integration Tests', () => {
                     phone: '+1234567890',
                     password: 'password123',
                     age: 25
-                } as TSignupInput
+                } as SignupInput
 
                 try {
                     await testClient.auth.signup.mutate(invalidSignupData)
@@ -104,7 +104,7 @@ describe('Error Handling Integration Tests', () => {
                     email: 'test@example.com',
                     password: 'password123'
                     // Missing fullName, phone, age
-                } as TSignupInput
+                } as SignupInput
 
                 try {
                     await testClient.auth.signup.mutate(incompleteSignupData)
@@ -116,7 +116,7 @@ describe('Error Handling Integration Tests', () => {
             })
 
             it('should return validation error for invalid password length', async () => {
-                const invalidPasswordData: TSignupInput = {
+                const invalidPasswordData: SignupInput = {
                     fullName: 'John Doe',
                     email: 'john@example.com',
                     phone: '+1234567890',
@@ -137,7 +137,7 @@ describe('Error Handling Integration Tests', () => {
             })
 
             it('should return validation error for invalid age', async () => {
-                const invalidAgeData: TSignupInput = {
+                const invalidAgeData: SignupInput = {
                     fullName: 'John Doe',
                     email: 'john@example.com',
                     phone: '+1234567890',
@@ -158,7 +158,7 @@ describe('Error Handling Integration Tests', () => {
                 const invalidLoginData = {
                     email: 'not-an-email',
                     password: ''
-                } as TLoginInput
+                } as LoginInput
 
                 try {
                     await testClient.auth.login.mutate(invalidLoginData)
@@ -172,7 +172,7 @@ describe('Error Handling Integration Tests', () => {
 
         describe('Billing Validation Errors', () => {
             it('should return validation error for invalid checkout session URLs', async () => {
-                const invalidCheckoutData: TCreateCheckoutSessionInput = {
+                const invalidCheckoutData: CreateCheckoutSessionInput = {
                     productId: testProduct.id,
                     successUrl: 'not-a-valid-url',
                     cancelUrl: 'also-not-valid',
@@ -189,7 +189,7 @@ describe('Error Handling Integration Tests', () => {
             })
 
             it('should return validation error for empty product ID in checkout', async () => {
-                const invalidCheckoutData: TCreateCheckoutSessionInput = {
+                const invalidCheckoutData: CreateCheckoutSessionInput = {
                     productId: '',
                     successUrl: 'https://example.com/success',
                     cancelUrl: 'https://example.com/cancel',
@@ -206,7 +206,7 @@ describe('Error Handling Integration Tests', () => {
             })
 
             it('should return validation error for invalid portal session return URL', async () => {
-                const invalidPortalData: TCreatePortalSessionInput = {
+                const invalidPortalData: CreatePortalSessionInput = {
                     returnUrl: 'invalid-url-format',
                     token: `Bearer ${validToken}`
                 }
@@ -294,7 +294,7 @@ describe('Error Handling Integration Tests', () => {
         })
 
         it('should return authentication error for invalid login credentials', async () => {
-            const invalidCredentials: TLoginInput = {
+            const invalidCredentials: LoginInput = {
                 email: 'nonexistent@example.com',
                 password: 'wrongpassword'
             }
@@ -309,7 +309,7 @@ describe('Error Handling Integration Tests', () => {
         })
 
         it('should return authentication error for wrong password with existing user', async () => {
-            const wrongPasswordCredentials: TLoginInput = {
+            const wrongPasswordCredentials: LoginInput = {
                 email: testUser.email,
                 password: 'wrongpassword123'
             }
@@ -335,7 +335,7 @@ describe('Error Handling Integration Tests', () => {
 
         it('should return not found error for non-existent product in checkout session', async () => {
             const nonExistentProductId = '550e8400-e29b-41d4-a716-446655440000'
-            const checkoutData: TCreateCheckoutSessionInput = {
+            const checkoutData: CreateCheckoutSessionInput = {
                 productId: nonExistentProductId,
                 successUrl: 'https://example.com/success',
                 cancelUrl: 'https://example.com/cancel',
@@ -357,7 +357,7 @@ describe('Error Handling Integration Tests', () => {
             await seedFreeTierProduct()
 
             // Recreate user without billing
-            const userData: TSignupInput = {
+            const userData: SignupInput = {
                 fullName: 'No Billing User',
                 email: 'nobilling@example.com',
                 phone: '+1234567890',
@@ -377,7 +377,7 @@ describe('Error Handling Integration Tests', () => {
             })
             const noBillingClient = createAuthenticatedTestClient(baseUrl, loginResponse.accessToken)
 
-            const portalData: TCreatePortalSessionInput = {
+            const portalData: CreatePortalSessionInput = {
                 returnUrl: 'https://example.com/dashboard',
             }
 
@@ -404,7 +404,7 @@ describe('Error Handling Integration Tests', () => {
                 phone: '+1234567890',
                 password: 'password123',
                 age: 25
-            } as TSignupInput
+            } as SignupInput
 
             try {
                 await testClient.auth.signup.mutate(malformedData)
@@ -418,7 +418,7 @@ describe('Error Handling Integration Tests', () => {
         })
 
         it('should not expose sensitive information in error messages', async () => {
-            const invalidCredentials: TLoginInput = {
+            const invalidCredentials: LoginInput = {
                 email: 'test@example.com',
                 password: 'wrongpassword'
             }
@@ -442,7 +442,7 @@ describe('Error Handling Integration Tests', () => {
                 new Error('Stripe API temporarily unavailable')
             )
 
-            const checkoutData: TCreateCheckoutSessionInput = {
+            const checkoutData: CreateCheckoutSessionInput = {
                 productId: testProduct.id,
                 successUrl: 'https://example.com/success',
                 cancelUrl: 'https://example.com/cancel',
@@ -462,7 +462,7 @@ describe('Error Handling Integration Tests', () => {
 
     describe('Error Message Quality', () => {
         it('should provide meaningful error messages for validation failures', async () => {
-            const invalidData: TSignupInput = {
+            const invalidData: SignupInput = {
                 fullName: '',
                 email: 'invalid-email',
                 phone: 'invalid-phone',
@@ -485,7 +485,7 @@ describe('Error Handling Integration Tests', () => {
         })
 
         it('should provide clear error messages for authentication failures', async () => {
-            const invalidLogin: TLoginInput = {
+            const invalidLogin: LoginInput = {
                 email: 'nonexistent@example.com',
                 password: 'wrongpassword'
             }
@@ -506,7 +506,7 @@ describe('Error Handling Integration Tests', () => {
 
         it('should provide appropriate error messages for resource not found', async () => {
             const nonExistentProductId = '550e8400-e29b-41d4-a716-446655440000'
-            const checkoutData: TCreateCheckoutSessionInput = {
+            const checkoutData: CreateCheckoutSessionInput = {
                 productId: nonExistentProductId,
                 successUrl: 'https://example.com/success',
                 cancelUrl: 'https://example.com/cancel',
@@ -532,7 +532,7 @@ describe('Error Handling Integration Tests', () => {
                 new Error('Internal database connection failed')
             )
 
-            const checkoutData: TCreateCheckoutSessionInput = {
+            const checkoutData: CreateCheckoutSessionInput = {
                 productId: testProduct.id,
                 successUrl: 'https://example.com/success',
                 cancelUrl: 'https://example.com/cancel',
@@ -553,7 +553,7 @@ describe('Error Handling Integration Tests', () => {
 
     describe('Duplicate Resource Error Handling', () => {
         it('should return conflict error for duplicate email registration', async () => {
-            const userData: TSignupInput = {
+            const userData: SignupInput = {
                 fullName: 'Duplicate User',
                 email: 'duplicate@example.com',
                 phone: '+1234567890',

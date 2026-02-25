@@ -4,11 +4,11 @@ import { OAuth2Client } from 'google-auth-library'
 
 import { generateJwtToken, verifyJwtToken, verifyJwtTokenSimple } from '../utils/jwt'
 import { CustomError } from '../utils/errors'
-import { EStatusCodes } from '../utils/status-codes'
+import { StatusCodes } from '../utils/status-codes'
 import { sendVerificationEmail, sendPasswordResetEmail } from './email.service'
-import { TLoginInput, ILoginResponse, TSignupInput } from '../types/auth'
-import { TRefreshTokenInput, IRefreshTokenResponse } from '../types/refreshToken'
-import { ETokenPurpose } from '../types/jwt'
+import { LoginInput, LoginResponse, SignupInput } from '../types/auth'
+import { RefreshTokenInput, RefreshTokenResponse } from '../types/refreshToken'
+import { TokenPurpose } from '../types/jwt'
 import {
 	createUser,
 	getUserByEmail,
@@ -19,7 +19,7 @@ import {
 } from '../database/repositories/user.repository'
 import { getFreeTierProduct } from '../database/repositories/product.repository'
 import { removeUserSensitive } from './user.service'
-import { IUser, IUserProfile } from '../types/user'
+import { User, UserProfile } from '../types/user'
 import globalConfig from '../utils/global-config'
 import Logger from '../utils/logger'
 
@@ -32,12 +32,12 @@ export interface IGoogleAuthInput {
 	credential: string
 }
 
-const generateTokens = ({ userId }: { userId: IUser['id'] }): { accessToken: string, refreshToken: string } => ({
+const generateTokens = ({ userId }: { userId: User['id'] }): { accessToken: string, refreshToken: string } => ({
 	accessToken: generateJwtToken({ userId }, { expiresIn: '1h' }),
 	refreshToken: generateJwtToken({ userId }, { expiresIn: '7d' })
 })
 
-export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<ILoginResponse> {
+export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<LoginResponse> {
 	const { credential } = input
 
 	let payload
@@ -48,11 +48,11 @@ export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<I
 		})
 		payload = ticket.getPayload()
 	} catch {
-		throw new CustomError('Invalid Google token', EStatusCodes.UNAUTHORIZED)
+		throw new CustomError('Invalid Google token', StatusCodes.UNAUTHORIZED)
 	}
 
 	if (!payload || !payload.sub || !payload.email) {
-		throw new CustomError('Invalid Google token payload', EStatusCodes.UNAUTHORIZED)
+		throw new CustomError('Invalid Google token payload', StatusCodes.UNAUTHORIZED)
 	}
 
 	const googleId = payload.sub
@@ -100,14 +100,14 @@ export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<I
 	}
 }
 
-export async function authenticateUser(input: TLoginInput): Promise<ILoginResponse> {
+export async function authenticateUser(input: LoginInput): Promise<LoginResponse> {
 	const user = await getUserByEmail({ email: input.email })
 
-	if (!user) throw new CustomError('Email or password is wrong', EStatusCodes.UNAUTHORIZED)
+	if (!user) throw new CustomError('Email or password is wrong', StatusCodes.UNAUTHORIZED)
 
 	const isValidPassword = bcrypt.compareSync(input.password, user.passwordHash)
 
-	if (!isValidPassword) throw new CustomError('Email or password is wrong', EStatusCodes.UNAUTHORIZED)
+	if (!isValidPassword) throw new CustomError('Email or password is wrong', StatusCodes.UNAUTHORIZED)
 
 	const { accessToken, refreshToken } = generateTokens({ userId: user.id })
 
@@ -119,7 +119,7 @@ export async function authenticateUser(input: TLoginInput): Promise<ILoginRespon
 	}
 }
 
-export async function registerUser({ password, ...input }: TSignupInput): Promise<IUserProfile> {
+export async function registerUser({ password, ...input }: SignupInput): Promise<UserProfile> {
 	const passwordHash = bcrypt.hashSync(password, Number(HASH_SALT) ?? '')
 
 	const defaultProduct = await getFreeTierProduct()
@@ -132,7 +132,7 @@ export async function registerUser({ password, ...input }: TSignupInput): Promis
 	})
 
 	const verificationToken = generateJwtToken(
-		{ userId: user.id, purpose: ETokenPurpose.EMAIL_VERIFICATION },
+		{ userId: user.id, purpose: TokenPurpose.EMAIL_VERIFICATION },
 		{ expiresIn: '30m' }
 	)
 
@@ -155,13 +155,13 @@ export async function registerUser({ password, ...input }: TSignupInput): Promis
 	return removeUserSensitive({ user })
 }
 
-export async function refreshAccessToken(input: TRefreshTokenInput): Promise<IRefreshTokenResponse> {
+export async function refreshAccessToken(input: RefreshTokenInput): Promise<RefreshTokenResponse> {
 	verifyJwtToken({ token: input.refreshToken })
 
 	const user = await getUserByRefreshToken({ refreshToken: input.refreshToken })
 
 	if (!user) {
-		throw new CustomError('Invalid refresh token', EStatusCodes.UNAUTHORIZED)
+		throw new CustomError('Invalid refresh token', StatusCodes.UNAUTHORIZED)
 	}
 
 	const { accessToken, refreshToken } = generateTokens({ userId: user.id })
@@ -181,19 +181,19 @@ export async function revokeUserRefreshToken({ userId }: { userId: string }): Pr
 export async function verifyUserEmail({ token }: { token: string }): Promise<void> {
 	const decoded = verifyJwtTokenSimple({ token })
 
-	if (decoded.purpose !== ETokenPurpose.EMAIL_VERIFICATION) {
-		throw new CustomError('Invalid verification token', EStatusCodes.BAD_REQUEST)
+	if (decoded.purpose !== TokenPurpose.EMAIL_VERIFICATION) {
+		throw new CustomError('Invalid verification token', StatusCodes.BAD_REQUEST)
 	}
 
 	const user = await getUserById({ id: decoded.userId })
 
 	if (!user) {
-		throw new CustomError('Invalid verification token', EStatusCodes.BAD_REQUEST)
+		throw new CustomError('Invalid verification token', StatusCodes.BAD_REQUEST)
 	}
 
 	// Verify token matches what's stored (prevent token reuse after resend)
 	if (user.emailVerificationToken !== token) {
-		throw new CustomError('Invalid or expired verification token', EStatusCodes.BAD_REQUEST)
+		throw new CustomError('Invalid or expired verification token', StatusCodes.BAD_REQUEST)
 	}
 
 	if (user.emailVerified) {
@@ -213,15 +213,15 @@ export async function resendVerificationEmail({ userId }: { userId: string }): P
 	const user = await getUserById({ id: userId })
 
 	if (!user) {
-		throw new CustomError('User not found', EStatusCodes.NOT_FOUND)
+		throw new CustomError('User not found', StatusCodes.NOT_FOUND)
 	}
 
 	if (user.emailVerified) {
-		throw new CustomError('Email already verified', EStatusCodes.BAD_REQUEST)
+		throw new CustomError('Email already verified', StatusCodes.BAD_REQUEST)
 	}
 
 	const verificationToken = generateJwtToken(
-		{ userId: user.id, purpose: ETokenPurpose.EMAIL_VERIFICATION },
+		{ userId: user.id, purpose: TokenPurpose.EMAIL_VERIFICATION },
 		{ expiresIn: '30m' }
 	)
 
@@ -246,7 +246,7 @@ export async function forgotPassword({ email }: { email: string }): Promise<void
 	}
 
 	const resetToken = generateJwtToken(
-		{ userId: user.id, purpose: ETokenPurpose.PASSWORD_RESET },
+		{ userId: user.id, purpose: TokenPurpose.PASSWORD_RESET },
 		{ expiresIn: '15m' }
 	)
 
@@ -260,14 +260,14 @@ export async function forgotPassword({ email }: { email: string }): Promise<void
 export async function resetPassword({ token, newPassword }: { token: string; newPassword: string }): Promise<void> {
 	const decoded = verifyJwtTokenSimple({ token })
 
-	if (decoded.purpose !== ETokenPurpose.PASSWORD_RESET) {
-		throw new CustomError('Invalid reset token', EStatusCodes.BAD_REQUEST)
+	if (decoded.purpose !== TokenPurpose.PASSWORD_RESET) {
+		throw new CustomError('Invalid reset token', StatusCodes.BAD_REQUEST)
 	}
 
 	const user = await getUserById({ id: decoded.userId })
 
 	if (!user) {
-		throw new CustomError('Invalid reset token', EStatusCodes.BAD_REQUEST)
+		throw new CustomError('Invalid reset token', StatusCodes.BAD_REQUEST)
 	}
 
 	const passwordHash = bcrypt.hashSync(newPassword, Number(globalConfig.hashSalt))

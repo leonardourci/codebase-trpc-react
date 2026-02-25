@@ -1,9 +1,9 @@
 import { z } from 'zod'
-import { ENodeEnvs } from '../../types/envs'
+import { NodeEnv } from '../../types/envs'
 import { DEFAULT_FRONTEND_LOCALHOST } from '../global-config'
 
 export const globalEnvsSchema = z.object({
-    NODE_ENV: z.enum([ENodeEnvs.DEVELOPMENT, ENodeEnvs.PRODUCTION, ENodeEnvs.TEST]).default(ENodeEnvs.DEVELOPMENT),
+    NODE_ENV: z.enum([NodeEnv.DEVELOPMENT, NodeEnv.PRODUCTION, NodeEnv.TEST]).default(NodeEnv.DEVELOPMENT),
     REST_PORT: z.coerce.number().int().positive(),
     DATABASE_CONNECTION_STRING: z.string().min(1, 'Database connection string is required'),
     HASH_SALT: z.coerce.number().int().positive(),

@@ -1,8 +1,8 @@
 import { createTestClient, createAuthenticatedTestClient } from '../setup/test-client'
 import { startTestServer, stopTestServer } from '../setup/test-server'
 import { cleanTestData, closeTestDb, getTestDb, seedFreeTierProduct } from '../setup/test-db'
-import type { TSignupInput } from '../../src/types/auth'
-import type { IUserProfile, TUpdateUserInput } from '../../src/types/user'
+import type { SignupInput } from '../../src/types/auth'
+import type { UserProfile, UpdateUserInput } from '../../src/types/user'
 
 describe('User Management Integration Tests', () => {
     let baseUrl: string
@@ -28,7 +28,7 @@ describe('User Management Integration Tests', () => {
 
     describe('Get User Profile', () => {
         let authenticatedClient: ReturnType<typeof createAuthenticatedTestClient>
-        let registeredUser: TSignupInput
+        let registeredUser: SignupInput
 
         beforeEach(async () => {
             registeredUser = {
@@ -50,7 +50,7 @@ describe('User Management Integration Tests', () => {
         })
 
         it('should successfully get user profile with valid authentication', async () => {
-            const profile: IUserProfile = await authenticatedClient.user.getUserById.query() as IUserProfile
+            const profile: UserProfile = await authenticatedClient.user.getUserById.query() as UserProfile
 
             expect(profile).toBeDefined()
             expect(profile.id).toBeDefined()
@@ -79,7 +79,7 @@ describe('User Management Integration Tests', () => {
 
     describe('Update User Profile', () => {
         let authenticatedClient: ReturnType<typeof createAuthenticatedTestClient>
-        let registeredUser: TSignupInput
+        let registeredUser: SignupInput
 
         beforeEach(async () => {
             registeredUser = {
@@ -101,7 +101,7 @@ describe('User Management Integration Tests', () => {
         })
 
         it('should successfully update user full name', async () => {
-            const updateData: TUpdateUserInput = {
+            const updateData: UpdateUserInput = {
                 fullName: 'Jane Doe Smith'
             }
 
@@ -115,7 +115,7 @@ describe('User Management Integration Tests', () => {
         })
 
         it('should successfully update user email', async () => {
-            const updateData: TUpdateUserInput = {
+            const updateData: UpdateUserInput = {
                 email: 'jane.newemail@example.com'
             }
 
@@ -127,7 +127,7 @@ describe('User Management Integration Tests', () => {
         })
 
         it('should successfully update user phone', async () => {
-            const updateData: TUpdateUserInput = {
+            const updateData: UpdateUserInput = {
                 phone: '+1555999888'
             }
 
@@ -139,7 +139,7 @@ describe('User Management Integration Tests', () => {
         })
 
         it('should successfully update user age', async () => {
-            const updateData: TUpdateUserInput = {
+            const updateData: UpdateUserInput = {
                 age: 35
             }
 
@@ -151,7 +151,7 @@ describe('User Management Integration Tests', () => {
         })
 
         it('should successfully update multiple fields at once', async () => {
-            const updateData: TUpdateUserInput = {
+            const updateData: UpdateUserInput = {
                 fullName: 'Jane Updated Smith',
                 phone: '+1777888999',
                 age: 32
@@ -167,7 +167,7 @@ describe('User Management Integration Tests', () => {
         })
 
         it('should reject update with invalid email format', async () => {
-            const updateData: TUpdateUserInput = {
+            const updateData: UpdateUserInput = {
                 email: 'invalid-email-format'
             }
 
@@ -176,7 +176,7 @@ describe('User Management Integration Tests', () => {
         })
 
         it('should reject update with invalid age (negative)', async () => {
-            const updateData: TUpdateUserInput = {
+            const updateData: UpdateUserInput = {
                 age: -5
             }
 
@@ -185,7 +185,7 @@ describe('User Management Integration Tests', () => {
         })
 
         it('should reject update with invalid age (non-integer)', async () => {
-            const updateData: TUpdateUserInput = {
+            const updateData: UpdateUserInput = {
                 age: 25.5
             }
 
@@ -194,7 +194,7 @@ describe('User Management Integration Tests', () => {
         })
 
         it('should reject update with empty full name', async () => {
-            const updateData: TUpdateUserInput = {
+            const updateData: UpdateUserInput = {
                 fullName: ''
             }
 
@@ -203,7 +203,7 @@ describe('User Management Integration Tests', () => {
         })
 
         it('should reject update with short full name', async () => {
-            const updateData: TUpdateUserInput = {
+            const updateData: UpdateUserInput = {
                 fullName: 'Jo'
             }
 
@@ -212,7 +212,7 @@ describe('User Management Integration Tests', () => {
         })
 
         it('should reject update with empty phone', async () => {
-            const updateData: TUpdateUserInput = {
+            const updateData: UpdateUserInput = {
                 phone: ''
             }
 
@@ -221,7 +221,7 @@ describe('User Management Integration Tests', () => {
         })
 
         it('should reject update with no fields provided', async () => {
-            const updateData: TUpdateUserInput = {}
+            const updateData: UpdateUserInput = {}
 
             await expect(authenticatedClient.user.updateUserById.mutate(updateData))
                 .rejects.toThrow()
@@ -229,7 +229,7 @@ describe('User Management Integration Tests', () => {
 
         it('should reject update without authentication', async () => {
             const unauthenticatedClient = createTestClient(baseUrl)
-            const updateData: TUpdateUserInput = {
+            const updateData: UpdateUserInput = {
                 fullName: 'Should Not Work'
             }
 
@@ -239,7 +239,7 @@ describe('User Management Integration Tests', () => {
 
         it('should reject update with invalid token', async () => {
             const invalidClient = createAuthenticatedTestClient(baseUrl, 'invalid.jwt.token')
-            const updateData: TUpdateUserInput = {
+            const updateData: UpdateUserInput = {
                 fullName: 'Should Not Work'
             }
 
@@ -250,7 +250,7 @@ describe('User Management Integration Tests', () => {
 
     describe('User Profile Management Flow', () => {
         it('should complete full registration -> login -> get profile -> update profile flow', async () => {
-            const userData: TSignupInput = {
+            const userData: SignupInput = {
                 fullName: 'Alice Johnson',
                 email: 'alice.johnson@example.com',
                 phone: '+1555123456',
@@ -270,11 +270,11 @@ describe('User Management Integration Tests', () => {
 
             const authenticatedClient = createAuthenticatedTestClient(baseUrl, loginResponse.accessToken)
 
-            const profile = await authenticatedClient.user.getUserById.query() as IUserProfile
+            const profile = await authenticatedClient.user.getUserById.query() as UserProfile
             expect(profile.fullName).toBe(userData.fullName)
             expect(profile.email).toBe(userData.email)
 
-            const updateData: TUpdateUserInput = {
+            const updateData: UpdateUserInput = {
                 fullName: 'Alice Updated Johnson',
                 age: 29
             }
@@ -284,7 +284,7 @@ describe('User Management Integration Tests', () => {
             expect(updatedProfile!.age).toBe(updateData.age)
             expect(updatedProfile!.email).toBe(userData.email) // Should remain unchanged
 
-            const finalProfile = await authenticatedClient.user.getUserById.query() as IUserProfile
+            const finalProfile = await authenticatedClient.user.getUserById.query() as UserProfile
             expect(finalProfile.fullName).toBe(updateData.fullName)
             expect(finalProfile.age).toBe(updateData.age)
             expect(finalProfile.email).toBe(userData.email)

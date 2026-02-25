@@ -1,7 +1,7 @@
 import { createTestClient } from '../setup/test-client'
 import { startTestServer, stopTestServer } from '../setup/test-server'
 import { cleanTestData, closeTestDb, getTestDb } from '../setup/test-db'
-import { type IProduct, type IProductDbRow } from '../../src/types/product'
+import { type Product, type ProductDbRow } from '../../src/types/product'
 import { keysToCamelCase, keysToSnakeCase } from '../../src/utils/case-conversion'
 
 const PRODUCTS_TABLE = 'products'
@@ -28,8 +28,8 @@ describe('Product Integration Tests', () => {
         await cleanTestData()
     })
 
-    const createTestProduct = async (overrides: Partial<IProduct> = {}): Promise<IProduct> => {
-        const productData: Omit<IProduct, 'id' | 'createdAt' | 'updatedAt'> & Partial<Pick<IProduct, 'id' | 'createdAt' | 'updatedAt'>> = {
+    const createTestProduct = async (overrides: Partial<Product> = {}): Promise<Product> => {
+        const productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> & Partial<Pick<Product, 'id' | 'createdAt' | 'updatedAt'>> = {
             name: 'Test Product',
             description: 'A test product for integration testing',
             priceInCents: 2999,
@@ -41,12 +41,12 @@ describe('Product Integration Tests', () => {
             ...overrides
         }
 
-        const dbData = keysToSnakeCase<typeof productData, Partial<IProductDbRow>>(productData)
+        const dbData = keysToSnakeCase<typeof productData, Partial<ProductDbRow>>(productData)
         const [insertedRow] = await testDb(PRODUCTS_TABLE)
             .insert(dbData)
             .returning('*')
 
-        return keysToCamelCase<IProductDbRow, IProduct>(insertedRow)
+        return keysToCamelCase<ProductDbRow, Product>(insertedRow)
     }
 
     describe('Product Retrieval by ID', () => {

@@ -2,7 +2,7 @@ import { TRPCError } from '@trpc/server'
 import { Request, Response } from 'express'
 import { transformErrorToTRPC, createTRPCContext } from '../../src/trpc/trpc'
 import { CustomError, ZodValidationError } from '../../src/utils/errors'
-import { EStatusCodes } from '../../src/utils/status-codes'
+import { StatusCodes } from '../../src/utils/status-codes'
 import { ZodError } from 'zod'
 
 describe('tRPC Utilities', () => {
@@ -22,7 +22,7 @@ describe('tRPC Utilities', () => {
             expect(result.code).toBe('UNPROCESSABLE_CONTENT')
             expect(result.message).toBe('Validation failed')
             expect(result.cause).toHaveProperty('messages', ['field: Field is required'])
-            expect(result.cause).toHaveProperty('statusCode', EStatusCodes.UNPROCESSABLE)
+            expect(result.cause).toHaveProperty('statusCode', StatusCodes.UNPROCESSABLE)
         })
 
         it('should transform ZodValidationError with multiple issues', () => {
@@ -41,44 +41,44 @@ describe('tRPC Utilities', () => {
             expect(result.code).toBe('UNPROCESSABLE_CONTENT')
             expect(result.message).toBe('Validation failed')
             expect(result.cause).toHaveProperty('messages', ['field1: Field is required', 'field2: Must be a string'])
-            expect(result.cause).toHaveProperty('statusCode', EStatusCodes.UNPROCESSABLE)
+            expect(result.cause).toHaveProperty('statusCode', StatusCodes.UNPROCESSABLE)
         })
 
         it('should transform CustomError with UNAUTHORIZED status to TRPCError', () => {
-            const customError = new CustomError('Access denied', EStatusCodes.UNAUTHORIZED)
+            const customError = new CustomError('Access denied', StatusCodes.UNAUTHORIZED)
 
             const result = transformErrorToTRPC(customError)
 
             expect(result).toBeInstanceOf(TRPCError)
             expect(result.code).toBe('UNAUTHORIZED')
             expect(result.message).toBe('Access denied')
-            expect(result.cause).toHaveProperty('statusCode', EStatusCodes.UNAUTHORIZED)
+            expect(result.cause).toHaveProperty('statusCode', StatusCodes.UNAUTHORIZED)
         })
 
         it('should transform CustomError with NOT_FOUND status to TRPCError', () => {
-            const customError = new CustomError('Resource not found', EStatusCodes.NOT_FOUND)
+            const customError = new CustomError('Resource not found', StatusCodes.NOT_FOUND)
 
             const result = transformErrorToTRPC(customError)
 
             expect(result).toBeInstanceOf(TRPCError)
             expect(result.code).toBe('NOT_FOUND')
             expect(result.message).toBe('Resource not found')
-            expect(result.cause).toHaveProperty('statusCode', EStatusCodes.NOT_FOUND)
+            expect(result.cause).toHaveProperty('statusCode', StatusCodes.NOT_FOUND)
         })
 
         it('should transform CustomError with CONFLICT status to TRPCError', () => {
-            const customError = new CustomError('Resource already exists', EStatusCodes.CONFLICT)
+            const customError = new CustomError('Resource already exists', StatusCodes.CONFLICT)
 
             const result = transformErrorToTRPC(customError)
 
             expect(result).toBeInstanceOf(TRPCError)
             expect(result.code).toBe('CONFLICT')
             expect(result.message).toBe('Resource already exists')
-            expect(result.cause).toHaveProperty('statusCode', EStatusCodes.CONFLICT)
+            expect(result.cause).toHaveProperty('statusCode', StatusCodes.CONFLICT)
         })
 
         it('should transform CustomError with PRECONDITION_FAILED status to TRPCError', () => {
-            const customError = new CustomError('Precondition failed', EStatusCodes.PRECONDITION_FAILED)
+            const customError = new CustomError('Precondition failed', StatusCodes.PRECONDITION_FAILED)
 
             const result = transformErrorToTRPC(customError)
 
@@ -88,7 +88,7 @@ describe('tRPC Utilities', () => {
         })
 
         it('should transform CustomError with NOT_ACCEPTABLE status to TRPCError', () => {
-            const customError = new CustomError('Not acceptable', EStatusCodes.NOT_ACCEPTABLE)
+            const customError = new CustomError('Not acceptable', StatusCodes.NOT_ACCEPTABLE)
 
             const result = transformErrorToTRPC(customError)
 
@@ -98,14 +98,14 @@ describe('tRPC Utilities', () => {
         })
 
         it('should transform CustomError with INTERNAL status to TRPCError', () => {
-            const customError = new CustomError('Internal server error', EStatusCodes.INTERNAL_SERVER_ERROR)
+            const customError = new CustomError('Internal server error', StatusCodes.INTERNAL_SERVER_ERROR)
 
             const result = transformErrorToTRPC(customError)
 
             expect(result).toBeInstanceOf(TRPCError)
             expect(result.code).toBe('INTERNAL_SERVER_ERROR')
             expect(result.message).toBe('Internal server error')
-            expect(result.cause).toHaveProperty('statusCode', EStatusCodes.INTERNAL_SERVER_ERROR)
+            expect(result.cause).toHaveProperty('statusCode', StatusCodes.INTERNAL_SERVER_ERROR)
         })
 
         it('should transform CustomError with unknown status code to INTERNAL_SERVER_ERROR', () => {

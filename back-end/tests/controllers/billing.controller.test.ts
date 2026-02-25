@@ -1,9 +1,9 @@
 import { Request, Response } from 'express'
 import { processBillingWebhookHandler } from '../../src/controllers/billing.controller'
-import { IBillingRequest } from '../../src/middlewares/billing.middleware'
+import { BillingRequest } from '../../src/middlewares/billing.middleware'
 import * as productRepository from '../../src/database/repositories/product.repository'
 import * as billingService from '../../src/services/billing.service'
-import { EStatusCodes } from '../../src/utils/status-codes'
+import { StatusCodes } from '../../src/utils/status-codes'
 import { unixTimestampToDate } from '../../src/utils/time'
 
 // Mock dependencies
@@ -18,7 +18,7 @@ const MOCK_INVOICE_PERIOD_END = 1640995200 // Dec 31, 2021 16:00:00 UTC - Invoic
 const MOCK_SUBSCRIPTION_CURRENT_PERIOD_END = 1641081600 // Jan 2, 2022 00:00:00 UTC - Subscription item's current_period_end
 
 describe('Billing Controller', () => {
-    let mockReq: Partial<IBillingRequest>
+    let mockReq: Partial<BillingRequest>
     let mockRes: Partial<Response>
     let mockNext: jest.Mock
 
@@ -37,7 +37,7 @@ describe('Billing Controller', () => {
         it('should throw error when billingEvent is missing', async () => {
             mockReq.billingEvent = undefined
 
-            await expect(processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response))
+            await expect(processBillingWebhookHandler(mockReq as BillingRequest, mockRes as Response))
                 .rejects.toThrow('req.billingEvent is missing in processBillingWebhookHandler')
         })
 
@@ -76,7 +76,7 @@ describe('Billing Controller', () => {
                 mockProductRepository.getProductByExternalProductId.mockResolvedValue(mockProduct as any)
                 mockBillingService.registerUserBilling.mockResolvedValue(undefined)
 
-                await processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)
+                await processBillingWebhookHandler(mockReq as BillingRequest, mockRes as Response)
 
                 expect(mockProductRepository.getProductByExternalProductId).toHaveBeenCalledWith({
                     id: 'prod_external_123'
@@ -88,7 +88,7 @@ describe('Billing Controller', () => {
                     externalSubscriptionId: 'sub_123',
                     expiresAt: MOCK_INVOICE_PERIOD_END,
                 })
-                expect(mockRes.status).toHaveBeenCalledWith(EStatusCodes.OK)
+                expect(mockRes.status).toHaveBeenCalledWith(StatusCodes.OK)
                 expect(mockRes.send).toHaveBeenCalledWith('Webhook processed successfully')
             })
 
@@ -118,7 +118,7 @@ describe('Billing Controller', () => {
 
                 mockProductRepository.getProductByExternalProductId.mockResolvedValue(null)
 
-                await expect(processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response))
+                await expect(processBillingWebhookHandler(mockReq as BillingRequest, mockRes as Response))
                     .rejects.toThrow('Product with external ID "prod_nonexistent" not found')
             })
 
@@ -136,11 +136,11 @@ describe('Billing Controller', () => {
                     }
                 } as any
 
-                await processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)
+                await processBillingWebhookHandler(mockReq as BillingRequest, mockRes as Response)
 
                 expect(mockProductRepository.getProductByExternalProductId).not.toHaveBeenCalled()
                 expect(mockBillingService.registerUserBilling).not.toHaveBeenCalled()
-                expect(mockRes.status).toHaveBeenCalledWith(EStatusCodes.OK)
+                expect(mockRes.status).toHaveBeenCalledWith(StatusCodes.OK)
                 expect(mockRes.send).toHaveBeenCalledWith('Webhook processed successfully')
             })
         })
@@ -165,10 +165,10 @@ describe('Billing Controller', () => {
 
                 mockBillingService.updateBillingOnPaymentFailed.mockResolvedValue(undefined)
 
-                await processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)
+                await processBillingWebhookHandler(mockReq as BillingRequest, mockRes as Response)
 
                 expect(mockBillingService.updateBillingOnPaymentFailed).toHaveBeenCalledWith('sub_123')
-                expect(mockRes.status).toHaveBeenCalledWith(EStatusCodes.OK)
+                expect(mockRes.status).toHaveBeenCalledWith(StatusCodes.OK)
                 expect(mockRes.send).toHaveBeenCalledWith('Webhook processed successfully')
             })
 
@@ -189,7 +189,7 @@ describe('Billing Controller', () => {
                     }
                 } as any
 
-                await expect(processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response))
+                await expect(processBillingWebhookHandler(mockReq as BillingRequest, mockRes as Response))
                     .rejects.toThrow('Subscription missing from invoice line item')
             })
         })
@@ -215,14 +215,14 @@ describe('Billing Controller', () => {
 
                 mockBillingService.updateBillingOnSubscriptionUpdated.mockResolvedValue(undefined)
 
-                await processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)
+                await processBillingWebhookHandler(mockReq as BillingRequest, mockRes as Response)
 
                 expect(mockBillingService.updateBillingOnSubscriptionUpdated).toHaveBeenCalledWith({
                     externalSubscriptionId: 'sub_123',
                     status: 'active',
                     currentPeriodEnd: unixTimestampToDate(MOCK_INVOICE_PERIOD_END)
                 })
-                expect(mockRes.status).toHaveBeenCalledWith(EStatusCodes.OK)
+                expect(mockRes.status).toHaveBeenCalledWith(StatusCodes.OK)
             })
 
             it('should process subscription updated without cancel_at_period_end', async () => {
@@ -244,14 +244,14 @@ describe('Billing Controller', () => {
 
                 mockBillingService.updateBillingOnSubscriptionUpdated.mockResolvedValue(undefined)
 
-                await processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)
+                await processBillingWebhookHandler(mockReq as BillingRequest, mockRes as Response)
 
                 expect(mockBillingService.updateBillingOnSubscriptionUpdated).toHaveBeenCalledWith({
                     externalSubscriptionId: 'sub_123',
                     status: 'active',
                     currentPeriodEnd: unixTimestampToDate(MOCK_SUBSCRIPTION_CURRENT_PERIOD_END)
                 })
-                expect(mockRes.status).toHaveBeenCalledWith(EStatusCodes.OK)
+                expect(mockRes.status).toHaveBeenCalledWith(StatusCodes.OK)
             })
 
             it('should throw error when subscription items missing current_period_end', async () => {
@@ -269,7 +269,7 @@ describe('Billing Controller', () => {
                     }
                 } as any
 
-                await expect(processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response))
+                await expect(processBillingWebhookHandler(mockReq as BillingRequest, mockRes as Response))
                     .rejects.toThrow('Subscription item missing current_period_end')
             })
         })
@@ -288,10 +288,10 @@ describe('Billing Controller', () => {
 
                 mockBillingService.updateBillingOnSubscriptionDeleted.mockResolvedValue(undefined)
 
-                await processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)
+                await processBillingWebhookHandler(mockReq as BillingRequest, mockRes as Response)
 
                 expect(mockBillingService.updateBillingOnSubscriptionDeleted).toHaveBeenCalledWith('sub_123')
-                expect(mockRes.status).toHaveBeenCalledWith(EStatusCodes.OK)
+                expect(mockRes.status).toHaveBeenCalledWith(StatusCodes.OK)
                 expect(mockRes.send).toHaveBeenCalledWith('Webhook processed successfully')
             })
         })
@@ -304,9 +304,9 @@ describe('Billing Controller', () => {
                 }
             } as any
 
-            await processBillingWebhookHandler(mockReq as IBillingRequest, mockRes as Response)
+            await processBillingWebhookHandler(mockReq as BillingRequest, mockRes as Response)
 
-            expect(mockRes.status).toHaveBeenCalledWith(EStatusCodes.OK)
+            expect(mockRes.status).toHaveBeenCalledWith(StatusCodes.OK)
             expect(mockRes.send).toHaveBeenCalledWith('Webhook processed successfully')
         })
     })

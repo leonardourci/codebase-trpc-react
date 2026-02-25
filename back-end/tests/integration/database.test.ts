@@ -2,9 +2,9 @@ import { getTestDb, closeTestDb, cleanTestData, seedFreeTierProduct } from '../s
 import { createUser, getUserById, getUserByEmail, updateUserById } from '../../src/database/repositories/user.repository'
 import { getProductById, getAllProducts } from '../../src/database/repositories/product.repository'
 import { createBilling, getBillingByUserId, updateBillingById } from '../../src/database/repositories/billing.repository'
-import type { ICreateUserInput, IUser } from '../../src/types/user'
-import type { IProduct } from '../../src/types/product'
-import type { ICreateBilling, IBilling } from '../../src/types/billing'
+import type { CreateUserInput, User } from '../../src/types/user'
+import type { Product } from '../../src/types/product'
+import type { CreateBilling, Billing } from '../../src/types/billing'
 import { Knex } from 'knex'
 
 describe('Database Integration Tests', () => {
@@ -103,7 +103,7 @@ describe('Database Integration Tests', () => {
     })
 
     describe('User Model CRUD Operations', () => {
-        const testUserData: ICreateUserInput = {
+        const testUserData: CreateUserInput = {
             fullName: 'Test User',
             email: 'test@example.com',
             passwordHash: 'hashedPassword123',
@@ -171,7 +171,7 @@ describe('Database Integration Tests', () => {
     })
 
     describe('Product Model CRUD Operations', () => {
-        let testProduct: IProduct
+        let testProduct: Product
 
         beforeEach(async () => {
             // Insert test product directly into database
@@ -247,8 +247,8 @@ describe('Database Integration Tests', () => {
     })
 
     describe('Billing Model CRUD Operations', () => {
-        let testUser: IUser
-        let testProduct: IProduct
+        let testUser: User
+        let testProduct: Product
 
         beforeEach(async () => {
             const createdUser = await createUser({
@@ -258,7 +258,7 @@ describe('Database Integration Tests', () => {
                 age: 30,
                 phone: '+1987654321'
             })
-            testUser = await getUserById({ id: createdUser.id }) as IUser
+            testUser = await getUserById({ id: createdUser.id }) as User
 
             const [productRow] = await db('products').insert({
                 name: 'Billing Test Product',
@@ -287,7 +287,7 @@ describe('Database Integration Tests', () => {
         })
 
         it('should create a new billing record', async () => {
-            const billingData: ICreateBilling = {
+            const billingData: CreateBilling = {
                 userId: testUser.id,
                 productId: testProduct.id,
                 externalSubscriptionId: 'sub_test123',
@@ -306,7 +306,7 @@ describe('Database Integration Tests', () => {
         })
 
         it('should retrieve billing by user ID', async () => {
-            const billingData: ICreateBilling = {
+            const billingData: CreateBilling = {
                 userId: testUser.id,
                 productId: testProduct.id,
                 externalSubscriptionId: 'sub_test456',
@@ -324,7 +324,7 @@ describe('Database Integration Tests', () => {
         })
 
         it('should update billing record', async () => {
-            const billingData: ICreateBilling = {
+            const billingData: CreateBilling = {
                 userId: testUser.id,
                 productId: testProduct.id,
                 externalSubscriptionId: 'sub_test789',
@@ -356,7 +356,7 @@ describe('Database Integration Tests', () => {
 
     describe('Database Constraint Enforcement', () => {
         it('should enforce unique email constraint on users table', async () => {
-            const userData: ICreateUserInput = {
+            const userData: CreateUserInput = {
                 fullName: 'Constraint Test User',
                 email: 'constraint@example.com',
                 passwordHash: 'hashedPassword123',
@@ -383,7 +383,7 @@ describe('Database Integration Tests', () => {
                 active: true
             }).returning('*')
 
-            const billingData: ICreateBilling = {
+            const billingData: CreateBilling = {
                 userId: nonExistentUserId,
                 productId: productRow.id,
                 externalSubscriptionId: 'sub_fk123',
@@ -406,7 +406,7 @@ describe('Database Integration Tests', () => {
 
             const nonExistentProductId = '00000000-0000-0000-0000-000000000000'
 
-            const billingData: ICreateBilling = {
+            const billingData: CreateBilling = {
                 userId: user.id,
                 productId: nonExistentProductId,
                 externalSubscriptionId: 'sub_fk456',
@@ -454,7 +454,7 @@ describe('Database Integration Tests', () => {
                 active: true
             }).returning('*')
 
-            const billingData: ICreateBilling = {
+            const billingData: CreateBilling = {
                 userId: user.id,
                 productId: productRow.id,
                 externalSubscriptionId: 'sub_cascade123',

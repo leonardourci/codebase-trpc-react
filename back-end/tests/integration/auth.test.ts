@@ -1,7 +1,7 @@
 import { createTestClient, createAuthenticatedTestClient } from '../setup/test-client'
 import { startTestServer, stopTestServer } from '../setup/test-server'
 import { cleanTestData, closeTestDb, getTestDb, seedFreeTierProduct } from '../setup/test-db'
-import type { TSignupInput, TLoginInput } from '../../src/types/auth'
+import type { SignupInput, LoginInput } from '../../src/types/auth'
 import jwt from 'jsonwebtoken'
 import globalConfig from '../../src/utils/global-config'
 
@@ -29,7 +29,7 @@ describe('Authentication Integration Tests', () => {
 
     describe('User Registration', () => {
         it('should successfully register a new user with valid data', async () => {
-            const signupData: TSignupInput = {
+            const signupData: SignupInput = {
                 fullName: 'John Doe',
                 email: 'john.doe@example.com',
                 phone: '+1234567890',
@@ -49,7 +49,7 @@ describe('Authentication Integration Tests', () => {
         })
 
         it('should reject registration with invalid email format', async () => {
-            const signupData: TSignupInput = {
+            const signupData: SignupInput = {
                 fullName: 'John Doe',
                 email: 'invalid-email',
                 phone: '+1234567890',
@@ -66,14 +66,14 @@ describe('Authentication Integration Tests', () => {
                 email: 'john.doe@example.com',
                 password: 'securePassword123'
                 // Missing fullName, phone, age
-            } as TSignupInput
+            } as SignupInput
 
             await expect(testClient.auth.signup.mutate(signupData))
                 .rejects.toThrow()
         })
 
         it('should reject registration with duplicate email', async () => {
-            const signupData: TSignupInput = {
+            const signupData: SignupInput = {
                 fullName: 'John Doe',
                 email: 'john.doe@example.com',
                 phone: '+1234567890',
@@ -89,7 +89,7 @@ describe('Authentication Integration Tests', () => {
     })
 
     describe('User Login', () => {
-        let registeredUser: TSignupInput
+        let registeredUser: SignupInput
 
         beforeEach(async () => {
             registeredUser = {
@@ -103,7 +103,7 @@ describe('Authentication Integration Tests', () => {
         })
 
         it('should successfully login with valid credentials', async () => {
-            const loginData: TLoginInput = {
+            const loginData: LoginInput = {
                 email: registeredUser.email,
                 password: registeredUser.password
             }
@@ -120,7 +120,7 @@ describe('Authentication Integration Tests', () => {
         })
 
         it('should reject login with invalid email', async () => {
-            const loginData: TLoginInput = {
+            const loginData: LoginInput = {
                 email: 'nonexistent@example.com',
                 password: registeredUser.password
             }
@@ -130,7 +130,7 @@ describe('Authentication Integration Tests', () => {
         })
 
         it('should reject login with invalid password', async () => {
-            const loginData: TLoginInput = {
+            const loginData: LoginInput = {
                 email: registeredUser.email,
                 password: 'wrongPassword'
             }
@@ -140,7 +140,7 @@ describe('Authentication Integration Tests', () => {
         })
 
         it('should reject login with malformed email', async () => {
-            const loginData: TLoginInput = {
+            const loginData: LoginInput = {
                 email: 'invalid-email-format',
                 password: registeredUser.password
             }
@@ -152,7 +152,7 @@ describe('Authentication Integration Tests', () => {
 
     describe('JWT Token Validation and Protected Endpoints', () => {
         let validToken: string
-        let registeredUser: TSignupInput
+        let registeredUser: SignupInput
 
         beforeEach(async () => {
             registeredUser = {
@@ -222,7 +222,7 @@ describe('Authentication Integration Tests', () => {
 
     describe('Authentication Flow Integration', () => {
         it('should complete full registration -> login -> protected access flow', async () => {
-            const userData: TSignupInput = {
+            const userData: SignupInput = {
                 fullName: 'Bob Wilson',
                 email: 'bob.wilson@example.com',
                 phone: '+1444555666',

@@ -7,8 +7,8 @@ import {
     updateBillingById
 } from '../../src/database/repositories/billing.repository'
 import { createUser } from '../../src/database/repositories/user.repository'
-import { ICreateBilling, IBilling } from '../../src/types/billing'
-import { IProduct, IProductDbRow } from '../../src/types/product'
+import { CreateBilling, Billing } from '../../src/types/billing'
+import { Product, ProductDbRow } from '../../src/types/product'
 import { keysToSnakeCase } from '../../src/utils/case-conversion'
 
 describe('Billing Repository', () => {
@@ -38,7 +38,7 @@ describe('Billing Repository', () => {
         })
 
         // Create test product
-        const productData: Omit<IProduct, 'id' | 'createdAt' | 'updatedAt'> = {
+        const productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> = {
             name: 'Test Product',
             description: 'A test product for billing',
             priceInCents: 2999,
@@ -49,14 +49,14 @@ describe('Billing Repository', () => {
             maxProjects: null
         }
 
-        const dbData = keysToSnakeCase<typeof productData, Partial<IProductDbRow>>(productData)
+        const dbData = keysToSnakeCase<typeof productData, Partial<ProductDbRow>>(productData)
         const [insertedRow] = await db('products').insert(dbData).returning('*')
         testProduct = insertedRow
     })
 
     describe('createBilling', () => {
         it('should create a new billing record', async () => {
-            const billingData: ICreateBilling = {
+            const billingData: CreateBilling = {
                 userId: testUser.id,
                 productId: testProduct.id,
                 externalSubscriptionId: 'sub_test123',
@@ -82,7 +82,7 @@ describe('Billing Repository', () => {
 
     describe('getBillingByUserId', () => {
         it('should retrieve billing by user ID', async () => {
-            const billingData: ICreateBilling = {
+            const billingData: CreateBilling = {
                 userId: testUser.id,
                 productId: testProduct.id,
                 externalSubscriptionId: 'sub_test456',
@@ -109,7 +109,7 @@ describe('Billing Repository', () => {
 
     describe('updateBillingByUserId', () => {
         it('should update billing expiration date', async () => {
-            const billingData: ICreateBilling = {
+            const billingData: CreateBilling = {
                 userId: testUser.id,
                 productId: testProduct.id,
                 externalSubscriptionId: 'sub_test789',
@@ -136,7 +136,7 @@ describe('Billing Repository', () => {
     describe('getBillingByExternalSubscriptionId', () => {
         it('should retrieve billing by external subscription ID', async () => {
             const externalSubscriptionId = 'sub_external_123'
-            const billingData: ICreateBilling = {
+            const billingData: CreateBilling = {
                 userId: testUser.id,
                 productId: testProduct.id,
                 externalSubscriptionId,
@@ -162,10 +162,10 @@ describe('Billing Repository', () => {
     })
 
     describe('updateBillingById', () => {
-        let testBilling: IBilling
+        let testBilling: Billing
 
         beforeEach(async () => {
-            const billingData: ICreateBilling = {
+            const billingData: CreateBilling = {
                 userId: testUser.id,
                 productId: testProduct.id,
                 externalSubscriptionId: 'sub_update_test',

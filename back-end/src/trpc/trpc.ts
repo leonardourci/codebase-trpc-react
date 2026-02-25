@@ -2,11 +2,11 @@ import { initTRPC, TRPCError } from '@trpc/server'
 import { Request, Response } from 'express'
 
 import Logger from '../utils/logger'
-import { IUser } from '../types/user'
+import { User } from '../types/user'
 import { CustomError, ZodValidationError } from '../utils/errors'
-import { EStatusCodes } from '../utils/status-codes'
+import { StatusCodes } from '../utils/status-codes'
 import globalConfig from '../utils/global-config'
-import { ENodeEnvs } from '../types/envs'
+import { NodeEnv } from '../types/envs'
 
 type TRPCErrorCode =
   | 'BAD_REQUEST'
@@ -25,13 +25,13 @@ type TRPCErrorCode =
   | 'INTERNAL_SERVER_ERROR'
 
 const ERROR_STATUS_CODE_TO_TRPC_CODE: Record<number, TRPCErrorCode> = {
-  [EStatusCodes.UNAUTHORIZED]: 'UNAUTHORIZED',
-  [EStatusCodes.NOT_FOUND]: 'NOT_FOUND',
-  [EStatusCodes.NOT_ACCEPTABLE]: 'BAD_REQUEST',
-  [EStatusCodes.CONFLICT]: 'CONFLICT',
-  [EStatusCodes.PRECONDITION_FAILED]: 'PRECONDITION_FAILED',
-  [EStatusCodes.UNPROCESSABLE]: 'UNPROCESSABLE_CONTENT',
-  [EStatusCodes.INTERNAL_SERVER_ERROR]: 'INTERNAL_SERVER_ERROR'
+  [StatusCodes.UNAUTHORIZED]: 'UNAUTHORIZED',
+  [StatusCodes.NOT_FOUND]: 'NOT_FOUND',
+  [StatusCodes.NOT_ACCEPTABLE]: 'BAD_REQUEST',
+  [StatusCodes.CONFLICT]: 'CONFLICT',
+  [StatusCodes.PRECONDITION_FAILED]: 'PRECONDITION_FAILED',
+  [StatusCodes.UNPROCESSABLE]: 'UNPROCESSABLE_CONTENT',
+  [StatusCodes.INTERNAL_SERVER_ERROR]: 'INTERNAL_SERVER_ERROR'
 }
 
 const mapStatusCodeToTRPCCode = (statusCode: number): TRPCErrorCode => {
@@ -73,7 +73,7 @@ export const transformErrorToTRPC = (error: unknown): TRPCError => {
   })
 }
 export interface ITRPCContext {
-  user?: IUser
+  user?: User
   req: Request
   res: Response
 }
@@ -88,7 +88,7 @@ export const createTRPCContext = (opts: { req: Request; res: Response }): ITRPCC
 
 const t = initTRPC.context<ITRPCContext>().create({
   errorFormatter({ shape, error }) {
-    const isProduction = globalConfig.nodeEnv === ENodeEnvs.PRODUCTION
+    const isProduction = globalConfig.nodeEnv === NodeEnv.PRODUCTION
 
     // In production, remove sensitive data like stack traces and internal paths
     // In development, keep full error details for debugging

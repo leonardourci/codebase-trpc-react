@@ -10,6 +10,7 @@ import { OtherAvailablePlans } from '@/components/billing/OtherAvailablePlans'
 import { trpc } from '@/lib/trpc'
 import { useAuth } from '@/hooks/useAuth'
 import { PRICING_PLANS } from '@/constants/pricing'
+import { logger } from '@/utils/logger'
 
 export function BillingPage() {
     const { user, refreshUser } = useAuth()
@@ -43,7 +44,7 @@ export function BillingPage() {
                 try {
                     await refreshUser()
                 } catch (refreshError) {
-                    console.error('Failed to refresh user data:', refreshError)
+                    logger.error('Failed to refresh user data', refreshError)
                 }
 
                 setShowVerificationError(true)

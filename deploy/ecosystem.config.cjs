@@ -1,23 +1,13 @@
-// PM2 ecosystem config
-// Usage: pm2 start deploy/ecosystem.config.cjs
 module.exports = {
-  apps: [
-    {
-      name: 'api-codebase-express-react',
-      script: 'dist/server.js',
-      cwd: './back-end',
-      instances: 1,
-      autorestart: true,
-      watch: false,
-      max_memory_restart: '300M',
-      env: {
-        NODE_ENV: 'production',
-      },
-      env_file: '.env.backend',
-      log_date_format: 'YYYY-MM-DD HH:mm:ss',
-      error_file: './logs/api-error.log',
-      out_file: './logs/api-out.log',
-      merge_logs: true,
-    },
-  ],
+  apps: [{
+    name: 'api',                    // change per project to avoid PM2 conflicts
+    script: 'dist/server.js',
+    cwd: './back-end',
+    autorestart: true,
+    max_memory_restart: '300M',
+    env_file: '.env.backend',
+    env: { NODE_ENV: 'production' },
+    out_file: './logs/api.log',
+    error_file: './logs/api-error.log',
+  }],
 }

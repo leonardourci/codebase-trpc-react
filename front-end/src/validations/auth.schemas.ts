@@ -20,10 +20,10 @@ export const signupSchema = signupBaseSchema.extend({
     path: ["confirmPassword"],
 })
 
-export type TLoginInput = z.infer<typeof loginSchema>
+export type LoginInput = z.infer<typeof loginSchema>
 export type TSignUpFormInput = z.infer<typeof signupSchema>
-export type TSignupInput = z.infer<typeof signupBaseSchema>
+export type SignupInput = z.infer<typeof signupBaseSchema>
 
-export type LoginFormData = TLoginInput
+export type LoginFormData = LoginInput
 export type SignupFormData = TSignUpFormInput
-export type SignupBaseData = TSignupInput
+export type SignupBaseData = SignupInput

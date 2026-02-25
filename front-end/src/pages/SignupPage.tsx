@@ -8,7 +8,7 @@ import { ErrorMessage } from '@/components/ui/error-message'
 import { useAuth } from '@/hooks/useAuth'
 import { useFormValidation } from '@/hooks/useFormValidation'
 import { TSignUpFormInput, signupSchema } from '@/validations/auth.schemas'
-import { TSignupInput } from '@/types/auth'
+import { SignupInput } from '@/lib/trpc-types'
 import { Header } from '@/components/layout/Header'
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton'
 import { AuthDivider } from '@/components/auth/AuthDivider'
@@ -36,7 +36,7 @@ export function SignupPage() {
 
     const onSubmit = async (data: TSignUpFormInput) => {
         const { confirmPassword, ...signupData } = data
-        await signup(signupData as TSignupInput)
+        await signup(signupData as SignupInput)
         navigate('/dashboard')
     }
 

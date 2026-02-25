@@ -1,19 +1,19 @@
 import { useState, useCallback } from 'react'
 import { userService } from '../services/user.service'
-import { type IUserProfile, type TUpdateUserInput as IUpdateUserInput } from '@/types/user'
+import { type UserProfile, type UpdateUserInput as IUpdateUserInput } from '@/lib/trpc-types'
 
 export interface UseUserReturn {
     isLoading: boolean
     error: string | null
-    getProfile: () => Promise<IUserProfile>
-    updateProfile: (updates: IUpdateUserInput) => Promise<IUserProfile>
+    getProfile: () => Promise<UserProfile>
+    updateProfile: (updates: IUpdateUserInput) => Promise<UserProfile>
 }
 
 export function useUser(): UseUserReturn {
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    const getProfile = useCallback(async (): Promise<IUserProfile> => {
+    const getProfile = useCallback(async (): Promise<UserProfile> => {
         setIsLoading(true)
         setError(null)
 
@@ -32,7 +32,7 @@ export function useUser(): UseUserReturn {
         }
     }, [])
 
-    const updateProfile = useCallback(async (updates: IUpdateUserInput): Promise<IUserProfile> => {
+    const updateProfile = useCallback(async (updates: IUpdateUserInput): Promise<UserProfile> => {
         setIsLoading(true)
         setError(null)
 

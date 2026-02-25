@@ -1,6 +1,4 @@
-import { IProduct } from "@/types"
-
-export const PRICING_PLANS: IProduct[] = [
+export const PRICING_PLANS = [
     {
         id: 'basic',
         name: 'basic',
@@ -45,6 +43,6 @@ export const PRICING_PLANS: IProduct[] = [
             'SLA guarantee'
         ]
     }
-]
+] as const
 
 export type PricingPlan = typeof PRICING_PLANS[number]

@@ -4,10 +4,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
-import type { IProduct } from '@/types'
+import type { Product } from '@/lib/trpc-types'
 
 interface SubscriptionPricingGridProps {
-    plans: IProduct[]
+    plans: Product[]
     onSubscribe?: (productId: string) => void
     checkoutLoading?: string | null
     isEmailVerified?: boolean

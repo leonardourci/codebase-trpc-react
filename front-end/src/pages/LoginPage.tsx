@@ -7,7 +7,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { ErrorMessage } from '@/components/ui/error-message'
 import { useAuth } from '@/hooks/useAuth'
 import { useFormValidation } from '@/hooks/useFormValidation'
-import { TLoginInput } from '@/types/auth'
+import { LoginInput } from '@/lib/trpc-types'
 import { loginSchema } from '@/validations/auth.schemas'
 import { Header } from '@/components/layout/Header'
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton'
@@ -22,12 +22,12 @@ export function LoginPage() {
         errors,
         handleInputChange,
         handleSubmit,
-    } = useFormValidation<TLoginInput>(
+    } = useFormValidation<LoginInput>(
         { email: '', password: '' },
         loginSchema
     )
 
-    const onSubmit = async (data: TLoginInput) => {
+    const onSubmit = async (data: LoginInput) => {
         await login(data)
         navigate('/dashboard')
     }

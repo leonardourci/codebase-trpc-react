@@ -7,7 +7,7 @@ import { ErrorMessage } from '@/components/ui/error-message'
 import { useAuth } from '@/hooks/useAuth'
 import { useFormValidation } from '@/hooks/useFormValidation'
 import { signupSchema, type TSignUpFormInput } from '@/validations/auth.schemas'
-import { type TSignupInput } from '@/types/auth'
+import { type SignupInput } from '@/lib/trpc-types'
 
 export function SignupForm({ onSuccess }: { onSuccess?: () => void }) {
     const { signup, isLoading } = useAuth()
@@ -33,7 +33,7 @@ export function SignupForm({ onSuccess }: { onSuccess?: () => void }) {
     const onSubmit = async (data: TSignUpFormInput) => {
         // Remove confirmPassword before sending to API
         const { confirmPassword, ...signupData } = data
-        await signup(signupData as TSignupInput)
+        await signup(signupData as SignupInput)
         onSuccess?.()
         navigate('/dashboard')
     }

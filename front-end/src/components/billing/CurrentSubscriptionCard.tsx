@@ -3,11 +3,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { cn } from '@/lib/utils'
-import type { IBilling, IProduct } from '@/types'
+import type { Billing, Product } from '@/lib/trpc-types'
 
 interface CurrentSubscriptionCardProps {
-    billing: IBilling
-    product: IProduct
+    billing: Billing
+    product: Product
     onManageSubscription: () => void
     isLoading: boolean
 }

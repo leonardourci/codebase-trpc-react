@@ -7,10 +7,10 @@ import {
     hasValidAccessToken,
     getUser,
 } from '../utils/auth'
-import type { TLoginInput, TSignupInput, ILoginResponse, IUserProfile } from '@/types'
+import type { LoginInput, SignupInput, LoginResponse, UserProfile } from '@/lib/trpc-types'
 
 export interface IAuthResponse {
-    user: IUserProfile
+    user: UserProfile
     accessToken: string
     refreshToken: string
 }
@@ -18,8 +18,8 @@ export interface IAuthResponse {
 export class AuthService {
     private refreshPromise: Promise<void> | null = null
 
-    async login(credentials: TLoginInput): Promise<IAuthResponse> {
-        const response: ILoginResponse = await trpcClient.auth.login.mutate(credentials)
+    async login(credentials: LoginInput): Promise<IAuthResponse> {
+        const response: LoginResponse = await trpcClient.auth.login.mutate(credentials)
 
         setTokens(response.accessToken, response.refreshToken)
 
@@ -39,7 +39,7 @@ export class AuthService {
     }
 
     async googleLogin(credential: string): Promise<IAuthResponse> {
-        const response: ILoginResponse = await trpcClient.auth.google.mutate({ credential })
+        const response: LoginResponse = await trpcClient.auth.google.mutate({ credential })
 
         setTokens(response.accessToken, response.refreshToken)
 
@@ -58,7 +58,7 @@ export class AuthService {
         }
     }
 
-    async signup(userData: TSignupInput): Promise<IAuthResponse> {
+    async signup(userData: SignupInput): Promise<IAuthResponse> {
         await trpcClient.auth.signup.mutate(userData)
 
         // For signup, we need to login to get tokens since signup doesn't return them
@@ -111,7 +111,7 @@ export class AuthService {
         }
     }
 
-    getCurrentUser(): IUserProfile | null {
+    getCurrentUser(): UserProfile | null {
         return getUser()
     }
 

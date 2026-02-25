@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { authService, type IAuthResponse } from '../services/auth.service'
 import { getUser, isAuthenticated, AUTH_STATE_CHANGE_EVENT, setUser, getAccessToken } from '../utils/auth'
-import { IUserProfile } from '@/types'
-import { TLoginInput, TSignupInput } from '@/validations'
+import { UserProfile } from '@/lib/trpc-types'
+import { LoginInput, SignupInput } from '@/validations'
 import { globalConfig } from '@/utils/global-config'
 
 export interface AuthState {
-    user: IUserProfile | null
+    user: UserProfile | null
     isAuthenticated: boolean
     isLoading: boolean
     error: string | null
@@ -54,7 +54,7 @@ export function useAuth() {
         }
     }, [])
 
-    const login = async (credentials: TLoginInput): Promise<IAuthResponse> => {
+    const login = async (credentials: LoginInput): Promise<IAuthResponse> => {
         setAuthState(prev => ({ ...prev, isLoading: true, error: null }))
 
         try {
@@ -100,7 +100,7 @@ export function useAuth() {
         }
     }
 
-    const signup = async (userData: TSignupInput): Promise<IAuthResponse> => {
+    const signup = async (userData: SignupInput): Promise<IAuthResponse> => {
         setAuthState(prev => ({ ...prev, isLoading: true, error: null }))
 
         try {
@@ -196,7 +196,7 @@ export function useAuth() {
             }
 
             const data = await response.json()
-            const freshUser: IUserProfile = data.result.data
+            const freshUser: UserProfile = data.result.data
 
             // Update both localStorage and React state with fresh data from the database
             setUser(freshUser)

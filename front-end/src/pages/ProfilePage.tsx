@@ -8,7 +8,7 @@ import { ErrorMessage } from '@/components/ui/error-message'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { useUser } from '@/hooks/useUser'
 import { useFormValidation } from '@/hooks/useFormValidation'
-import type { IUserProfile, TUpdateUserInput } from '@/types/user'
+import type { UserProfile, UpdateUserInput } from '@/lib/trpc-types'
 import { User, Save } from 'lucide-react'
 import { updateUserSchema } from '@/validations/user.schemas'
 import { maskEmail, maskPhone } from '@/utils/format'
@@ -16,7 +16,7 @@ import { trpc } from '@/lib/trpc'
 
 export function ProfilePage() {
     const { isLoading, error, getProfile, updateProfile } = useUser()
-    const [profile, setProfile] = useState<IUserProfile | null>(null)
+    const [profile, setProfile] = useState<UserProfile | null>(null)
     const [successMessage, setSuccessMessage] = useState<string | null>(null)
     const resendMutation = trpc.auth.resendVerificationEmail.useMutation()
 
@@ -27,7 +27,7 @@ export function ProfilePage() {
         handleInputChange,
         handleSubmit,
         isSubmitting,
-    } = useFormValidation<TUpdateUserInput>(
+    } = useFormValidation<UpdateUserInput>(
         {
             fullName: '',
             email: '',
@@ -56,8 +56,8 @@ export function ProfilePage() {
         loadProfile()
     }, [getProfile, setFormData])
 
-    const onSubmit = async (data: TUpdateUserInput) => {
-        const updates: TUpdateUserInput = {}
+    const onSubmit = async (data: UpdateUserInput) => {
+        const updates: UpdateUserInput = {}
         if (data.fullName !== profile?.fullName) updates.fullName = data.fullName
         if (data.email !== profile?.email) updates.email = data.email
         if (data.phone !== profile?.phone) updates.phone = data.phone
@@ -73,7 +73,7 @@ export function ProfilePage() {
         setSuccessMessage('Profile updated successfully!')
     }
 
-    const handleFormInputChange = (field: keyof TUpdateUserInput, value: string | number) => {
+    const handleFormInputChange = (field: keyof UpdateUserInput, value: string | number) => {
         handleInputChange(field, value)
         setSuccessMessage(null)
     }

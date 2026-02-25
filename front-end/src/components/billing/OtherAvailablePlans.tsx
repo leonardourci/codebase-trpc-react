@@ -1,9 +1,9 @@
 import { Check } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import type { IProduct } from '@/types'
+import type { Product } from '@/lib/trpc-types'
 
 interface OtherAvailablePlansProps {
-    plans: IProduct[]
+    plans: Product[]
     currentProductId?: string
 }
 

@@ -5,7 +5,7 @@ module.exports = {
     cwd: './back-end',
     autorestart: true,
     max_memory_restart: '300M',
-    env_file: '.env.backend',
+    env_file: '.env',
     env: { NODE_ENV: 'production' },
     out_file: './logs/api.log',
     error_file: './logs/api-error.log',

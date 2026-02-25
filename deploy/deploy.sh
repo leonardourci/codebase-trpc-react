@@ -18,7 +18,7 @@ cd "$PROJECT_DIR/front-end" && npm ci && npm run build
 
 # Migrate
 echo "[2/3] Running migrations..."
-set -a; source "$PROJECT_DIR/.env.backend"; set +a
+set -a; source "$PROJECT_DIR/back-end/.env"; set +a
 cd "$PROJECT_DIR/back-end" && npx knex migrate:latest --knexfile dist/database/knexfile.js
 
 # Nginx — only on first deploy when domain is provided

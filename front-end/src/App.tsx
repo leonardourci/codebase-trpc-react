@@ -12,8 +12,8 @@ import { ProtectedRoute } from './components/routes/ProtectedRoute'
 import { PublicRoute } from './components/routes/PublicRoute'
 import { LoadingSpinner } from './components/ui/loading-spinner'
 import { useAuth } from './hooks/useAuth'
-import { PricingRoute } from './routes/pricing'
-import { AuthModalProvider } from './contexts/AuthModalContext'
+import { PricingPage } from './pages/PricingPage'
+import { AuthModalProvider } from './providers/AuthModalContext'
 import { MobileAuthDialog } from './components/auth/AuthModal'
 
 function RootLayout() {
@@ -48,7 +48,7 @@ function App() {
                     path: "/pricing",
                     element: (
                         <PublicRoute>
-                            <PricingRoute />
+                            <PricingPage />
                         </PublicRoute>
                     ),
                 },

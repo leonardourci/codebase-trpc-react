@@ -1,8 +1,8 @@
 import { SubscriptionPricingGrid } from '@/components/billing/SubscriptionPricingGrid'
 import { Header } from '@/components/layout/Header'
-import { PRICING_PLANS } from '@/data/pricing'
+import { PRICING_PLANS } from '@/constants/pricing'
 
-export function PricingView() {
+export function PricingPage() {
     return (
         <div className="min-h-screen bg-gradient-to-b from-background via-muted/20 to-background flex flex-col pt-16 md:pt-20">
             <Header />
@@ -24,8 +24,4 @@ export function PricingView() {
             </main>
         </div>
     )
-}
-
-export function PricingRoute() {
-    return <PricingView />
 }

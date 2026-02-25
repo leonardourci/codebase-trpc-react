@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowRight, Shield, Zap, Smartphone, Code, Users, Star } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
-import { useAuthModal } from '@/contexts/AuthModalContext'
+import { useAuthModal } from '@/providers/AuthModalContext'
 
 export function LandingPage() {
     const { openAuth } = useAuthModal()

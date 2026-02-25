@@ -9,7 +9,7 @@ import { SubscriptionPricingGrid } from '@/components/billing/SubscriptionPricin
 import { OtherAvailablePlans } from '@/components/billing/OtherAvailablePlans'
 import { trpc } from '@/lib/trpc'
 import { useAuth } from '@/hooks/useAuth'
-import { PRICING_PLANS } from '@/data/pricing'
+import { PRICING_PLANS } from '@/constants/pricing'
 
 export function BillingPage() {
     const { user, refreshUser } = useAuth()

@@ -1,4 +1,4 @@
-import { trpcClient } from '../lib/trpc'
+import { trpcClient } from './trpc'
 import {
     setTokens,
     setUser,

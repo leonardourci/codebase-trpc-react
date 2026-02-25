@@ -4,7 +4,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google'
 import './index.css'
 import App from './App.tsx'
 import { TRPCProvider } from './providers/trpc-provider'
-import { ThemeProvider } from './contexts/ThemeContext'
+import { ThemeProvider } from './providers/ThemeContext'
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
 

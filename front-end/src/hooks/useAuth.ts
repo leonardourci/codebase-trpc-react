@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { authService, type IAuthResponse } from '../services/auth.service'
+import { authService, type IAuthResponse } from '../lib/auth'
 import { getUser, isAuthenticated, AUTH_STATE_CHANGE_EVENT, setUser, getAccessToken } from '../utils/auth'
 import { UserProfile } from '@/lib/trpc-types'
 import { LoginInput, SignupInput } from '@/validations'

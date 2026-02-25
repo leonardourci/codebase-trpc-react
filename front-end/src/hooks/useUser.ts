@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { userService } from '../services/user.service'
+import { trpcClient } from '../lib/trpc'
 import { type UserProfile, type UpdateUserInput as IUpdateUserInput } from '@/lib/trpc-types'
 
 export interface UseUserReturn {
@@ -18,7 +18,7 @@ export function useUser(): UseUserReturn {
         setError(null)
 
         try {
-            const profile = await userService.getProfile()
+            const profile = await trpcClient.user.getUserById.query()
             if (!profile) {
                 throw new Error('User not found')
             }
@@ -37,7 +37,7 @@ export function useUser(): UseUserReturn {
         setError(null)
 
         try {
-            const updatedProfile = await userService.updateProfile(updates)
+            const updatedProfile = await trpcClient.user.updateUserById.mutate(updates)
             if (!updatedProfile) {
                 throw new Error('Failed to update profile')
             }

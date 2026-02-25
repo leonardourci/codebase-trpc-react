@@ -16,7 +16,7 @@ import {
 import { useAuth } from '@/hooks/useAuth'
 import { useFormValidation } from '@/hooks/useFormValidation'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
-import { useAuthModal } from '@/contexts/AuthModalContext'
+import { useAuthModal } from '@/providers/AuthModalContext'
 import { loginSchema, type LoginInput } from '@/validations/auth.schemas'
 import { signupSchema, type TSignUpFormInput } from '@/validations/auth.schemas'
 import type { SignupInput } from '@/lib/trpc-types'

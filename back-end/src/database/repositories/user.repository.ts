@@ -1,32 +1,24 @@
+import { type Knex } from 'knex'
 import knex from '../knex'
-import { CreateUserInput, UserInfoByEmailResponse, User, UserDbRow, UserDbRowKeys } from '../../types/user'
+import { CreateUserInput, User, UserDbRow, UserDbRowKeys } from '../../types/user'
 import { keysToCamelCase, keysToSnakeCase } from '../../utils/case-conversion'
 
-const USERS_TABLE = 'users'
+export const USERS_TABLE = 'users'
 
 export async function createUser(input: CreateUserInput): Promise<User> {
 	const insertData = keysToSnakeCase<CreateUserInput, Partial<UserDbRow>>(input)
 
-	const [row] = await knex(USERS_TABLE)
-		.insert(insertData)
-		.returning(Object.values(UserDbRowKeys))
+	const [row] = await knex(USERS_TABLE).insert(insertData).returning(Object.values(UserDbRowKeys))
 
 	return keysToCamelCase<UserDbRow, User>(row)
 }
 
-export const getUserByEmail = async (input: { email: string }): Promise<UserInfoByEmailResponse | null> => {
+export const getUserByEmail = async (input: { email: string }): Promise<User | null> => {
 	const [row] = await knex(USERS_TABLE).where({ email: input.email }).select()
 
 	if (!row) return null
 
-	return {
-		id: row[UserDbRowKeys.id],
-		email: row[UserDbRowKeys.email],
-		fullName: row[UserDbRowKeys.fullName],
-		passwordHash: row[UserDbRowKeys.passwordHash],
-		googleId: row[UserDbRowKeys.googleId],
-		emailVerified: row[UserDbRowKeys.emailVerified]
-	}
+	return keysToCamelCase<UserDbRow, User>(row)
 }
 
 export const getUserByGoogleId = async (input: { googleId: User['googleId'] }): Promise<User | null> => {
@@ -46,9 +38,7 @@ export const getUserById = async (input: { id: string }): Promise<User | null> =
 }
 
 export const getUserByRefreshToken = async ({ refreshToken }: { refreshToken: string }): Promise<User | null> => {
-	const [row] = await knex(USERS_TABLE)
-		.where({ refresh_token: refreshToken })
-		.select()
+	const [row] = await knex(USERS_TABLE).where({ refresh_token: refreshToken }).select()
 
 	if (!row) return null
 
@@ -56,29 +46,35 @@ export const getUserByRefreshToken = async ({ refreshToken }: { refreshToken: st
 }
 
 export const getUserByEmailVerificationToken = async ({ token }: { token: string }): Promise<User | null> => {
-	const [row] = await knex(USERS_TABLE)
-		.where({ email_verification_token: token })
-		.select()
+	const [row] = await knex(USERS_TABLE).where({ email_verification_token: token }).select()
 
 	if (!row) return null
 
 	return keysToCamelCase<UserDbRow, User>(row)
 }
 
-export const updateUserById = async ({ id: userId, updates }: {
-	id: string,
-	updates: Partial<Pick<User, 'email' | 'fullName' | 'phone' | 'age' | 'passwordHash' | 'refreshToken' | 'googleId' | 'emailVerified' | 'emailVerificationToken' | 'currentProductId'>>
-}
+export const updateUserById = async (
+	{
+		id: userId,
+		updates
+	}: {
+		id: string
+		updates: Partial<
+			Pick<
+				User,
+				'email' | 'fullName' | 'phone' | 'age' | 'passwordHash' | 'refreshToken' | 'googleId' | 'emailVerified' | 'emailVerificationToken' | 'currentProductId'
+			>
+		>
+	},
+	trx?: Knex.Transaction
 ): Promise<User> => {
+	const db = trx || knex
 	const updateData = keysToSnakeCase<typeof updates & { updatedAt: Date }, Partial<UserDbRow>>({
 		...updates,
 		updatedAt: new Date()
 	})
 
-	const [row] = await knex(USERS_TABLE)
-		.where({ id: userId })
-		.update(updateData)
-		.returning(Object.values(UserDbRowKeys))
+	const [row] = await db(USERS_TABLE).where({ id: userId }).update(updateData).returning(Object.values(UserDbRowKeys))
 
 	return keysToCamelCase<UserDbRow, User>(row)
 }

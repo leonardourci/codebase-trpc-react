@@ -3,11 +3,10 @@ import jwt from 'jsonwebtoken'
 import { CustomError, ZodValidationError } from './errors'
 import { StatusCodes } from './status-codes'
 import globalConfig from './global-config'
-import { User } from '../types/user'
-import { ValidateTokenInput, Token, TokenPurpose } from '../types/jwt'
+import { ValidateTokenInput, Token, type GenerateTokenInput } from '../types/jwt'
 import { validateTokenSchema } from './validations/jwt.schemas'
 
-export const generateJwtToken = (input: { userId: User['id']; purpose?: TokenPurpose }, options?: jwt.SignOptions) => {
+export const generateJwtToken = (input: GenerateTokenInput, options?: jwt.SignOptions) => {
 	return jwt.sign(input, globalConfig.jwtSecret, options)
 }
 
@@ -29,13 +28,4 @@ export const decodeJwtToken = (input: ValidateTokenInput): Token => {
 	if (error) throw new ZodValidationError(error)
 
 	return jwt.decode(data.token) as Token
-}
-
-export const verifyJwtTokenSimple = ({ token }: { token: string }): { userId: string; purpose?: TokenPurpose } => {
-	try {
-		const decoded = jwt.verify(token, globalConfig.jwtSecret) as { userId: string; purpose?: TokenPurpose }
-		return decoded
-	} catch (err) {
-		throw new CustomError(`Invalid or expired token: ${err}`, StatusCodes.UNAUTHORIZED)
-	}
 }

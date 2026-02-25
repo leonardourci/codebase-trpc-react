@@ -1,16 +1,16 @@
+import { type Knex } from 'knex'
 import knex from '../knex'
-import { CreateBilling, Billing, BillingDbRow } from '../../types/billing'
-import { User } from '../../types/user'
-import { keysToCamelCase, keysToSnakeCase } from '../../utils/case-conversion'
+import { CreateBilling, Billing, BillingDbRow } from 'src/types/billing'
+import { User } from 'src/types/user'
+import { keysToCamelCase, keysToSnakeCase } from 'src/utils/case-conversion'
 
-const BILLINGS_TABLE = 'billings'
+export const BILLINGS_TABLE = 'billings'
 
-export const createBilling = async (input: CreateBilling): Promise<Billing> => {
+export const createBilling = async (input: CreateBilling, trx?: Knex.Transaction): Promise<Billing> => {
+	const db = trx || knex
 	const insertData = keysToSnakeCase<CreateBilling, Partial<BillingDbRow>>(input)
 
-	const [row] = await knex(BILLINGS_TABLE)
-		.insert(insertData)
-		.returning('*')
+	const [row] = await db(BILLINGS_TABLE).insert(insertData).returning('*')
 
 	return keysToCamelCase<BillingDbRow, Billing>(row)
 }
@@ -29,10 +29,7 @@ export const updateBillingByUserId = async (input: { id: string; expiresAt: Date
 		updatedAt: new Date()
 	})
 
-	const [row] = await knex(BILLINGS_TABLE)
-		.update(updateData)
-		.where({ id: input.id })
-		.returning('*')
+	const [row] = await knex(BILLINGS_TABLE).update(updateData).where({ id: input.id }).returning('*')
 
 	return keysToCamelCase<BillingDbRow, Billing>(row)
 }
@@ -45,17 +42,28 @@ export const getBillingByExternalSubscriptionId = async ({ externalSubscriptionI
 	return keysToCamelCase<BillingDbRow, Billing>(row)
 }
 
-export const updateBillingById = async (input: { id: string; status?: string; expiresAt?: Date }): Promise<Billing> => {
-	const updates: Partial<Billing> = { updatedAt: new Date() }
-	if (input.status) updates.status = input.status
-	if (input.expiresAt) updates.expiresAt = input.expiresAt
+export const updateBillingById = async (
+	input: {
+		id: string
+		updates: {
+			productId?: string
+			externalSubscriptionId?: string
+			externalCustomerId?: string
+			status?: string
+			expiresAt?: Date
+		}
+	},
+	trx?: Knex.Transaction
+): Promise<Billing> => {
+	const db = trx || knex
+	const updates: Partial<Billing> = {
+		...input.updates,
+		updatedAt: new Date()
+	}
 
 	const updateData = keysToSnakeCase<Partial<Billing>, Partial<BillingDbRow>>(updates)
 
-	const [row] = await knex(BILLINGS_TABLE)
-		.update(updateData)
-		.where({ id: input.id })
-		.returning('*')
+	const [row] = await db(BILLINGS_TABLE).update(updateData).where({ id: input.id }).returning('*')
 
 	return keysToCamelCase<BillingDbRow, Billing>(row)
 }

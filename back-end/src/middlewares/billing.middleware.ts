@@ -4,7 +4,7 @@ import stripe from '../utils/stripe'
 import globalConfig from '../utils/global-config'
 import Logger from '../utils/logger'
 
-const logger = new Logger({ source: 'billing.middleware' })
+const logger = new Logger({ source: 'BILLING-MIDDLEWARE' })
 
 export interface BillingRequest extends Request {
 	billingEvent?: Stripe.Event
@@ -22,7 +22,7 @@ export const verifyStripeWebhookSignatureMiddleware = (req: Request, res: Respon
 		return next()
 	} catch (err: unknown) {
 		const errorMessage = err instanceof Error ? err.message : 'Unknown error'
-		logger.warn(`Webhook signature verification failed: ${errorMessage}`)
+		logger.error(errorMessage, err)
 		return res.sendStatus(400)
 	}
 }

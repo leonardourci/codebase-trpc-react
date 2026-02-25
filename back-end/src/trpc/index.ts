@@ -1,12 +1,59 @@
-export { router, procedure, middleware, createTRPCContext, t, transformErrorToTRPC } from './trpc'
-export { appRouter } from './router'
-export { authMiddleware, billingMiddleware, protectedProcedure, billingProtectedProcedure } from './middleware/auth.middleware'
+import { initTRPC } from '@trpc/server'
+import { Request, Response } from 'express'
 
-export type { ITRPCContext } from './trpc'
-export type { AppRouter } from './router'
+import { NodeEnv } from '../types/envs'
+import { User } from '../types/user'
+import globalConfig from '../utils/global-config'
 
-import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server'
-import type { AppRouter } from './router'
+export interface ITRPCContext {
+	user?: User
+	req: Request
+	res: Response
+}
 
-export type TRouterInputs = inferRouterInputs<AppRouter>
-export type TRouterOutputs = inferRouterOutputs<AppRouter>
+export const createTRPCContext = (opts: { req: Request; res: Response }): ITRPCContext => {
+	return {
+		req: opts.req,
+		res: opts.res
+		// user will be populated by authentication middleware
+	}
+}
+
+export const t = initTRPC.context<ITRPCContext>().create({
+	errorFormatter({ shape, error }) {
+		const isProduction = globalConfig.nodeEnv === NodeEnv.PRODUCTION
+
+		// In production, remove sensitive data like stack traces and internal paths
+		// In development, keep full error details for debugging
+		if (isProduction) {
+			// Sanitize error message for production - hide database/internal details
+			const sanitizedMessage =
+				shape.message.includes('column') || shape.message.includes('table') || shape.message.includes('database')
+					? 'An internal error occurred. Please try again later.'
+					: shape.message
+
+			return {
+				...shape,
+				message: sanitizedMessage,
+				data: {
+					code: shape.data.code,
+					httpStatus: shape.data.httpStatus,
+					path: shape.data.path
+				}
+			}
+		}
+
+		// Development: include full error details for debugging
+		return {
+			...shape,
+			data: {
+				...shape.data,
+				details: error.cause
+			}
+		}
+	}
+})
+
+export const router = t.router
+export const procedure = t.procedure
+export const middleware = t.middleware

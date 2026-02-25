@@ -17,3 +17,15 @@ yarn-debug.log*
 pnpm-debug.log*
 lerna-debug.log*
 *.local
+dist-ssr
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.local
+.claude
+.vscode
+.kiro
+.trae

@@ -1,31 +1,9 @@
-import { getUserByEmail, getUserById, updateUserById } from '../database/repositories/user.repository'
-import {
-	createBilling,
-	getBillingByUserId as getBillingByUserId,
-	updateBillingByUserId,
-	getBillingByExternalSubscriptionId,
-	updateBillingById
-} from '../database/repositories/billing.repository'
-import { getFreeTierProduct } from '../database/repositories/product.repository'
-import { CustomError } from '../utils/errors'
-import { StatusCodes } from '../utils/status-codes'
+import db from '../database/knex'
+import { createBilling, getBillingByExternalSubscriptionId, getBillingByUserId, updateBillingById } from '../database/repositories/billing.repository'
+import { getUserByEmail, updateUserById } from '../database/repositories/user.repository'
+import type { UpdateUserBillingInput } from '../types/billing'
 import { unixTimestampToDate } from '../utils/time'
-import { UpdateUserBillingInput } from '../types/billing'
-
-async function hasUserVerifiedEmail({ userId }: { userId: string }): Promise<void> {
-	const user = await getUserById({ id: userId })
-
-	if (!user) {
-		throw new CustomError('User not found', StatusCodes.UNAUTHORIZED)
-	}
-
-	if (!user.emailVerified) {
-		throw new CustomError(
-			'Please verify your email before making a purchase',
-			StatusCodes.FORBIDDEN
-		)
-	}
-}
+import { downgradeToFreeTier } from 'src/services/auth.service'
 
 export const registerUserBilling = async (input: UpdateUserBillingInput) => {
 	const user = await getUserByEmail({ email: input.userEmail })
@@ -33,63 +11,115 @@ export const registerUserBilling = async (input: UpdateUserBillingInput) => {
 		throw new Error(`User with email "${input.userEmail}" not found`)
 	}
 
-	await hasUserVerifiedEmail({ userId: user.id })
-
+	// Email verification removed - already checked at checkout creation via verifiedEmailProcedure
+	// Renewals are automatic and shouldn't be blocked by verification status changes
 	const billing = await getBillingByUserId({ userId: user.id })
-	if (!billing) {
-		await createBilling({
-			userId: user.id,
-			productId: input.productId,
-			externalSubscriptionId: input.externalSubscriptionId,
-			externalCustomerId: input.externalCustomerId,
-			status: 'active',
-			expiresAt: unixTimestampToDate(input.expiresAt)
-		})
-	} else {
-		await updateBillingByUserId({
-			id: billing.id as string,
-			expiresAt: unixTimestampToDate(input.expiresAt)
-		})
-	}
+	const expiresAtDate = unixTimestampToDate(input.expiresAt)
 
-	await updateUserById({
-		id: user.id,
-		updates: { currentProductId: input.productId }
+	await db.transaction(async (trx) => {
+		if (!billing) {
+			await createBilling(
+				{
+					userId: user.id,
+					productId: input.productId,
+					externalSubscriptionId: input.externalSubscriptionId,
+					externalCustomerId: input.externalCustomerId,
+					status: 'active',
+					expiresAt: expiresAtDate
+				},
+				trx
+			)
+		} else {
+			await updateBillingById(
+				{
+					id: billing.id as string,
+					updates: {
+						productId: input.productId,
+						externalSubscriptionId: input.externalSubscriptionId,
+						externalCustomerId: input.externalCustomerId,
+						status: 'active',
+						expiresAt: expiresAtDate
+					}
+				},
+				trx
+			)
+		}
+
+		await updateUserById(
+			{
+				id: user.id,
+				updates: { currentProductId: input.productId }
+			},
+			trx
+		)
 	})
 }
 
-export const updateBillingOnPaymentFailed = async (externalSubscriptionId: string) => {
+export const updateBillingOnPaymentFailed = async ({ externalSubscriptionId }: { externalSubscriptionId: string }) => {
 	if (!externalSubscriptionId) return
 	const billing = await getBillingByExternalSubscriptionId({ externalSubscriptionId })
 	if (!billing) return
-	await updateBillingById({ id: billing.id as string, status: 'past_due' })
+
+	await updateBillingById({
+		id: billing.id as string,
+		updates: { status: 'past_due' }
+	})
 }
 
-export const updateBillingOnSubscriptionUpdated = async (input: { externalSubscriptionId: string; status?: string; currentPeriodEnd: Date }) => {
+export const updateBillingOnSubscriptionUpdated = async (input: {
+	externalSubscriptionId: string
+	productId?: string
+	status?: string
+	currentPeriodEnd: Date
+}) => {
 	if (!input.externalSubscriptionId) return
 	const billing = await getBillingByExternalSubscriptionId({ externalSubscriptionId: input.externalSubscriptionId })
 	if (!billing) return
-	await updateBillingById({
-		id: billing.id as string,
-		status: input.status,
-		expiresAt: input.currentPeriodEnd
+
+	await db.transaction(async (trx) => {
+		await updateBillingById(
+			{
+				id: billing.id as string,
+				updates: {
+					...(input.productId && { productId: input.productId }),
+					...(input.status && { status: input.status }),
+					expiresAt: input.currentPeriodEnd
+				}
+			},
+			trx
+		)
+
+		if (input.status === 'canceled' || input.status === 'unpaid') {
+			await downgradeToFreeTier({ userId: billing.userId }, trx)
+		} else if (input.productId && input.productId !== billing.productId) {
+			await updateUserById(
+				{
+					id: billing.userId,
+					updates: { currentProductId: input.productId }
+				},
+				trx
+			)
+		}
 	})
 }
 
-export const updateBillingOnSubscriptionDeleted = async (externalSubscriptionId: string) => {
+export const updateBillingOnSubscriptionDeleted = async ({ externalSubscriptionId }: { externalSubscriptionId: string }) => {
 	if (!externalSubscriptionId) return
 	const billing = await getBillingByExternalSubscriptionId({ externalSubscriptionId })
 	if (!billing) return
 
-	await updateBillingById({
-		id: billing.id as string,
-		status: 'canceled',
-		expiresAt: new Date()
-	})
+	await db.transaction(async (trx) => {
+		await updateBillingById(
+			{
+				id: billing.id as string,
+				updates: {
+					status: 'canceled',
+					expiresAt: new Date()
+				}
+			},
+			trx
+		)
 
-	const defaultProduct = await getFreeTierProduct()
-	await updateUserById({
-		id: billing.userId,
-		updates: { currentProductId: defaultProduct.id }
+		await downgradeToFreeTier({ userId: billing.userId }, trx)
 	})
 }

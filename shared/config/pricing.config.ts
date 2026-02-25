@@ -1,0 +1,97 @@
+import type { IPricingPlan } from "../types/pricing.types";
+import { EBillingPeriod } from "../types/pricing.types";
+import { validatePricingConfig } from "../validations/pricing.validation";
+
+export const PRICING_PLANS: IPricingPlan[] = [
+    {
+        name: "Free",
+        description: "Free tier with basic features",
+        priceInCents: 0,
+        billingPeriod: EBillingPeriod.MONTHLY,
+        externalProductId: null,
+        externalPriceId: null,
+        active: true,
+        isFreeTier: true,
+        maxProjects: 5,
+        features: [
+            "Up to 5 projects",
+            "Basic analytics",
+            "Email support",
+            "Community access",
+        ],
+    },
+    {
+        name: "Pro",
+        description: "Everything you need to grow",
+        priceInCents: 2990,
+        billingPeriod: EBillingPeriod.MONTHLY,
+        externalProductId: "prod_id_pro",
+        externalPriceId: "price_id_1",
+        active: true,
+        isFreeTier: false,
+        maxProjects: null,
+        features: [
+            "Unlimited projects",
+            "Advanced analytics",
+            "Priority support",
+            "API access",
+            "Custom integrations",
+        ],
+    },
+    {
+        name: "Pro",
+        description: "Everything you need to grow",
+        priceInCents: 29000,
+        billingPeriod: EBillingPeriod.YEARLY,
+        externalProductId: "prod_id_pro",
+        externalPriceId: "price_id_2",
+        active: true,
+        isFreeTier: false,
+        maxProjects: null,
+        features: [
+            "Unlimited projects",
+            "Advanced analytics",
+            "Priority support",
+            "API access",
+            "Custom integrations",
+        ],
+    },
+    {
+        name: "Enterprise",
+        description: "For large teams",
+        priceInCents: 5900,
+        billingPeriod: EBillingPeriod.MONTHLY,
+        externalProductId: "prod_id_enterprise",
+        externalPriceId: "price_id_3",
+        active: true,
+        isFreeTier: false,
+        maxProjects: null,
+        features: [
+            "Everything in Pro",
+            "SSO integration",
+            "Dedicated support",
+            "Custom integrations",
+            "SLA guarantee",
+        ],
+    },
+    {
+        name: "Enterprise",
+        description: "For large teams",
+        priceInCents: 59000,
+        billingPeriod: EBillingPeriod.YEARLY,
+        externalProductId: "prod_id_enterprise",
+        externalPriceId: "price_id_4",
+        active: true,
+        isFreeTier: false,
+        maxProjects: null,
+        features: [
+            "Everything in Pro",
+            "SSO integration",
+            "Dedicated support",
+            "Custom integrations",
+            "SLA guarantee",
+        ],
+    },
+];
+
+validatePricingConfig();

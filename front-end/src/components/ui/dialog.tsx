@@ -44,9 +44,8 @@ function DialogContent({
         ref={ref}
         data-slot="dialog-content"
         className={cn(
-          "fixed z-50 bg-background shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out",
-          "inset-0 data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
-          "flex flex-col",
+          "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg bg-background p-6 shadow-lg rounded-lg border",
+          "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
           className
         )}
         {...props}

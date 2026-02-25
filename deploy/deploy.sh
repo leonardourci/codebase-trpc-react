@@ -18,6 +18,7 @@ cd "$PROJECT_DIR/front-end" && npm ci && npm run build
 
 # Migrate
 echo "[2/3] Running migrations..."
+[ -f "$PROJECT_DIR/back-end/.env" ] || { echo "Error: $PROJECT_DIR/back-end/.env not found. Create it before deploying."; exit 1; }
 set -a; source "$PROJECT_DIR/back-end/.env"; set +a
 cd "$PROJECT_DIR/back-end" && npx knex migrate:latest --knexfile dist/database/knexfile.js
 

@@ -7,26 +7,12 @@
     "install:all": "npm install && concurrently -n api,web -c green,blue \"npm install --prefix back-end\" \"npm install --prefix front-end\"",
     "dev": "concurrently -n api,web -c green,blue \"npm run --prefix back-end dev\" \"npm run --prefix front-end dev\"",
     "build": "npm run --prefix back-end build && npm run --prefix front-end build",
-    "start": "npm run --prefix back-end start",
-    "lint": "npm run --prefix front-end lint",
     "test": "npm run --prefix back-end test",
-    "test:watch": "npm run --prefix back-end test:watch",
-    "test:coverage": "npm run --prefix back-end test:coverage",
+    "lint": "npm run --prefix front-end lint",
     "clean": "rm -rf back-end/dist front-end/dist",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
-    "db:logs": "docker compose logs -f db",
-    "db:migrate": "npm run --prefix back-end db:migrate",
-    "db:rollback": "npm run --prefix back-end db:rollback",
-    "db:seed": "npm run --prefix back-end db:seed",
-    "api:dev": "npm run --prefix back-end dev",
-    "api:start": "npm run --prefix back-end start",
-    "api:build": "npm run --prefix back-end build",
-    "api:test": "npm run --prefix back-end test",
-    "web:dev": "npm run --prefix front-end dev",
-    "web:build": "npm run --prefix front-end build",
-    "web:preview": "npm run --prefix front-end preview",
-    "web:lint": "npm run --prefix front-end lint"
+    "db:migrate": "npm run --prefix back-end db:migrate"
   },
   "devDependencies": {
     "concurrently": "^8.2.1"

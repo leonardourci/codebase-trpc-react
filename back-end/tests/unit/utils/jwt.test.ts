@@ -1,10 +1,10 @@
 import jwt from 'jsonwebtoken'
-import { generateJwtToken, verifyJwtToken, decodeJwtToken } from '../../src/utils/jwt'
-import { CustomError, ZodValidationError } from '../../src/utils/errors'
-import { StatusCodes } from '../../src/utils/status-codes'
-import globalConfig from '../../src/utils/global-config'
+import { generateJwtToken, verifyJwtToken, decodeJwtToken } from '../../../src/utils/jwt'
+import { CustomError, ZodValidationError } from '../../../src/utils/errors'
+import { StatusCodes } from '../../../src/utils/status-codes'
+import globalConfig from '../../../src/utils/global-config'
 
-jest.mock('../../src/utils/global-config', () => ({
+jest.mock('../../../src/utils/global-config', () => ({
     jwtSecret: 'test-secret-key'
 }))
 

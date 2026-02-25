@@ -1,14 +1,14 @@
 import { Request, Response } from 'express'
-import { processBillingWebhookHandler } from '../../src/controllers/billing.controller'
-import { BillingRequest } from '../../src/middlewares/billing.middleware'
-import * as productRepository from '../../src/database/repositories/product.repository'
-import * as billingService from '../../src/services/billing.service'
-import { StatusCodes } from '../../src/utils/status-codes'
-import { unixTimestampToDate } from '../../src/utils/time'
+import { processBillingWebhookHandler } from '../../../src/controllers/billing.controller'
+import { BillingRequest } from '../../../src/middlewares/billing.middleware'
+import * as productRepository from '../../../src/database/repositories/product.repository'
+import * as billingService from '../../../src/services/billing.service'
+import { StatusCodes } from '../../../src/utils/status-codes'
+import { unixTimestampToDate } from '../../../src/utils/time'
 
 // Mock dependencies
-jest.mock('../../src/database/repositories/product.repository')
-jest.mock('../../src/services/billing.service')
+jest.mock('../../../src/database/repositories/product.repository')
+jest.mock('../../../src/services/billing.service')
 
 const mockProductRepository = productRepository as jest.Mocked<typeof productRepository>
 const mockBillingService = billingService as jest.Mocked<typeof billingService>

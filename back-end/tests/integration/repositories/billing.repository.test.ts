@@ -1,15 +1,15 @@
-import { getTestDb, cleanTestData, closeTestDb, seedFreeTierProduct } from '../setup/test-db'
+import { getTestDb, cleanTestData, closeTestDb, seedFreeTierProduct } from '../../setup/test-db'
 import {
     createBilling,
     getBillingByUserId,
     updateBillingByUserId,
     getBillingByExternalSubscriptionId,
     updateBillingById
-} from '../../src/database/repositories/billing.repository'
-import { createUser } from '../../src/database/repositories/user.repository'
-import { CreateBilling, Billing } from '../../src/types/billing'
-import { Product, ProductDbRow } from '../../src/types/product'
-import { keysToSnakeCase } from '../../src/utils/case-conversion'
+} from '../../../src/database/repositories/billing.repository'
+import { createUser } from '../../../src/database/repositories/user.repository'
+import { CreateBilling, Billing } from '../../../src/types/billing'
+import { Product, ProductDbRow } from '../../../src/types/product'
+import { keysToSnakeCase } from '../../../src/utils/case-conversion'
 
 describe('Billing Repository', () => {
     let db: any

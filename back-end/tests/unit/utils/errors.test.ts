@@ -1,6 +1,6 @@
 import { ZodError } from 'zod'
-import { CustomError, ZodValidationError } from '../../src/utils/errors'
-import { StatusCodes } from '../../src/utils/status-codes'
+import { CustomError, ZodValidationError } from '../../../src/utils/errors'
+import { StatusCodes } from '../../../src/utils/status-codes'
 
 // Helper function to create mock ZodError
 const createMockZodError = (issues: Partial<ZodError['issues'][0]>[]): ZodError => {

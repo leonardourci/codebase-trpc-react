@@ -1,10 +1,10 @@
-import { getTestDb, closeTestDb, cleanTestData, seedFreeTierProduct } from '../setup/test-db'
-import { createUser, getUserById, getUserByEmail, updateUserById } from '../../src/database/repositories/user.repository'
-import { getProductById, getAllProducts } from '../../src/database/repositories/product.repository'
-import { createBilling, getBillingByUserId, updateBillingById } from '../../src/database/repositories/billing.repository'
-import type { CreateUserInput, User } from '../../src/types/user'
-import type { Product } from '../../src/types/product'
-import type { CreateBilling, Billing } from '../../src/types/billing'
+import { getTestDb, closeTestDb, cleanTestData, seedFreeTierProduct } from '../../setup/test-db'
+import { createUser, getUserById, getUserByEmail, updateUserById } from '../../../src/database/repositories/user.repository'
+import { getProductById, getAllProducts } from '../../../src/database/repositories/product.repository'
+import { createBilling, getBillingByUserId, updateBillingById } from '../../../src/database/repositories/billing.repository'
+import type { CreateUserInput, User } from '../../../src/types/user'
+import type { Product } from '../../../src/types/product'
+import type { CreateBilling, Billing } from '../../../src/types/billing'
 import { Knex } from 'knex'
 
 describe('Database Integration Tests', () => {

@@ -1,4 +1,4 @@
-import * as trpcIndex from '../../src/trpc/index'
+import * as trpcIndex from '../../../src/trpc/index'
 
 describe('tRPC Index Exports', () => {
     it('should export tRPC utilities from trpc.ts', () => {
@@ -25,7 +25,7 @@ describe('tRPC Index Exports', () => {
 
     it('should export type inference utilities', () => {
         // These are type-only exports, but we can test that the module structure is correct
-        const module = require('../../src/trpc/index')
+        const module = require('../../../src/trpc/index')
         expect(module.appRouter).toBeDefined()
     })
 
@@ -119,9 +119,9 @@ describe('tRPC Index Exports', () => {
 
     it('should maintain consistent exports with actual modules', () => {
         // Verify that exports match what's actually available
-        const trpcModule = require('../../src/trpc/trpc')
-        const routerModule = require('../../src/trpc/router')
-        const authMiddlewareModule = require('../../src/trpc/middleware/auth.middleware')
+        const trpcModule = require('../../../src/trpc/trpc')
+        const routerModule = require('../../../src/trpc/router')
+        const authMiddlewareModule = require('../../../src/trpc/middleware/auth.middleware')
 
         expect(trpcIndex.router).toBe(trpcModule.router)
         expect(trpcIndex.procedure).toBe(trpcModule.procedure)

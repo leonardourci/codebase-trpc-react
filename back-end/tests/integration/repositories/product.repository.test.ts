@@ -1,7 +1,7 @@
-import { getTestDb, cleanTestData, closeTestDb } from '../setup/test-db'
-import { getProductById, getProductByExternalProductId, getAllProducts, getFreeTierProduct } from '../../src/database/repositories/product.repository'
-import { Product, ProductDbRow } from '../../src/types/product'
-import { keysToSnakeCase } from '../../src/utils/case-conversion'
+import { getTestDb, cleanTestData, closeTestDb } from '../../setup/test-db'
+import { getProductById, getProductByExternalProductId, getAllProducts, getFreeTierProduct } from '../../../src/database/repositories/product.repository'
+import { Product, ProductDbRow } from '../../../src/types/product'
+import { keysToSnakeCase } from '../../../src/utils/case-conversion'
 
 describe('Product Repository', () => {
     let db: any

@@ -1,8 +1,8 @@
 import { TRPCError } from '@trpc/server'
 import { Request, Response } from 'express'
-import { transformErrorToTRPC, createTRPCContext } from '../../src/trpc/trpc'
-import { CustomError, ZodValidationError } from '../../src/utils/errors'
-import { StatusCodes } from '../../src/utils/status-codes'
+import { transformErrorToTRPC, createTRPCContext } from '../../../src/trpc/trpc'
+import { CustomError, ZodValidationError } from '../../../src/utils/errors'
+import { StatusCodes } from '../../../src/utils/status-codes'
 import { ZodError } from 'zod'
 
 describe('tRPC Utilities', () => {
@@ -271,24 +271,24 @@ describe('tRPC Utilities', () => {
 
     describe('tRPC instance configuration', () => {
         it('should export router function', () => {
-            const { router } = require('../../src/trpc/trpc')
+            const { router } = require('../../../src/trpc/trpc')
             expect(typeof router).toBe('function')
         })
 
         it('should export procedure object', () => {
-            const { procedure } = require('../../src/trpc/trpc')
+            const { procedure } = require('../../../src/trpc/trpc')
             expect(typeof procedure).toBe('object')
             expect(procedure.query).toBeDefined()
             expect(procedure.mutation).toBeDefined()
         })
 
         it('should export middleware function', () => {
-            const { middleware } = require('../../src/trpc/trpc')
+            const { middleware } = require('../../../src/trpc/trpc')
             expect(typeof middleware).toBe('function')
         })
 
         it('should export t instance', () => {
-            const { t } = require('../../src/trpc/trpc')
+            const { t } = require('../../../src/trpc/trpc')
             expect(t).toBeDefined()
             expect(t.router).toBeDefined()
             expect(t.procedure).toBeDefined()
@@ -296,12 +296,12 @@ describe('tRPC Utilities', () => {
         })
 
         it('should have error formatter configured', () => {
-            const { t } = require('../../src/trpc/trpc')
+            const { t } = require('../../../src/trpc/trpc')
             expect(t._config.errorFormatter).toBeDefined()
         })
 
         it('should format errors with custom details', () => {
-            const { t } = require('../../src/trpc/trpc')
+            const { t } = require('../../../src/trpc/trpc')
 
             const mockShape = {
                 data: { code: 'INTERNAL_SERVER_ERROR' },
@@ -318,7 +318,7 @@ describe('tRPC Utilities', () => {
         })
 
         it('should format errors without cause as undefined details', () => {
-            const { t } = require('../../src/trpc/trpc')
+            const { t } = require('../../../src/trpc/trpc')
 
             const mockShape = {
                 data: { code: 'INTERNAL_SERVER_ERROR' },

@@ -1,4 +1,4 @@
-import { appRouter, AppRouter } from '../../src/trpc/router'
+import { appRouter, AppRouter } from '../../../src/trpc/router'
 
 describe('tRPC App Router', () => {
     it('should have auth procedures', () => {

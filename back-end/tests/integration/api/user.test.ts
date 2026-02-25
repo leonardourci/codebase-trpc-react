@@ -1,8 +1,8 @@
-import { createTestClient, createAuthenticatedTestClient } from '../setup/test-client'
-import { startTestServer, stopTestServer } from '../setup/test-server'
-import { cleanTestData, closeTestDb, getTestDb, seedFreeTierProduct } from '../setup/test-db'
-import type { SignupInput } from '../../src/types/auth'
-import type { UserProfile, UpdateUserInput } from '../../src/types/user'
+import { createTestClient, createAuthenticatedTestClient } from '../../setup/test-client'
+import { startTestServer, stopTestServer } from '../../setup/test-server'
+import { cleanTestData, closeTestDb, getTestDb, seedFreeTierProduct } from '../../setup/test-db'
+import type { SignupInput } from '../../../src/types/auth'
+import type { UserProfile, UpdateUserInput } from '../../../src/types/user'
 
 describe('User Management Integration Tests', () => {
     let baseUrl: string

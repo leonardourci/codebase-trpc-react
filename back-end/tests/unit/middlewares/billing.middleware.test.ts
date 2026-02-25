@@ -1,14 +1,14 @@
 import { Request, Response, NextFunction } from 'express'
-import { verifyStripeWebhookSignatureMiddleware, BillingRequest } from '../../src/middlewares/billing.middleware'
+import { verifyStripeWebhookSignatureMiddleware, BillingRequest } from '../../../src/middlewares/billing.middleware'
 
-jest.mock('../../src/utils/stripe', () => ({
+jest.mock('../../../src/utils/stripe', () => ({
     webhooks: {
         constructEvent: jest.fn()
     }
 }))
 
-jest.mock('../../src/utils/global-config', () => {
-    const actual = jest.requireActual('../../src/utils/global-config')
+jest.mock('../../../src/utils/global-config', () => {
+    const actual = jest.requireActual('../../../src/utils/global-config')
     return {
         __esModule: true,
         default: {
@@ -18,7 +18,7 @@ jest.mock('../../src/utils/global-config', () => {
     }
 })
 
-import stripe from '../../src/utils/stripe'
+import stripe from '../../../src/utils/stripe'
 
 const mockStripe = stripe as jest.Mocked<typeof stripe>
 

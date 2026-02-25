@@ -1,18 +1,18 @@
 import bcrypt from 'bcrypt'
-import { authenticateUser, registerUser, refreshAccessToken, revokeUserRefreshToken } from '../../src/services/auth.service'
-import * as userRepository from '../../src/database/repositories/user.repository'
-import * as productRepository from '../../src/database/repositories/product.repository'
-import * as jwt from '../../src/utils/jwt'
-import { CustomError } from '../../src/utils/errors'
-import { StatusCodes } from '../../src/utils/status-codes'
-import { LoginInput, SignupInput } from '../../src/types/auth'
-import { RefreshTokenInput } from '../../src/types/refreshToken'
-import { User } from '../../src/types/user'
+import { authenticateUser, registerUser, refreshAccessToken, revokeUserRefreshToken } from '../../../src/services/auth.service'
+import * as userRepository from '../../../src/database/repositories/user.repository'
+import * as productRepository from '../../../src/database/repositories/product.repository'
+import * as jwt from '../../../src/utils/jwt'
+import { CustomError } from '../../../src/utils/errors'
+import { StatusCodes } from '../../../src/utils/status-codes'
+import { LoginInput, SignupInput } from '../../../src/types/auth'
+import { RefreshTokenInput } from '../../../src/types/refreshToken'
+import { User } from '../../../src/types/user'
 
 jest.mock('bcrypt')
-jest.mock('../../src/database/repositories/user.repository')
-jest.mock('../../src/database/repositories/product.repository')
-jest.mock('../../src/utils/jwt')
+jest.mock('../../../src/database/repositories/user.repository')
+jest.mock('../../../src/database/repositories/product.repository')
+jest.mock('../../../src/utils/jwt')
 
 const mockBcrypt = bcrypt as jest.Mocked<typeof bcrypt>
 const mockUserRepository = userRepository as jest.Mocked<typeof userRepository>

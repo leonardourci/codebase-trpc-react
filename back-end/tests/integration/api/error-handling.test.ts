@@ -1,13 +1,13 @@
-import { createTestClient, createAuthenticatedTestClient } from '../setup/test-client'
-import { startTestServer, stopTestServer } from '../setup/test-server'
-import { cleanTestData, closeTestDb, getTestDb, seedFreeTierProduct } from '../setup/test-db'
-import type { SignupInput, LoginInput } from '../../src/types/auth'
-import type { CreateCheckoutSessionInput, CreatePortalSessionInput } from '../../src/types/billing'
-import { Product, ProductDbRow } from '../../src/types/product'
-import { keysToSnakeCase, keysToCamelCase } from '../../src/utils/case-conversion'
-import { mockStripe, setupStripeMocks, resetStripeMocks } from '../mocks/stripe.mock'
+import { createTestClient, createAuthenticatedTestClient } from '../../setup/test-client'
+import { startTestServer, stopTestServer } from '../../setup/test-server'
+import { cleanTestData, closeTestDb, getTestDb, seedFreeTierProduct } from '../../setup/test-db'
+import type { SignupInput, LoginInput } from '../../../src/types/auth'
+import type { CreateCheckoutSessionInput, CreatePortalSessionInput } from '../../../src/types/billing'
+import { Product, ProductDbRow } from '../../../src/types/product'
+import { keysToSnakeCase, keysToCamelCase } from '../../../src/utils/case-conversion'
+import { mockStripe, setupStripeMocks, resetStripeMocks } from '../../mocks/stripe.mock'
 
-jest.mock('../../src/utils/stripe', () => require('../mocks/stripe.mock').mockStripe)
+jest.mock('../../../src/utils/stripe', () => require('../mocks/stripe.mock').mockStripe)
 
 describe('Error Handling Integration Tests', () => {
     let baseUrl: string

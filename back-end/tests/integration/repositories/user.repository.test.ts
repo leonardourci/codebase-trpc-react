@@ -1,5 +1,5 @@
-import { createUser, getUserByEmail, getUserById } from '../../src/database/repositories/user.repository';
-import { cleanTestData, seedFreeTierProduct } from '../setup/test-db';
+import { createUser, getUserByEmail, getUserById } from '../../../src/database/repositories/user.repository';
+import { cleanTestData, seedFreeTierProduct } from '../../setup/test-db';
 import bcrypt from 'bcrypt';
 
 describe('User Repository', () => {

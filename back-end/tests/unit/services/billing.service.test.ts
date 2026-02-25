@@ -4,14 +4,14 @@ import {
     updateBillingOnSubscriptionUpdated,
     updateBillingOnSubscriptionDeleted,
     UpdateUserBillingInput
-} from '../../src/services/billing.service'
-import * as userRepository from '../../src/database/repositories/user.repository'
-import * as billingRepository from '../../src/database/repositories/billing.repository'
-import * as productRepository from '../../src/database/repositories/product.repository'
+} from '../../../src/services/billing.service'
+import * as userRepository from '../../../src/database/repositories/user.repository'
+import * as billingRepository from '../../../src/database/repositories/billing.repository'
+import * as productRepository from '../../../src/database/repositories/product.repository'
 
-jest.mock('../../src/database/repositories/user.repository')
-jest.mock('../../src/database/repositories/billing.repository')
-jest.mock('../../src/database/repositories/product.repository')
+jest.mock('../../../src/database/repositories/user.repository')
+jest.mock('../../../src/database/repositories/billing.repository')
+jest.mock('../../../src/database/repositories/product.repository')
 
 const mockUserRepository = userRepository as jest.Mocked<typeof userRepository>
 const mockBillingRepository = billingRepository as jest.Mocked<typeof billingRepository>

@@ -1,9 +1,9 @@
-import { createTestClient, createAuthenticatedTestClient } from '../setup/test-client'
-import { startTestServer, stopTestServer } from '../setup/test-server'
-import { cleanTestData, closeTestDb, getTestDb, seedFreeTierProduct } from '../setup/test-db'
-import type { SignupInput, LoginInput } from '../../src/types/auth'
+import { createTestClient, createAuthenticatedTestClient } from '../../setup/test-client'
+import { startTestServer, stopTestServer } from '../../setup/test-server'
+import { cleanTestData, closeTestDb, getTestDb, seedFreeTierProduct } from '../../setup/test-db'
+import type { SignupInput, LoginInput } from '../../../src/types/auth'
 import jwt from 'jsonwebtoken'
-import globalConfig from '../../src/utils/global-config'
+import globalConfig from '../../../src/utils/global-config'
 
 describe('Authentication Integration Tests', () => {
     let baseUrl: string

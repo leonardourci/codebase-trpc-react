@@ -1,6 +1,7 @@
 import { initTRPC, TRPCError } from '@trpc/server'
 import { Request, Response } from 'express'
 
+import Logger from '../utils/logger'
 import { IUser } from '../types/user'
 import { CustomError, ZodValidationError } from '../utils/errors'
 import { EStatusCodes } from '../utils/status-codes'
@@ -93,7 +94,8 @@ const t = initTRPC.context<ITRPCContext>().create({
     // In production, remove sensitive data like stack traces and internal paths
     // In development, keep full error details for debugging
     if (isProduction) {
-      console.log('isproduciton')
+      const logger = new Logger({ source: 'trpc' })
+      logger.info('isProduction')
 
       // Sanitize error message for production - hide database/internal details
       const sanitizedMessage = shape.message.includes('column') ||

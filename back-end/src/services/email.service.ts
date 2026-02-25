@@ -2,6 +2,9 @@ import globalConfig from '../utils/global-config'
 import { CustomError } from '../utils/errors'
 import { EStatusCodes } from '../utils/status-codes'
 import { sendEmail } from '../utils/email-client'
+import Logger from '../utils/logger'
+
+const logger = new Logger({ source: 'email.service' })
 
 export interface ISendVerificationEmailInput {
 	to: string
@@ -37,7 +40,7 @@ export async function sendVerificationEmail(input: ISendVerificationEmailInput):
 			`
 		})
 	} catch (error) {
-		console.error('Failed to send verification email:', error)
+		logger.error('Failed to send verification email', { error })
 		throw new CustomError('Failed to send verification email', EStatusCodes.INTERNAL_SERVER_ERROR)
 	}
 }
@@ -65,7 +68,7 @@ export async function sendPasswordResetEmail(input: ISendPasswordResetEmailInput
 			`
 		})
 	} catch (error) {
-		console.error('Failed to send password reset email:', error)
+		logger.error('Failed to send password reset email', { error })
 		throw new CustomError('Failed to send password reset email', EStatusCodes.INTERNAL_SERVER_ERROR)
 	}
 }

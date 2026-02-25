@@ -1,6 +1,6 @@
 module.exports = {
   apps: [{
-    name: 'codebase-express-react',                    // change per project to avoid PM2 conflicts
+    name: 'codebase-trpc-react',                    // change per project to avoid PM2 conflicts
     script: 'dist/server.js',
     cwd: './back-end',
     autorestart: true,

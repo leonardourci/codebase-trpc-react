@@ -1,5 +1,5 @@
 {
-  "name": "codebase-express-react",
+  "name": "codebase-trpc-react",
   "private": true,
   "version": "1.0.0",
   "description": "Monorepo orchestrator for front-end and back-end",

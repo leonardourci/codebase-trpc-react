@@ -1,4 +1,4 @@
-export interface IBaseModel {
+export interface BaseModel {
     // uuid
     id: string
     createdAt: Date

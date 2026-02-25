@@ -1,12 +1,12 @@
 import { initTRPC } from '@trpc/server'
 import { Request, Response } from 'express'
 
-import { ENodeEnvs } from '../types/envs'
-import { IUser } from '../types/user'
+import { NodeEnv } from '../types/envs'
+import { User } from '../types/user'
 import globalConfig from '../utils/global-config'
 
 export interface ITRPCContext {
-	user?: IUser
+	user?: User
 	req: Request
 	res: Response
 }
@@ -21,7 +21,7 @@ export const createTRPCContext = (opts: { req: Request; res: Response }): ITRPCC
 
 export const t = initTRPC.context<ITRPCContext>().create({
 	errorFormatter({ shape, error }) {
-		const isProduction = globalConfig.nodeEnv === ENodeEnvs.PRODUCTION
+		const isProduction = globalConfig.nodeEnv === NodeEnv.PRODUCTION
 
 		// In production, remove sensitive data like stack traces and internal paths
 		// In development, keep full error details for debugging

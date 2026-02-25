@@ -1,11 +1,11 @@
 import db from '../database/knex'
 import { createBilling, getBillingByExternalSubscriptionId, getBillingByUserId, updateBillingById } from '../database/repositories/billing.repository'
-import { getFreeTierProduct } from '../database/repositories/product.repository'
 import { getUserByEmail, updateUserById } from '../database/repositories/user.repository'
-import { IUpdateUserBillingInput } from '../types/billing'
+import type { UpdateUserBillingInput } from '../types/billing'
 import { unixTimestampToDate } from '../utils/time'
+import { downgradeToFreeTier } from 'src/services/auth.service'
 
-export const registerUserBilling = async (input: IUpdateUserBillingInput) => {
+export const registerUserBilling = async (input: UpdateUserBillingInput) => {
 	const user = await getUserByEmail({ email: input.userEmail })
 	if (!user) {
 		throw new Error(`User with email "${input.userEmail}" not found`)
@@ -48,7 +48,7 @@ export const registerUserBilling = async (input: IUpdateUserBillingInput) => {
 		await updateUserById(
 			{
 				id: user.id,
-				updates: { productId: input.productId }
+				updates: { currentProductId: input.productId }
 			},
 			trx
 		)
@@ -90,19 +90,12 @@ export const updateBillingOnSubscriptionUpdated = async (input: {
 		)
 
 		if (input.status === 'canceled' || input.status === 'unpaid') {
-			const defaultProduct = await getFreeTierProduct()
-			await updateUserById(
-				{
-					id: billing.userId,
-					updates: { productId: defaultProduct.id }
-				},
-				trx
-			)
+			await downgradeToFreeTier({ userId: billing.userId }, trx)
 		} else if (input.productId && input.productId !== billing.productId) {
 			await updateUserById(
 				{
 					id: billing.userId,
-					updates: { productId: input.productId }
+					updates: { currentProductId: input.productId }
 				},
 				trx
 			)
@@ -127,13 +120,6 @@ export const updateBillingOnSubscriptionDeleted = async ({ externalSubscriptionI
 			trx
 		)
 
-		const defaultProduct = await getFreeTierProduct()
-		await updateUserById(
-			{
-				id: billing.userId,
-				updates: { productId: defaultProduct.id }
-			},
-			trx
-		)
+		await downgradeToFreeTier({ userId: billing.userId }, trx)
 	})
 }

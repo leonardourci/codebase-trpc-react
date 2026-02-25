@@ -1,6 +1,6 @@
 import { Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useTheme } from '@/contexts/ThemeContext'
+import { useTheme } from '@/providers/ThemeContext'
 
 interface ThemeToggleProps {
   className?: string

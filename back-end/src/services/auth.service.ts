@@ -4,19 +4,20 @@ import { OAuth2Client } from 'google-auth-library'
 
 import { decodeJwtToken, generateJwtToken, verifyJwtToken } from '../utils/jwt'
 import { CustomError, ZodValidationError } from '../utils/errors'
-import { EStatusCodes } from '../utils/status-codes'
-import { TLoginInput, ILoginResponse, TSignupInput } from '../types/auth'
-import { TRefreshTokenInput, IRefreshTokenResponse } from '../types/refreshToken'
-import { ETokenPurpose } from '../types/jwt'
+import { StatusCodes } from '../utils/status-codes'
+import { LoginInput, LoginResponse, SignupInput } from '../types/auth'
+import { RefreshTokenInput, RefreshTokenResponse } from '../types/refreshToken'
+import { TokenPurpose } from '../types/jwt'
 import { createUser, getUserByEmail, getUserByGoogleId, getUserByRefreshToken, updateUserById, getUserById } from '../database/repositories/user.repository'
 import { getFreeTierProduct } from '../database/repositories/product.repository'
 import { getBillingByUserId } from '../database/repositories/billing.repository'
 import { getUserProfile } from './user.service'
-import { IUser, IUserProfile } from '../types/user'
+import { User, UserProfile } from '../types/user'
 import globalConfig from '../utils/global-config'
 import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/email'
 import { googleTokenPayloadSchema, TGoogleTokenPayload } from '../utils/validations/google-auth.schemas'
 import Logger from 'src/utils/logger'
+import { Knex } from 'knex'
 
 const { HASH_SALT } = process.env
 
@@ -33,7 +34,7 @@ async function verifyGoogleCredential({ credential }: { credential: string }): P
 		const payload = ticket.getPayload()
 
 		if (!payload) {
-			throw new CustomError('Empty token payload', EStatusCodes.UNAUTHORIZED)
+			throw new CustomError('Empty token payload', StatusCodes.UNAUTHORIZED)
 		}
 
 		const { data, error } = googleTokenPayloadSchema.safeParse(payload)
@@ -51,7 +52,7 @@ async function verifyGoogleCredential({ credential }: { credential: string }): P
 		}
 
 		// Generic error for other cases (network issues, invalid signature, etc.)
-		throw new CustomError('Invalid Google token', EStatusCodes.UNAUTHORIZED)
+		throw new CustomError('Invalid Google token', StatusCodes.UNAUTHORIZED)
 	}
 }
 
@@ -59,12 +60,12 @@ export interface IGoogleAuthInput {
 	credential: string
 }
 
-const generateTokens = ({ userId }: { userId: IUser['id'] }): { accessToken: string; refreshToken: string } => ({
+const generateTokens = ({ userId }: { userId: User['id'] }): { accessToken: string; refreshToken: string } => ({
 	accessToken: generateJwtToken({ userId }, { expiresIn: '1h' }),
 	refreshToken: generateJwtToken({ userId }, { expiresIn: '7d' })
 })
 
-async function hasExpiredSubscription(userId: string): Promise<boolean> {
+async function hasExpiredSubscription({ userId }: { userId: User['id'] }): Promise<boolean> {
 	const billing = await getBillingByUserId({ userId })
 
 	if (!billing || !billing.expiresAt) {
@@ -74,12 +75,12 @@ async function hasExpiredSubscription(userId: string): Promise<boolean> {
 	return new Date(billing.expiresAt).getTime() < new Date().getTime()
 }
 
-async function downgradeToFreeTier(userId: string): Promise<void> {
+export async function downgradeToFreeTier({ userId }: { userId: User['id'] }, trx?: Knex.Transaction): Promise<void> {
 	const defaultProduct = await getFreeTierProduct()
-	await updateUserById({ id: userId, updates: { productId: defaultProduct.id } })
+	await updateUserById({ id: userId, updates: { currentProductId: defaultProduct.id } }, trx)
 }
 
-export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<ILoginResponse> {
+export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<LoginResponse> {
 	const { credential } = input
 
 	const payload = await verifyGoogleCredential({ credential })
@@ -114,7 +115,7 @@ export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<I
 				age: 0,
 				passwordHash,
 				googleId,
-				productId: defaultProduct.id,
+				currentProductId: defaultProduct.id,
 
 				// If the user is loggin in with Google, we assume that the email is correct.
 				emailVerified: true
@@ -122,8 +123,8 @@ export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<I
 		}
 	}
 
-	if (await hasExpiredSubscription(userByGoogleId.id)) {
-		await downgradeToFreeTier(userByGoogleId.id)
+	if (await hasExpiredSubscription({ userId: userByGoogleId.id })) {
+		await downgradeToFreeTier({ userId: userByGoogleId.id })
 	}
 
 	const { accessToken, refreshToken } = generateTokens({ userId: userByGoogleId.id })
@@ -136,17 +137,17 @@ export async function authenticateWithGoogle(input: IGoogleAuthInput): Promise<I
 	}
 }
 
-export async function authenticateUser(input: TLoginInput): Promise<ILoginResponse> {
+export async function authenticateUser(input: LoginInput): Promise<LoginResponse> {
 	const user = await getUserByEmail({ email: input.email })
 
-	if (!user) throw new CustomError('Email or password is wrong', EStatusCodes.UNAUTHORIZED)
+	if (!user) throw new CustomError('Email or password is wrong', StatusCodes.UNAUTHORIZED)
 
 	const isValidPassword = bcrypt.compareSync(input.password, user.passwordHash)
 
-	if (!isValidPassword) throw new CustomError('Email or password is wrong', EStatusCodes.UNAUTHORIZED)
+	if (!isValidPassword) throw new CustomError('Email or password is wrong', StatusCodes.UNAUTHORIZED)
 
-	if (await hasExpiredSubscription(user.id)) {
-		await downgradeToFreeTier(user.id)
+	if (await hasExpiredSubscription({ userId: user.id })) {
+		await downgradeToFreeTier({ userId: user.id })
 	}
 
 	const { accessToken, refreshToken } = generateTokens({ userId: user.id })
@@ -159,8 +160,8 @@ export async function authenticateUser(input: TLoginInput): Promise<ILoginRespon
 	}
 }
 
-export async function registerUser({ password, ...input }: TSignupInput): Promise<IUserProfile> {
-	const passwordHash = bcrypt.hashSync(password, Number(HASH_SALT) ?? '')
+export async function registerUser({ password, ...input }: SignupInput): Promise<UserProfile> {
+	const passwordHash = bcrypt.hashSync(password, Number(HASH_SALT) || 10)
 
 	const defaultProduct = await getFreeTierProduct()
 
@@ -168,10 +169,10 @@ export async function registerUser({ password, ...input }: TSignupInput): Promis
 		passwordHash,
 		...input,
 		emailVerified: false,
-		productId: defaultProduct.id
+		currentProductId: defaultProduct.id
 	})
 
-	const verificationToken = generateJwtToken({ userId: user.id, purpose: ETokenPurpose.EMAIL_VERIFICATION }, { expiresIn: '30m' })
+	const verificationToken = generateJwtToken({ userId: user.id, purpose: TokenPurpose.EMAIL_VERIFICATION }, { expiresIn: '30m' })
 
 	await updateUserById({
 		id: user.id,
@@ -192,23 +193,23 @@ export async function registerUser({ password, ...input }: TSignupInput): Promis
 	const userProfile = await getUserProfile({ userId: user.id })
 
 	if (!userProfile) {
-		throw new CustomError('Failed to retrieve user profile', EStatusCodes.INTERNAL_SERVER_ERROR)
+		throw new CustomError('Failed to retrieve user profile', StatusCodes.INTERNAL_SERVER_ERROR)
 	}
 
 	return userProfile
 }
 
-export async function refreshAccessToken(input: TRefreshTokenInput): Promise<IRefreshTokenResponse> {
+export async function refreshAccessToken(input: RefreshTokenInput): Promise<RefreshTokenResponse> {
 	verifyJwtToken({ token: input.refreshToken })
 
 	const user = await getUserByRefreshToken({ refreshToken: input.refreshToken })
 
 	if (!user) {
-		throw new CustomError('Invalid refresh token', EStatusCodes.UNAUTHORIZED)
+		throw new CustomError('Invalid refresh token', StatusCodes.UNAUTHORIZED)
 	}
 
-	if (await hasExpiredSubscription(user.id)) {
-		await downgradeToFreeTier(user.id)
+	if (await hasExpiredSubscription({ userId: user.id })) {
+		await downgradeToFreeTier({ userId: user.id })
 	}
 
 	const { accessToken, refreshToken } = generateTokens({ userId: user.id })
@@ -229,19 +230,19 @@ export async function verifyUserEmail({ token }: { token: string }): Promise<voi
 	verifyJwtToken({ token })
 	const decoded = decodeJwtToken({ token })
 
-	if (decoded.purpose !== ETokenPurpose.EMAIL_VERIFICATION) {
-		throw new CustomError('Invalid verification token', EStatusCodes.BAD_REQUEST)
+	if (decoded.purpose !== TokenPurpose.EMAIL_VERIFICATION) {
+		throw new CustomError('Invalid verification token', StatusCodes.BAD_REQUEST)
 	}
 
 	const user = await getUserById({ id: decoded.userId })
 
 	if (!user) {
-		throw new CustomError('Invalid verification token', EStatusCodes.BAD_REQUEST)
+		throw new CustomError('Invalid verification token', StatusCodes.BAD_REQUEST)
 	}
 
 	// Prevent token reuse after resend
 	if (user.emailVerificationToken !== token) {
-		throw new CustomError('Invalid or expired verification token', EStatusCodes.BAD_REQUEST)
+		throw new CustomError('Invalid or expired verification token', StatusCodes.BAD_REQUEST)
 	}
 
 	if (user.emailVerified) {
@@ -261,14 +262,14 @@ export async function resendVerificationEmail({ userId }: { userId: string }): P
 	const user = await getUserById({ id: userId })
 
 	if (!user) {
-		throw new CustomError('User not found', EStatusCodes.NOT_FOUND)
+		throw new CustomError('User not found', StatusCodes.NOT_FOUND)
 	}
 
 	if (user.emailVerified) {
-		throw new CustomError('Email already verified', EStatusCodes.BAD_REQUEST)
+		throw new CustomError('Email already verified', StatusCodes.BAD_REQUEST)
 	}
 
-	const verificationToken = generateJwtToken({ userId: user.id, purpose: ETokenPurpose.EMAIL_VERIFICATION }, { expiresIn: '30m' })
+	const verificationToken = generateJwtToken({ userId: user.id, purpose: TokenPurpose.EMAIL_VERIFICATION }, { expiresIn: '30m' })
 
 	await updateUserById({
 		id: user.id,
@@ -290,7 +291,7 @@ export async function forgotPassword({ email }: { email: string }): Promise<void
 		return
 	}
 
-	const resetToken = generateJwtToken({ userId: user.id, purpose: ETokenPurpose.PASSWORD_RESET }, { expiresIn: '15m' })
+	const resetToken = generateJwtToken({ userId: user.id, purpose: TokenPurpose.PASSWORD_RESET }, { expiresIn: '15m' })
 
 	await sendPasswordResetEmail({
 		to: user.email,
@@ -303,14 +304,14 @@ export async function resetPassword({ token, newPassword }: { token: string; new
 	verifyJwtToken({ token })
 	const decoded = decodeJwtToken({ token })
 
-	if (decoded.purpose !== ETokenPurpose.PASSWORD_RESET) {
-		throw new CustomError('Invalid reset token', EStatusCodes.BAD_REQUEST)
+	if (decoded.purpose !== TokenPurpose.PASSWORD_RESET) {
+		throw new CustomError('Invalid reset token', StatusCodes.BAD_REQUEST)
 	}
 
 	const user = await getUserById({ id: decoded.userId })
 
 	if (!user) {
-		throw new CustomError('Invalid reset token', EStatusCodes.BAD_REQUEST)
+		throw new CustomError('Invalid reset token', StatusCodes.BAD_REQUEST)
 	}
 
 	const passwordHash = bcrypt.hashSync(newPassword, Number(globalConfig.hashSalt))

@@ -1,4 +1,4 @@
-import type { IUserProfile } from '@/types/user'
+import type { UserProfile } from '@/lib/trpc-types'
 import { STORAGE_KEYS } from '@/constants'
 
 const ACCESS_TOKEN_KEY = STORAGE_KEYS.ACCESS_TOKEN
@@ -26,11 +26,11 @@ export const getRefreshToken = (): string | null => {
     return localStorage.getItem(REFRESH_TOKEN_KEY)
 }
 
-export const setUser = (user: IUserProfile): void => {
+export const setUser = (user: UserProfile): void => {
     localStorage.setItem(USER_KEY, JSON.stringify(user))
 }
 
-export const getUser = (): IUserProfile | null => {
+export const getUser = (): UserProfile | null => {
     const userStr = localStorage.getItem(USER_KEY)
     return userStr ? JSON.parse(userStr) : null
 }

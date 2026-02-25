@@ -1,6 +1,6 @@
-import { IBaseModel } from "./base"
+import { BaseModel } from "./base"
 
-export interface IProduct extends IBaseModel {
+export interface Product extends BaseModel {
     name: string
     description: string
     priceInCents: number
@@ -11,7 +11,7 @@ export interface IProduct extends IBaseModel {
     maxProjects: number | null
 }
 
-export interface IProductDbRow {
+export interface ProductDbRow {
     id: string
     name: string
     description: string

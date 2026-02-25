@@ -7,9 +7,9 @@ export {
     loginSchema,
     signupSchema,
     signupBaseSchema,
-    type TLoginInput,
+    type LoginInput,
     type TSignUpFormInput,
-    type TSignupInput,
+    type SignupInput,
     // Legacy aliases
     type LoginFormData,
     type SignupFormData,

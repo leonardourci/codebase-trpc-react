@@ -1,20 +1,20 @@
 import { Response } from 'express'
 
-import { IBillingRequest } from '../middlewares/billing.middleware'
+import { BillingRequest } from '../middlewares/billing.middleware'
 import { getProductByExternalPriceId } from '../database/repositories/product.repository'
-import Logger from '../utils/logger'
 import {
 	registerUserBilling,
 	updateBillingOnPaymentFailed,
 	updateBillingOnSubscriptionUpdated,
 	updateBillingOnSubscriptionDeleted
 } from '../services/billing.service'
-import { EStatusCodes } from '../utils/status-codes'
+import { StatusCodes } from '../utils/status-codes'
 import { unixTimestampToDate } from '../utils/time'
+import Logger from '../utils/logger'
 
 const logger = new Logger({ source: 'BILLING-CONTROLLER' })
 
-export const processBillingWebhookHandler = async (req: IBillingRequest, res: Response): Promise<void> => {
+export const processBillingWebhookHandler = async (req: BillingRequest, res: Response): Promise<void> => {
 	if (!req.billingEvent) {
 		throw new Error('req.billingEvent is missing in processBillingWebhookHandler')
 	}
@@ -40,7 +40,7 @@ export const processBillingWebhookHandler = async (req: IBillingRequest, res: Re
 					throw new Error('invoice.paid: Price ID missing from invoice line item')
 				}
 
-				const product = await getProductByExternalPriceId({ priceId: externalPriceId as string })
+				const product = await getProductByExternalPriceId({ id: externalPriceId as string })
 
 				if (!product) {
 					logger.error(`invoice.paid: Product with external price ID "${externalPriceId}" not found`)
@@ -93,7 +93,7 @@ export const processBillingWebhookHandler = async (req: IBillingRequest, res: Re
 			let productId: string | undefined
 
 			if (priceId) {
-				const product = await getProductByExternalPriceId({ priceId })
+				const product = await getProductByExternalPriceId({ id: priceId })
 				if (product) {
 					productId = product.id
 				} else {
@@ -119,5 +119,5 @@ export const processBillingWebhookHandler = async (req: IBillingRequest, res: Re
 		}
 	}
 
-	res.status(EStatusCodes.OK).json({ received: true })
+	res.status(StatusCodes.OK).json({ received: true })
 }

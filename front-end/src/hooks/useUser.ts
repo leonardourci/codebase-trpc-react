@@ -1,24 +1,24 @@
 import { useState, useCallback } from 'react'
-import { userService } from '../services/user.service'
-import { type IUserProfile, type TUpdateUserInput as IUpdateUserInput } from '@/types/user'
+import { trpcClient } from '../lib/trpc'
+import { type UserProfile, type UpdateUserInput as IUpdateUserInput } from '@/lib/trpc-types'
 
 export interface UseUserReturn {
     isLoading: boolean
     error: string | null
-    getProfile: () => Promise<IUserProfile>
-    updateProfile: (updates: IUpdateUserInput) => Promise<IUserProfile>
+    getProfile: () => Promise<UserProfile>
+    updateProfile: (updates: IUpdateUserInput) => Promise<UserProfile>
 }
 
 export function useUser(): UseUserReturn {
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    const getProfile = useCallback(async (): Promise<IUserProfile> => {
+    const getProfile = useCallback(async (): Promise<UserProfile> => {
         setIsLoading(true)
         setError(null)
 
         try {
-            const profile = await userService.getProfile()
+            const profile = await trpcClient.user.getUserById.query()
             if (!profile) {
                 throw new Error('User not found')
             }
@@ -32,12 +32,12 @@ export function useUser(): UseUserReturn {
         }
     }, [])
 
-    const updateProfile = useCallback(async (updates: IUpdateUserInput): Promise<IUserProfile> => {
+    const updateProfile = useCallback(async (updates: IUpdateUserInput): Promise<UserProfile> => {
         setIsLoading(true)
         setError(null)
 
         try {
-            const updatedProfile = await userService.updateProfile(updates)
+            const updatedProfile = await trpcClient.user.updateUserById.mutate(updates)
             if (!updatedProfile) {
                 throw new Error('Failed to update profile')
             }

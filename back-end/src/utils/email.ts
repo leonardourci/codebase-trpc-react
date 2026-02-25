@@ -1,7 +1,7 @@
 import { ISendPasswordResetEmailInput, ISendVerificationEmailInput } from '../services/email.service'
 import { CustomError } from './errors'
 import globalConfig from './global-config'
-import { EStatusCodes } from './status-codes'
+import { StatusCodes } from './status-codes'
 
 export const MILLISECONDS_PER_SECOND = 1000
 export const EMAIL_CHANGE_COOLDOWN_MS = 60000 // 1 minute
@@ -66,7 +66,7 @@ export async function sendVerificationEmail(input: ISendVerificationEmailInput):
 		})
 	} catch (error) {
 		console.error('Failed to send verification email:', error)
-		throw new CustomError('Failed to send verification email', EStatusCodes.INTERNAL_SERVER_ERROR)
+		throw new CustomError('Failed to send verification email', StatusCodes.INTERNAL_SERVER_ERROR)
 	}
 }
 
@@ -94,7 +94,7 @@ export async function sendPasswordResetEmail(input: ISendPasswordResetEmailInput
 		})
 	} catch (error) {
 		console.error('Failed to send password reset email:', error)
-		throw new CustomError('Failed to send password reset email', EStatusCodes.INTERNAL_SERVER_ERROR)
+		throw new CustomError('Failed to send password reset email', StatusCodes.INTERNAL_SERVER_ERROR)
 	}
 }
 
@@ -122,6 +122,6 @@ export async function sendEmailChangeCode(input: { to: string; fullName: string;
 		})
 	} catch (error) {
 		console.error('Failed to send email change code:', error)
-		throw new CustomError('Failed to send verification code', EStatusCodes.INTERNAL_SERVER_ERROR)
+		throw new CustomError('Failed to send verification code', StatusCodes.INTERNAL_SERVER_ERROR)
 	}
 }

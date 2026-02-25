@@ -16,10 +16,10 @@ import {
 import { useAuth } from '@/hooks/useAuth'
 import { useFormValidation } from '@/hooks/useFormValidation'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
-import { useAuthModal } from '@/contexts/AuthModalContext'
-import { loginSchema, type TLoginInput } from '@/validations/auth.schemas'
+import { useAuthModal } from '@/providers/AuthModalContext'
+import { loginSchema, type LoginInput } from '@/validations/auth.schemas'
 import { signupSchema, type TSignUpFormInput } from '@/validations/auth.schemas'
-import type { TSignupInput } from '@/types/auth'
+import type { SignupInput } from '@/lib/trpc-types'
 import { GoogleAuthButton } from './GoogleAuthButton'
 import { AuthDivider } from './AuthDivider'
 
@@ -39,7 +39,7 @@ function AuthForm({ mode, onSwitchMode, onSuccess }: AuthFormProps) {
     errors: loginErrors,
     handleInputChange: handleLoginChange,
     handleSubmit: handleLoginSubmit,
-  } = useFormValidation<TLoginInput>(
+  } = useFormValidation<LoginInput>(
     { email: '', password: '' },
     loginSchema
   )
@@ -61,7 +61,7 @@ function AuthForm({ mode, onSwitchMode, onSuccess }: AuthFormProps) {
     signupSchema
   )
 
-  const onLoginSubmit = async (data: TLoginInput) => {
+  const onLoginSubmit = async (data: LoginInput) => {
     setIsLoading(true)
     try {
       await login(data)
@@ -76,7 +76,7 @@ function AuthForm({ mode, onSwitchMode, onSuccess }: AuthFormProps) {
     setIsLoading(true)
     try {
       const { confirmPassword, ...signupPayload } = data
-      await signup(signupPayload as TSignupInput)
+      await signup(signupPayload as SignupInput)
       onSuccess?.()
       navigate('/dashboard')
     } finally {

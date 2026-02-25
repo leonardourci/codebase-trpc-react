@@ -51,7 +51,6 @@ app.get('/health', (req, res) => {
 
 app.use(express.json({ limit: '10mb' }))
 
-// Mount tRPC on /trpc route
 app.use(
 	'/trpc',
 	trpcExpress.createExpressMiddleware({

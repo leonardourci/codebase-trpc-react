@@ -8,13 +8,11 @@ import { EmailVerificationWarning } from '@/components/billing/EmailVerification
 import { EmailVerificationDialog } from '@/components/billing/EmailVerificationDialog'
 import { CurrentSubscriptionCard } from '@/components/billing/CurrentSubscriptionCard'
 import { SubscriptionPricingGrid } from '@/components/billing/SubscriptionPricingGrid'
-import { OtherAvailablePlans } from '@/components/billing/OtherAvailablePlans'
 import { BillingPeriodToggle } from '@/components/billing/BillingPeriodToggle'
 import { trpc } from '@/lib/trpc'
 import { useAuth } from '@/hooks/useAuth'
 import { PRICING_PLANS } from '@shared/config/pricing.config'
 import { EBillingPeriod } from '@shared/types/pricing.types'
-import { getPlanByExternalPriceId } from '@/utils/pricing'
 
 export function BillingPage() {
   const { user, refreshUser } = useAuth()
@@ -73,8 +71,8 @@ export function BillingPage() {
         // Re-fetch user data from the database to sync frontend with backend state
         try {
           await refreshUser()
-        } catch (refreshError) {
-          console.error('Failed to refresh user data:', refreshError)
+        } catch {
+          // sync failure is non-critical; backend state will be correct
         }
 
         setShowVerificationError(true)
@@ -137,9 +135,10 @@ export function BillingPage() {
   const billing = billingData?.billing
 
   // Derive current plan from billing data (fresh from DB)
-  const currentPlan = getPlanByExternalPriceId(
-    billingData?.externalPriceId ?? null
-  )
+  const externalPriceId = billingData?.externalPriceId ?? null
+  const currentPlan =
+    PRICING_PLANS.find(p => p.externalPriceId === externalPriceId) ??
+    PRICING_PLANS.find(p => p.isFreeTier)!
 
   // If billing says there's an active subscription, trust that over the auth context
   const isOnFreeTier = !hasSubscription
@@ -151,7 +150,7 @@ export function BillingPage() {
   return (
     <AppLayout showSidebar>
       <div className="space-y-6">
-        <BillingPageHeader hasSubscription={hasSubscription && !isOnFreeTier} />
+        <BillingPageHeader hasSubscription={!!(hasSubscription && !isOnFreeTier)} />
 
         {!user?.emailVerified && (
           <EmailVerificationWarning

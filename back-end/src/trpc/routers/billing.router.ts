@@ -19,7 +19,7 @@ export const billingRouter = router({
 	}),
 
 	createCheckoutSession: verifiedEmailProcedure.input(createCheckoutSessionSchema).mutation(async ({ input, ctx }) => {
-		const product = await getProductByExternalPriceId({ priceId: input.priceId })
+		const product = await getProductByExternalPriceId({ id: input.priceId })
 		if (!product) {
 			throw new TRPCError({
 				code: 'NOT_FOUND',

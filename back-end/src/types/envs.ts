@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { globalEnvsSchema } from '../utils/validations/envs.schemas'
 
-export enum ENodeEnvs {
+export enum NodeEnv {
 	DEVELOPMENT = 'development',
 	PRODUCTION = 'production',
 	TEST = 'test'

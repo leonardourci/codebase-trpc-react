@@ -1,7 +1,7 @@
 import { updateUserById, getUserById } from '../database/repositories/user.repository'
-import type { IUser, IUserProfile, TUpdateUserInput } from '../types/user'
+import type { User, UserProfile, UpdateUserInput } from '../types/user'
 
-export const removeUserSensitive = ({ user }: { user: IUser }): IUserProfile => {
+export const removeUserSensitive = ({ user }: { user: User }): UserProfile => {
 	return {
 		id: user.id,
 		email: user.email,
@@ -12,7 +12,7 @@ export const removeUserSensitive = ({ user }: { user: IUser }): IUserProfile => 
 	}
 }
 
-export async function getUserProfile({ userId }: { userId: IUser['id'] }): Promise<IUserProfile | null> {
+export async function getUserProfile({ userId }: { userId: User['id'] }): Promise<UserProfile | null> {
 	const user = await getUserById({ id: userId })
 
 	if (!user) {
@@ -22,7 +22,7 @@ export async function getUserProfile({ userId }: { userId: IUser['id'] }): Promi
 	return removeUserSensitive({ user })
 }
 
-export async function updateUserProfile({ userId, updates }: { userId: IUser['id']; updates: TUpdateUserInput }): Promise<IUserProfile | null> {
+export async function updateUserProfile({ userId, updates }: { userId: User['id']; updates: UpdateUserInput }): Promise<UserProfile | null> {
 	const user = await updateUserById({ id: userId, updates })
 
 	if (!user) {

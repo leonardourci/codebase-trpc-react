@@ -1,8 +1,8 @@
 Makefile
 **/.env
 **/.env*
-!/.env.backend.example
-!/.env.frontend.example
+!back-end/.env.example
+!front-end/.env.example
 node_modules
 dist
 .DS_Store

@@ -12,7 +12,7 @@ export async function up(knex: Knex): Promise<void> {
 		table.text('refresh_token').nullable()
 		table.boolean('email_verified').notNullable().defaultTo(false)
 		table.text('email_verification_token').nullable()
-		table.uuid('product_id').nullable()
+		table.uuid('current_product_id').nullable()
 		table.timestamps(true, true)
 	})
 }

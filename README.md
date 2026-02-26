@@ -2,7 +2,7 @@
 
 ### I created this to ease creating my SaaS and to have a code pattern to follow while "vibe-coding" instead of always facing a different codebase with weird AI stuff (even tho the front-end of this has been 100% vibe-coded)
 
-This project doesn't follow a specific architecture, this is like a Frankeinstein of the stuff I really find useful/like when coding and with focus on simplicity.
+This project doesn't follow a specific architecture, this is like a Frankenstein of the stuff I really find useful/like when coding and with focus on simplicity.
 
 ### Stack
 

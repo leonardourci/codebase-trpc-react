@@ -31,3 +31,4 @@ Most projects start with monoliths but with microservices patterns for the sake 
 
 #### You can understand the code and what third party apps you need to connect/create accounts with AI. You can easily just check the `.env.example` files as well
 
+<img width="1191" height="1102" alt="image" src="https://github.com/user-attachments/assets/c97ae011-bb93-49f2-9779-160461c4d748" />

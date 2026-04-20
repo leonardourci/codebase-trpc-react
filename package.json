@@ -8,6 +8,7 @@
     "front-end"
   ],
   "scripts": {
+    "prepare": "effect-language-service patch",
     "dev": "concurrently -n api,web -c green,blue \"npm run --prefix back-end dev\" \"npm run --prefix front-end dev\"",
     "build": "npm run --prefix back-end build && npm run --prefix front-end build",
     "test": "npm run --prefix back-end test",
@@ -18,6 +19,7 @@
     "db:migrate": "npm run --prefix back-end db:migrate"
   },
   "devDependencies": {
+    "@effect/language-service": "^0.85.1",
     "concurrently": "^8.2.1"
   }
 }
